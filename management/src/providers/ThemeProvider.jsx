@@ -15,19 +15,31 @@ export function ThemeProvider({ children }) {
     try {
       // Check localStorage first
       const savedTheme = localStorage.getItem('theme')
-      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system')) {
+        if (savedTheme === 'system') {
+          return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
         return savedTheme
       }
       
-      // Check system preference
+      // Default to system preference if no saved theme
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         return 'dark'
       }
       
       return 'light'
-    } catch (error) {
+    } catch {
       // Fallback if localStorage is not available
       return 'light'
+    }
+  })
+  
+  const [themeMode, setThemeMode] = useState(() => {
+    try {
+      const savedTheme = localStorage.getItem('theme')
+      return savedTheme || 'system'
+    } catch {
+      return 'system'
     }
   })
 
@@ -41,56 +53,55 @@ export function ThemeProvider({ children }) {
     // Add the current theme class
     root.classList.add(theme)
 
-    // Save to localStorage only if it's a valid theme
+    // Save themeMode to localStorage
     try {
-      if (theme === 'light' || theme === 'dark') {
-        localStorage.setItem('theme', theme)
-      }
+      localStorage.setItem('theme', themeMode)
     } catch (error) {
       // Handle localStorage errors gracefully
       console.warn('Could not save theme to localStorage:', error)
     }
-  }, [theme])
+  }, [theme, themeMode])
 
   useEffect(() => {
     // Listen for system theme changes
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     
     const handleChange = (e) => {
-      // Only update if user hasn't manually set a preference
-      if (!localStorage.getItem('theme')) {
+      // Only update if using system theme
+      if (themeMode === 'system') {
         setTheme(e.matches ? 'dark' : 'light')
       }
     }
 
     mediaQuery.addEventListener('change', handleChange)
     return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
+  }, [themeMode])
 
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark')
+    const nextTheme = theme === 'dark' ? 'light' : 'dark'
+    setTheme(nextTheme)
+    setThemeMode(nextTheme)
   }
 
   const setLightTheme = () => {
     setTheme('light')
+    setThemeMode('light')
   }
   
   const setDarkTheme = () => {
     setTheme('dark')
+    setThemeMode('dark')
   }
   
   const setSystemTheme = () => {
-    try {
-      localStorage.removeItem('theme')
-    } catch (error) {
-      console.warn('Could not remove theme from localStorage:', error)
-    }
+    setThemeMode('system')
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     setTheme(systemTheme)
   }
 
   const value = {
     theme,
+    themeMode,
     toggleTheme,
     setLightTheme,
     setDarkTheme,

@@ -143,7 +143,7 @@ export function Analytics({ links }) {
                           {index + 1}
                         </span>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {link.shortcode}
                           </p>
                           {link.description && (
@@ -169,9 +169,9 @@ export function Analytics({ links }) {
         </div>
 
         {/* Recent Links */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
               <Clock className="w-5 h-5 mr-2 text-orange-600" />
               Recently Created
             </h3>

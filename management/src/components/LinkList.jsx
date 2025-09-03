@@ -126,10 +126,10 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
 
   if (linkEntries.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-lg shadow" role="status" aria-live="polite">
-        <LinkIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No links yet</h3>
-        <p className="text-gray-600 mb-6">Get started by creating your first short link</p>
+      <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors" role="status" aria-live="polite">
+        <LinkIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" aria-hidden="true" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No links yet</h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">Get started by creating your first short link</p>
       </div>
     )
   }
@@ -245,7 +245,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                         href={link.url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-gray-900 hover:text-blue-600 truncate"
+                        className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 truncate transition-colors"
                       >
                         {link.url}
                       </a>

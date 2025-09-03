@@ -3,7 +3,7 @@ import { Sun, Moon, Monitor } from 'lucide-react'
 import { useTheme } from '../providers/ThemeProvider'
 
 export function ThemeToggle() {
-  const { theme, toggleTheme, setLightTheme, setDarkTheme, setSystemTheme, isDark } = useTheme()
+  const { themeMode, setLightTheme, setDarkTheme, setSystemTheme, isDark } = useTheme()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
 
@@ -19,14 +19,14 @@ export function ThemeToggle() {
   }, [])
 
   const getCurrentIcon = () => {
-    if (theme === 'dark') return <Moon className="w-4 h-4" />
-    if (theme === 'light') return <Sun className="w-4 h-4" />
+    if (themeMode === 'dark') return <Moon className="w-4 h-4" />
+    if (themeMode === 'light') return <Sun className="w-4 h-4" />
     return <Monitor className="w-4 h-4" />
   }
 
   const getCurrentLabel = () => {
-    if (theme === 'dark') return 'Dark'
-    if (theme === 'light') return 'Light'
+    if (themeMode === 'dark') return 'Dark'
+    if (themeMode === 'light') return 'Light'
     return 'System'
   }
 
@@ -64,7 +64,7 @@ export function ThemeToggle() {
               }}
               className={`
                 flex items-center w-full px-4 py-2 text-sm transition-colors
-                ${theme === 'light' 
+                ${themeMode === 'light' 
                   ? (isDark ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900')
                   : (isDark ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100')
                 }
@@ -73,8 +73,8 @@ export function ThemeToggle() {
             >
               <Sun className="w-4 h-4 mr-3" />
               Light
-              {theme === 'light' && (
-                <span className="ml-auto text-blue-600">✓</span>
+              {themeMode === 'light' && (
+                <span className="ml-auto text-blue-600 dark:text-blue-400">✓</span>
               )}
             </button>
             <button
@@ -84,7 +84,7 @@ export function ThemeToggle() {
               }}
               className={`
                 flex items-center w-full px-4 py-2 text-sm transition-colors
-                ${theme === 'dark' 
+                ${themeMode === 'dark' 
                   ? (isDark ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900')
                   : (isDark ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100')
                 }
@@ -93,8 +93,8 @@ export function ThemeToggle() {
             >
               <Moon className="w-4 h-4 mr-3" />
               Dark
-              {theme === 'dark' && (
-                <span className="ml-auto text-blue-600">✓</span>
+              {themeMode === 'dark' && (
+                <span className="ml-auto text-blue-600 dark:text-blue-400">✓</span>
               )}
             </button>
             <button
@@ -104,7 +104,7 @@ export function ThemeToggle() {
               }}
               className={`
                 flex items-center w-full px-4 py-2 text-sm transition-colors
-                ${!localStorage.getItem('theme') 
+                ${themeMode === 'system' 
                   ? (isDark ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900')
                   : (isDark ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-700 hover:bg-gray-100')
                 }
@@ -113,8 +113,8 @@ export function ThemeToggle() {
             >
               <Monitor className="w-4 h-4 mr-3" />
               System
-              {!localStorage.getItem('theme') && (
-                <span className="ml-auto text-blue-600">✓</span>
+              {themeMode === 'system' && (
+                <span className="ml-auto text-blue-600 dark:text-blue-400">✓</span>
               )}
             </button>
           </div>
