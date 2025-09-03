@@ -35,11 +35,17 @@ async function authenticateRequest(request) {
 	return await verifyGitHubToken(token);
 }
 
-async function requireAuth(request) {
+async function requireAuth(request, env) {
 	const user = await authenticateRequest(request);
 	if (!user) {
 		return corsResponse(new Response('Unauthorized', { status: 401 }));
 	}
+	
+	// Check if user is authorized
+	if (env.AUTHORIZED_USER && user.login !== env.AUTHORIZED_USER) {
+		return corsResponse(new Response('Forbidden: Access denied', { status: 403 }));
+	}
+	
 	return user;
 }
 
@@ -94,9 +100,9 @@ async function handleAPI(request, env) {
 	}
 
 	// Protected endpoints - auth required
-	const authResult = await requireAuth(request);
+	const authResult = await requireAuth(request, env);
 	if (authResult instanceof Response) {
-		return authResult; // Return the 401 response
+		return authResult; // Return the 401/403 response
 	}
 
 	if (path === '/api/links') {
@@ -277,6 +283,17 @@ async function handleGitHubCallback(request, env) {
 		});
 
 		const user = await userResponse.json();
+
+		// Check if user is authorized
+		if (env.AUTHORIZED_USER && user.login !== env.AUTHORIZED_USER) {
+			return corsResponse(new Response(JSON.stringify({
+				error: 'access_denied',
+				error_description: `Access denied. Only ${env.AUTHORIZED_USER} is authorized to use this service.`
+			}), { 
+				status: 403,
+				headers: { 'Content-Type': 'application/json' }
+			}));
+		}
 
 		return corsResponse(new Response(JSON.stringify({
 			access_token: tokenData.access_token,

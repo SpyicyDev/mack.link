@@ -35,6 +35,10 @@ class AuthService {
 
       const data = await response.json();
       
+      if (data.error === 'access_denied') {
+        throw new Error(data.error_description || 'Access denied: You are not authorized to use this service');
+      }
+      
       this.token = data.access_token;
       this.user = data.user;
       

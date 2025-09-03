@@ -30,10 +30,15 @@ export function LoginScreen() {
             </button>
           </div>
           
-          <div className="text-center text-xs text-gray-500">
+          <div className="text-center text-xs text-gray-500 space-y-2">
             <p>
               Secure authentication via GitHub OAuth
             </p>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-blue-800 text-sm">
+                🔒 This system is restricted to authorized users only
+              </p>
+            </div>
           </div>
         </div>
       </div>

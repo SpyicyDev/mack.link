@@ -17,7 +17,8 @@
 		}
 	],
 	"vars": {
-		"GITHUB_CLIENT_ID": "Ov23liS0CpATewxLcycF"
+		"GITHUB_CLIENT_ID": "Ov23liS0CpATewxLcycF",
+		"AUTHORIZED_USER": "SpyicyDev"
 	}
 	/**
 	 * Smart Placement
