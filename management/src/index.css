@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
-/* Dark mode only application */
+/* Color scheme adapts to theme */
 :root {
-  color-scheme: dark;
+  color-scheme: light dark;
+}
+
+html.dark {
+  color-scheme: dark light;
 }
 
 /* Screen reader only classes */

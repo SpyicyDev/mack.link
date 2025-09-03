@@ -1,8 +1,10 @@
-import { Link as LinkIcon, LogOut } from 'lucide-react'
+import { Link as LinkIcon, LogOut, Moon, Sun } from 'lucide-react'
 import { authService } from '../services/auth'
+import { useTheme } from '../providers/ThemeProvider'
 
 export function Header() {
   const user = authService.getUser();
+  const { theme, toggleTheme } = useTheme()
   
   const handleLogout = () => {
     authService.logout();
@@ -22,6 +24,14 @@ export function Header() {
           </div>
           
           <div className="flex items-center space-x-4">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
             {user && (
               <nav className="flex items-center space-x-4" role="navigation" aria-label="User menu">
                 <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300" role="status" aria-live="polite">

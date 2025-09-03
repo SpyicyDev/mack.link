@@ -9,6 +9,17 @@
     <title>link.mackhaymond.co - URL Shortener</title>
     <meta name="description" content="Personal URL shortener for mackhaymond.co" />
     <meta name="theme-color" content="#2563eb" />
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = stored || (prefersDark ? 'dark' : 'light');
+          if (theme === 'dark') document.documentElement.classList.add('dark');
+          else document.documentElement.classList.remove('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

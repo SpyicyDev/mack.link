@@ -8,8 +8,7 @@ import { LoginScreen } from './components/LoginScreen.jsx'
 import { authService } from './services/auth.js'
 import { QueryProvider } from './providers/QueryProvider.jsx'
 
-// Apply dark mode immediately
-document.documentElement.classList.add('dark')
+import { ThemeProvider } from './providers/ThemeProvider.jsx'
 
 const router = createBrowserRouter([
   {
@@ -29,7 +28,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
 	<StrictMode>
 		<QueryProvider>
-			<RouterProvider router={router} />
+			<ThemeProvider>
+				<RouterProvider router={router} />
+			</ThemeProvider>
 		</QueryProvider>
 	</StrictMode>,
 )
