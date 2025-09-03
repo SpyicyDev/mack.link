@@ -7,6 +7,8 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
       cacheTime: 1000 * 60 * 10, // 10 minutes
+      refetchOnWindowFocus: 'always',
+      refetchOnReconnect: 'always',
       retry: (failureCount, error) => {
         // Don't retry on 401/403 errors
         if (error?.status === 401 || error?.status === 403) {

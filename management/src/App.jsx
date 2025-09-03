@@ -20,8 +20,11 @@ function App() {
   const searchInputRef = useRef(null)
   
   // React Query hooks - only run when authenticated
+  // Make UI more realtime: periodic refetch tuned by current view
   const { data: links = {}, isLoading, error, refetch } = useLinks({ 
-    enabled: isAuthenticated 
+    enabled: isAuthenticated,
+    refetchInterval: currentView === 'analytics' ? 2000 : 5000,
+    refetchIntervalInBackground: currentView === 'analytics'
   })
   const createLinkMutation = useCreateLink()
   const updateLinkMutation = useUpdateLink()
