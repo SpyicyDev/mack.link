@@ -25,9 +25,15 @@ class AuthService {
     window.location.href = authUrl;
   }
 
-  async handleCallback(code) {
+  async handleCallback(code, state) {
     try {
-      const response = await fetch(`${API_BASE}/api/auth/callback?code=${code}`);
+      const url = new URL(`${API_BASE}/api/auth/callback`);
+      url.searchParams.set('code', code);
+      if (state) {
+        url.searchParams.set('state', state);
+      }
+      
+      const response = await fetch(url.toString());
       
       if (!response.ok) {
         throw new Error('Failed to authenticate');

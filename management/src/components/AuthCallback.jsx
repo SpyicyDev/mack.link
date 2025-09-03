@@ -10,13 +10,14 @@ export function AuthCallback() {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
+        const state = urlParams.get('state');
         
         if (!code) {
           throw new Error('No authorization code received');
         }
 
         setStatus('authenticating');
-        await authService.handleCallback(code);
+        await authService.handleCallback(code, state);
         
         setStatus('success');
         // Redirect to main app after short delay
