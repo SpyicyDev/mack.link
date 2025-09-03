@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { authService } from '../services/auth'
 
-export function AuthCallback() {
+export function AuthCallback({ onAuthSuccess }) {
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
 
@@ -20,6 +20,8 @@ export function AuthCallback() {
         await authService.handleCallback(code, state);
         
         setStatus('success');
+        onAuthSuccess?.();
+        
         // Redirect to main app after short delay
         setTimeout(() => {
           window.location.href = '/';

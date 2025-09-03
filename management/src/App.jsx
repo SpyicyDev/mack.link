@@ -18,15 +18,17 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated())
   const searchInputRef = useRef(null)
   
-  // React Query hooks
-  const { data: links = {}, isLoading, error, refetch } = useLinks()
+  // React Query hooks - only run when authenticated
+  const { data: links = {}, isLoading, error, refetch } = useLinks({ 
+    enabled: isAuthenticated 
+  })
   const createLinkMutation = useCreateLink()
   const updateLinkMutation = useUpdateLink()
   const deleteLinkMutation = useDeleteLink()
 
   // Handle OAuth callback
   if (window.location.pathname === '/auth/callback') {
-    return <AuthCallback />;
+    return <AuthCallback onAuthSuccess={() => setIsAuthenticated(true)} />;
   }
 
   // Show login screen if not authenticated
@@ -37,6 +39,22 @@ function App() {
   useEffect(() => {
     setFilteredLinks(links)
   }, [links])
+
+  // Listen for authentication state changes
+  useEffect(() => {
+    const checkAuth = () => {
+      const newAuthState = authService.isAuthenticated()
+      if (newAuthState !== isAuthenticated) {
+        setIsAuthenticated(newAuthState)
+      }
+    }
+
+    // Check immediately and then periodically
+    checkAuth()
+    const interval = setInterval(checkAuth, 1000)
+    
+    return () => clearInterval(interval)
+  }, [isAuthenticated])
 
   const handleCreateLink = useCallback(async (linkData) => {
     await createLinkMutation.mutateAsync(linkData)

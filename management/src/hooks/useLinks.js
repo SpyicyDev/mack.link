@@ -11,11 +11,12 @@ export const linkKeys = {
 }
 
 // Hook to fetch all links
-export function useLinks() {
+export function useLinks(options = {}) {
   return useQuery({
     queryKey: linkKeys.lists(),
     queryFn: linkAPI.getAllLinks,
     staleTime: 1000 * 60 * 2, // 2 minutes
+    ...options,
   })
 }
 
