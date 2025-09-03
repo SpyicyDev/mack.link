@@ -123,6 +123,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 <span className="text-gray-500 text-xs">link.mackhaymond.co/</span>
               </div>
               <input
+                ref={shortcodeRef}
                 type="text"
                 name="shortcode"
                 id="shortcode"
@@ -132,6 +133,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 placeholder="abc123"
                 required
               />
+            </div>
+            {fieldErrors.shortcode && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.shortcode}</p>
+            )}
             </div>
           </div>
 
@@ -149,6 +154,9 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               placeholder="https://example.com"
               required
             />
+            {fieldErrors.url && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.url}</p>
+            )}
           </div>
 
           <div>
@@ -164,6 +172,9 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               placeholder="Optional description"
             />
+            {fieldErrors.description && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.description}</p>
+            )}
           </div>
 
           <div>

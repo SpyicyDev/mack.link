@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { LinkList } from './components/LinkList'
+import { LinkSearch } from './components/LinkSearch'
 import { CreateLinkForm } from './components/CreateLinkForm'
 import { Header } from './components/Header'
 import { LoginScreen } from './components/LoginScreen'
@@ -11,6 +12,7 @@ import { ErrorBoundary, ErrorMessage, PageLoader } from './components/ui'
 
 function App() {
   const [links, setLinks] = useState({})
+  const [filteredLinks, setFilteredLinks] = useState({})
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [error, setError] = useState(null)
@@ -29,6 +31,10 @@ function App() {
   useEffect(() => {
     loadLinks()
   }, [])
+
+  useEffect(() => {
+    setFilteredLinks(links)
+  }, [links])
 
   const loadLinks = useCallback(async () => {
     try {
@@ -92,6 +98,10 @@ function App() {
     loadLinks()
   }, [loadLinks])
 
+  const handleFilteredResults = useCallback((filtered) => {
+    setFilteredLinks(filtered)
+  }, [])
+
   if (loading) {
     return <PageLoader message="Loading your links..." />
   }
@@ -126,8 +136,13 @@ function App() {
             className="mb-4"
           />
 
-          <LinkList 
+          <LinkSearch 
             links={links}
+            onFilteredResults={handleFilteredResults}
+          />
+
+          <LinkList 
+            links={filteredLinks}
             onDelete={handleDeleteLink}
             onUpdate={handleUpdateLink}
           />

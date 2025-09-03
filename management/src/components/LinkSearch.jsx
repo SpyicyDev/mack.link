@@ -1,0 +1,240 @@
+import { useState, useCallback, useMemo, useEffect } from 'react'
+import { Search, Filter, X, Calendar, BarChart3 } from 'lucide-react'
+import { Input, Button } from './ui'
+
+export function LinkSearch({ links, onFilteredResults }) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('created')
+  const [sortOrder, setSortOrder] = useState('desc')
+  const [showFilters, setShowFilters] = useState(false)
+  const [dateFilter, setDateFilter] = useState('')
+  const [clicksFilter, setClicksFilter] = useState('')
+
+  const filteredAndSortedLinks = useMemo(() => {
+    let filtered = Object.entries(links)
+
+    // Text search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(([shortcode, link]) => 
+        shortcode.toLowerCase().includes(query) ||
+        link.url.toLowerCase().includes(query) ||
+        (link.description && link.description.toLowerCase().includes(query))
+      )
+    }
+
+    // Date filter
+    if (dateFilter) {
+      const filterDate = new Date(dateFilter)
+      const filterTime = filterDate.getTime()
+      filtered = filtered.filter(([, link]) => {
+        const linkDate = new Date(link.created)
+        return linkDate.getTime() >= filterTime
+      })
+    }
+
+    // Clicks filter
+    if (clicksFilter) {
+      const minClicks = parseInt(clicksFilter)
+      if (!isNaN(minClicks)) {
+        filtered = filtered.filter(([, link]) => (link.clicks || 0) >= minClicks)
+      }
+    }
+
+    // Sort
+    filtered.sort(([shortcodeA, linkA], [shortcodeB, linkB]) => {
+      let valueA, valueB
+      
+      switch (sortBy) {
+        case 'shortcode':
+          valueA = shortcodeA
+          valueB = shortcodeB
+          break
+        case 'url':
+          valueA = linkA.url
+          valueB = linkB.url
+          break
+        case 'clicks':
+          valueA = linkA.clicks || 0
+          valueB = linkB.clicks || 0
+          break
+        case 'created':
+          valueA = new Date(linkA.created)
+          valueB = new Date(linkB.created)
+          break
+        case 'updated':
+          valueA = new Date(linkA.updated)
+          valueB = new Date(linkB.updated)
+          break
+        default:
+          valueA = linkA.created
+          valueB = linkB.created
+      }
+
+      if (typeof valueA === 'string') {
+        valueA = valueA.toLowerCase()
+        valueB = valueB.toLowerCase()
+      }
+
+      if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1
+      if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1
+      return 0
+    })
+
+    return Object.fromEntries(filtered)
+  }, [links, searchQuery, sortBy, sortOrder, dateFilter, clicksFilter])
+
+  const handleSearchChange = useCallback((e) => {
+    setSearchQuery(e.target.value)
+  }, [])
+
+  const handleSortChange = useCallback((field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortBy(field)
+      setSortOrder('desc')
+    }
+  }, [sortBy, sortOrder])
+
+  const clearFilters = useCallback(() => {
+    setSearchQuery('')
+    setDateFilter('')
+    setClicksFilter('')
+    setSortBy('created')
+    setSortOrder('desc')
+  }, [])
+
+  const hasFilters = searchQuery || dateFilter || clicksFilter || sortBy !== 'created' || sortOrder !== 'desc'
+  const resultCount = Object.keys(filteredAndSortedLinks).length
+  const totalCount = Object.keys(links).length
+
+  // Call the parent callback with filtered results
+  useEffect(() => {
+    onFilteredResults(filteredAndSortedLinks)
+  }, [filteredAndSortedLinks, onFilteredResults])
+
+  return (
+    <div className="bg-white rounded-lg shadow mb-6">
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search links by shortcode, URL, or description..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
+              {hasFilters && (
+                <span className="ml-2 bg-blue-600 text-white text-xs rounded-full px-2 py-0.5">
+                  {[searchQuery, dateFilter, clicksFilter].filter(Boolean).length}
+                </span>
+              )}
+            </Button>
+            
+            {hasFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+                className="flex items-center text-red-600 hover:text-red-700"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {showFilters && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sort by
+                </label>
+                <select
+                  value={`${sortBy}-${sortOrder}`}
+                  onChange={(e) => {
+                    const [field, order] = e.target.value.split('-')
+                    setSortBy(field)
+                    setSortOrder(order)
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                >
+                  <option value="created-desc">Newest first</option>
+                  <option value="created-asc">Oldest first</option>
+                  <option value="clicks-desc">Most clicks</option>
+                  <option value="clicks-asc">Least clicks</option>
+                  <option value="shortcode-asc">Shortcode A-Z</option>
+                  <option value="shortcode-desc">Shortcode Z-A</option>
+                  <option value="updated-desc">Recently updated</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Created after
+                </label>
+                <input
+                  type="date"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Min. clicks
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={clicksFilter}
+                  onChange={(e) => setClicksFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {(searchQuery || hasFilters) && (
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600">
+              Showing {resultCount} of {totalCount} links
+              {searchQuery && (
+                <span className="ml-2">
+                  for "<span className="font-medium">{searchQuery}</span>"
+                </span>
+              )}
+            </span>
+            
+            {resultCount === 0 && totalCount > 0 && (
+              <span className="text-gray-500">
+                Try adjusting your search or filters
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

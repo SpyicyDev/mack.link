@@ -4,7 +4,98 @@ const CORS_HEADERS = {
 	'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+// Validation utilities
+function validateShortcode(shortcode) {
+	if (typeof shortcode !== 'string') return 'Shortcode must be a string';
+	if (!shortcode.trim()) return 'Shortcode is required';
+	if (shortcode.length < 2) return 'Shortcode must be at least 2 characters';
+	if (shortcode.length > 50) return 'Shortcode must be less than 50 characters';
+	if (!/^[a-zA-Z0-9_-]+$/.test(shortcode)) {
+		return 'Shortcode can only contain letters, numbers, hyphens, and underscores';
+	}
+	// Reserved words that shouldn't be used as shortcodes
+	const reserved = ['api', 'admin', 'www', 'mail', 'ftp', 'localhost', 'root'];
+	if (reserved.includes(shortcode.toLowerCase())) {
+		return 'This shortcode is reserved and cannot be used';
+	}
+	return null;
+}
+
+function validateUrl(url) {
+	if (typeof url !== 'string') return 'URL must be a string';
+	if (!url.trim()) return 'URL is required';
+	if (url.length > 2048) return 'URL must be less than 2048 characters';
+	if (!/^https?:\/\/.+/.test(url)) {
+		return 'URL must start with http:// or https://';
+	}
+	try {
+		new URL(url);
+	} catch {
+		return 'Invalid URL format';
+	}
+	return null;
+}
+
+function validateDescription(description) {
+	if (description !== undefined && description !== null) {
+		if (typeof description !== 'string') return 'Description must be a string';
+		if (description.length > 500) return 'Description must be less than 500 characters';
+	}
+	return null;
+}
+
+function validateRedirectType(redirectType) {
+	if (redirectType !== undefined && redirectType !== null) {
+		if (typeof redirectType !== 'number') return 'Redirect type must be a number';
+		if (![301, 302, 307, 308].includes(redirectType)) {
+			return 'Redirect type must be 301, 302, 307, or 308';
+		}
+	}
+	return null;
+}
+
+function sanitizeInput(input) {
+	if (typeof input !== 'string') return input;
+	return input.trim().replace(/[\x00-\x1f\x7f-\x9f]/g, '');
+}
+
+// Rate limiting utilities
+const rateLimitCache = new Map();
+
+function isRateLimited(ip, limit = 100, window = 3600000) { // 100 requests per hour
+	const now = Date.now();
+	const key = `${ip}-${Math.floor(now / window)}`;
+	const current = rateLimitCache.get(key) || 0;
+	
+	if (current >= limit) {
+		return true;
+	}
+	
+	rateLimitCache.set(key, current + 1);
+	
+	// Clean up old entries
+	if (rateLimitCache.size > 1000) {
+		const cutoff = now - window;
+		for (const [k] of rateLimitCache) {
+			if (parseInt(k.split('-')[1]) * window < cutoff) {
+				rateLimitCache.delete(k);
+			}
+		}
+	}
+	
+	return false;
+}
+
+// Token verification cache
+const tokenCache = new Map();
+
 async function verifyGitHubToken(token) {
+	// Check cache first (5 minute cache)
+	const cached = tokenCache.get(token);
+	if (cached && Date.now() - cached.timestamp < 300000) {
+		return cached.user;
+	}
+
 	try {
 		const response = await fetch('https://api.github.com/user', {
 			headers: {
@@ -14,10 +105,29 @@ async function verifyGitHubToken(token) {
 		});
 		
 		if (!response.ok) {
+			// Remove from cache if token is invalid
+			tokenCache.delete(token);
 			return null;
 		}
 		
 		const user = await response.json();
+		
+		// Cache the result
+		tokenCache.set(token, {
+			user,
+			timestamp: Date.now()
+		});
+
+		// Clean up cache if it gets too large
+		if (tokenCache.size > 100) {
+			const now = Date.now();
+			for (const [key, value] of tokenCache) {
+				if (now - value.timestamp > 300000) {
+					tokenCache.delete(key);
+				}
+			}
+		}
+		
 		return user;
 	} catch (error) {
 		console.error('GitHub token verification failed:', error);
@@ -154,20 +264,66 @@ async function getAllLinks(env) {
 
 async function createLink(request, env) {
 	try {
-		const { shortcode, url, description, redirectType } = await request.json();
-		
-		if (!shortcode || !url) {
-			return corsResponse(new Response('Missing shortcode or url', { status: 400 }));
+		// Rate limiting check
+		const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+		if (isRateLimited(clientIP, 50)) { // 50 creates per hour for authenticated users
+			return corsResponse(new Response('Rate limit exceeded', { status: 429 }));
 		}
 
+		const body = await request.json();
+		let { shortcode, url, description, redirectType } = body;
+
+		// Sanitize inputs
+		shortcode = sanitizeInput(shortcode);
+		url = sanitizeInput(url);
+		description = sanitizeInput(description);
+
+		// Validate all inputs
+		const shortcodeError = validateShortcode(shortcode);
+		if (shortcodeError) {
+			return corsResponse(new Response(JSON.stringify({ error: shortcodeError }), { 
+				status: 400,
+				headers: { 'Content-Type': 'application/json' }
+			}));
+		}
+
+		const urlError = validateUrl(url);
+		if (urlError) {
+			return corsResponse(new Response(JSON.stringify({ error: urlError }), { 
+				status: 400,
+				headers: { 'Content-Type': 'application/json' }
+			}));
+		}
+
+		const descriptionError = validateDescription(description);
+		if (descriptionError) {
+			return corsResponse(new Response(JSON.stringify({ error: descriptionError }), { 
+				status: 400,
+				headers: { 'Content-Type': 'application/json' }
+			}));
+		}
+
+		const redirectTypeError = validateRedirectType(redirectType);
+		if (redirectTypeError) {
+			return corsResponse(new Response(JSON.stringify({ error: redirectTypeError }), { 
+				status: 400,
+				headers: { 'Content-Type': 'application/json' }
+			}));
+		}
+
+		// Check if shortcode already exists
 		const existing = await env.LINKS.get(shortcode);
 		if (existing) {
-			return corsResponse(new Response('Shortcode already exists', { status: 409 }));
+			return corsResponse(new Response(JSON.stringify({ error: 'Shortcode already exists' }), { 
+				status: 409,
+				headers: { 'Content-Type': 'application/json' }
+			}));
 		}
 
+		// Create the link data
 		const linkData = {
-			url,
-			description: description || '',
+			url: url.trim(),
+			description: description ? description.trim() : '',
 			redirectType: redirectType || 301,
 			created: new Date().toISOString(),
 			updated: new Date().toISOString(),
@@ -181,7 +337,11 @@ async function createLink(request, env) {
 			headers: { 'Content-Type': 'application/json' }
 		}));
 	} catch (error) {
-		return corsResponse(new Response('Invalid JSON', { status: 400 }));
+		console.error('Create link error:', error);
+		return corsResponse(new Response(JSON.stringify({ error: 'Invalid request data' }), { 
+			status: 400,
+			headers: { 'Content-Type': 'application/json' }
+		}));
 	}
 }
 
