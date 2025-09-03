@@ -21,11 +21,22 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     const root = document.documentElement
-    if (theme === 'dark') root.classList.add('dark')
-    else root.classList.remove('dark')
+    const body = document.body
+    if (theme === 'dark') {
+      root.classList.add('dark')
+      body.classList.remove('dark')
+      root.setAttribute('data-theme', 'dark')
+    } else {
+      root.classList.remove('dark')
+      body.classList.remove('dark')
+      root.setAttribute('data-theme', 'light')
+    }
+    const meta = document.querySelector('meta[name="theme-color"]')
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#111827' : '#2563eb')
     try {
       localStorage.setItem('theme', theme)
     } catch {}
+    window.dispatchEvent(new CustomEvent('theme:change', { detail: { theme } }))
   }, [theme])
 
   useEffect(() => {
