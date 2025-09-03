@@ -115,18 +115,18 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   }, [filteredAndSortedLinks, onFilteredResults])
 
   return (
-    <div className="bg-white rounded-lg shadow mb-6">
-      <div className="p-4 border-b border-gray-200">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 mb-6 transition-colors">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" aria-hidden="true" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" aria-hidden="true" />
             <input
               ref={searchInputRef}
               type="text"
               placeholder="Search links by shortcode, URL, or description..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               aria-label="Search links"
               role="searchbox"
             />
@@ -163,10 +163,10 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
         </div>
 
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Sort by
                 </label>
                 <select
@@ -176,7 +176,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                     setSortBy(field)
                     setSortOrder(order)
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="created-desc">Newest first</option>
                   <option value="created-asc">Oldest first</option>
@@ -189,19 +189,19 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Created after
                 </label>
                 <input
                   type="date"
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Min. clicks
                 </label>
                 <input
@@ -210,7 +210,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                   placeholder="0"
                   value={clicksFilter}
                   onChange={(e) => setClicksFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
             </div>
@@ -219,9 +219,9 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
       </div>
 
       {(searchQuery || hasFilters) && (
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+        <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">
+            <span className="text-gray-600 dark:text-gray-300">
               Showing {resultCount} of {totalCount} links
               {searchQuery && (
                 <span className="ml-2">
@@ -231,7 +231,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
             </span>
             
             {resultCount === 0 && totalCount > 0 && (
-              <span className="text-gray-500">
+              <span className="text-gray-500 dark:text-gray-400">
                 Try adjusting your search or filters
               </span>
             )}

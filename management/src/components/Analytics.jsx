@@ -70,18 +70,18 @@ export function Analytics({ links }) {
     })
   }
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, color = "text-gray-600" }) => (
-    <div className="bg-white rounded-lg shadow p-6">
+  const StatCard = ({ icon: Icon, title, value, subtitle, color = "text-gray-600 dark:text-gray-400" }) => (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-6 transition-colors">
       <div className="flex items-center">
         <div className={`flex-shrink-0 ${color}`}>
           <Icon className="w-8 h-8" />
         </div>
         <div className="ml-5 w-0 flex-1">
           <dl>
-            <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
-            <dd className="text-2xl font-bold text-gray-900">{value}</dd>
+            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">{title}</dt>
+            <dd className="text-2xl font-bold text-gray-900 dark:text-white">{value}</dd>
             {subtitle && (
-              <dd className="text-sm text-gray-600">{subtitle}</dd>
+              <dd className="text-sm text-gray-600 dark:text-gray-300">{subtitle}</dd>
             )}
           </dl>
         </div>
@@ -97,36 +97,36 @@ export function Analytics({ links }) {
           icon={Globe}
           title="Total Links"
           value={analytics.totalLinks}
-          color="text-blue-600"
+          color="text-blue-600 dark:text-blue-400"
         />
         <StatCard
           icon={BarChart3}
           title="Total Clicks"
           value={analytics.totalClicks.toLocaleString()}
-          color="text-green-600"
+          color="text-green-600 dark:text-green-400"
         />
         <StatCard
           icon={TrendingUp}
           title="Average Clicks"
           value={analytics.averageClicks}
           subtitle="per link"
-          color="text-purple-600"
+          color="text-purple-600 dark:text-purple-400"
         />
         <StatCard
           icon={Clock}
           title="Clicks Today"
           value={analytics.clicksToday}
           subtitle="estimated"
-          color="text-orange-600"
+          color="text-orange-600 dark:text-orange-400"
         />
       </div>
 
       {/* Top Performing Links */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
               Top Performing Links
             </h3>
           </div>

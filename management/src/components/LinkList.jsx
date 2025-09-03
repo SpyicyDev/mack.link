@@ -138,7 +138,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
     <>
       {/* Bulk Operations Toolbar */}
       {linkEntries.length > 0 && (
-        <div className="mb-4 flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
+        <div className="mb-4 flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 px-4 py-3 transition-colors">
           <div className="flex items-center space-x-4">
             <button
               onClick={toggleBulkMode}
@@ -198,7 +198,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
         </div>
       )}
 
-      <section className="bg-white shadow overflow-hidden sm:rounded-lg" aria-labelledby="links-heading">
+      <section className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 overflow-hidden sm:rounded-lg transition-colors" aria-labelledby="links-heading">
         <div className="px-4 py-5 sm:p-6">
           <h2 id="links-heading" className="sr-only">Your short links</h2>
           <div className="grid gap-4" role="list" aria-label="List of short links">
