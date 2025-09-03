@@ -357,6 +357,12 @@ async function handleAPI(request, env, requestLogger = logger) {
 		}
 	}
 
+	if (path === '/api/links/bulk') {
+		if (method === 'DELETE') {
+			return await bulkDeleteLinks(request, env);
+		}
+	}
+
 	if (path.startsWith('/api/links/')) {
 		const shortcode = path.split('/')[3];
 		if (method === 'PUT') {
@@ -515,6 +521,77 @@ async function deleteLink(env, shortcode) {
 
 	await env.LINKS.delete(shortcode);
 	return corsResponse(new Response(null, { status: 204 }));
+}
+
+async function bulkDeleteLinks(request, env) {
+	try {
+		const { shortcodes } = await request.json();
+		
+		if (!Array.isArray(shortcodes) || shortcodes.length === 0) {
+			return corsResponse(new Response(JSON.stringify({ error: 'Shortcodes array is required' }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' }
+			}));
+		}
+
+		// Limit bulk operations to prevent abuse
+		if (shortcodes.length > 100) {
+			return corsResponse(new Response(JSON.stringify({ error: 'Cannot delete more than 100 links at once' }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' }
+			}));
+		}
+
+		// Validate shortcodes format
+		for (const shortcode of shortcodes) {
+			const error = validateShortcode(shortcode);
+			if (error) {
+				return corsResponse(new Response(JSON.stringify({ error: `Invalid shortcode "${shortcode}": ${error}` }), {
+					status: 400,
+					headers: { 'Content-Type': 'application/json' }
+				}));
+			}
+		}
+
+		const results = {
+			deleted: [],
+			notFound: [],
+			errors: []
+		};
+
+		// Delete each link
+		for (const shortcode of shortcodes) {
+			try {
+				const existing = await env.LINKS.get(shortcode);
+				if (!existing) {
+					results.notFound.push(shortcode);
+					continue;
+				}
+
+				await env.LINKS.delete(shortcode);
+				results.deleted.push(shortcode);
+				
+				logger.info('Bulk delete link', { shortcode });
+			} catch (error) {
+				logger.error('Bulk delete error', { shortcode, error: error.message });
+				results.errors.push({ shortcode, error: error.message });
+			}
+		}
+
+		return corsResponse(new Response(JSON.stringify({
+			message: `Bulk delete completed: ${results.deleted.length} deleted, ${results.notFound.length} not found, ${results.errors.length} errors`,
+			results
+		}), {
+			headers: { 'Content-Type': 'application/json' }
+		}));
+
+	} catch (error) {
+		logger.error('Bulk delete request error', { error: error.message });
+		return corsResponse(new Response(JSON.stringify({ error: 'Invalid request data' }), {
+			status: 400,
+			headers: { 'Content-Type': 'application/json' }
+		}));
+	}
 }
 
 async function getLink(env, shortcode) {

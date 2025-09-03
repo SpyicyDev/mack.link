@@ -178,3 +178,45 @@ export function useDeleteLink() {
     },
   })
 }
+
+// Hook to bulk delete links
+export function useBulkDeleteLinks() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: linkAPI.bulkDeleteLinks,
+    
+    onMutate: async (shortcodes) => {
+      await queryClient.cancelQueries({ queryKey: linkKeys.lists() })
+
+      const previousLinks = queryClient.getQueryData(linkKeys.lists())
+
+      // Optimistically remove all selected links
+      if (previousLinks) {
+        queryClient.setQueryData(linkKeys.lists(), (old) => {
+          const newLinks = { ...old }
+          shortcodes.forEach(shortcode => {
+            delete newLinks[shortcode]
+          })
+          return newLinks
+        })
+      }
+
+      return { previousLinks }
+    },
+
+    onError: (err, shortcodes, context) => {
+      if (context?.previousLinks) {
+        queryClient.setQueryData(linkKeys.lists(), context.previousLinks)
+      }
+    },
+
+    onSettled: (data, error, shortcodes) => {
+      queryClient.invalidateQueries({ queryKey: linkKeys.lists() })
+      // Remove individual link queries for all deleted links
+      shortcodes.forEach(shortcode => {
+        queryClient.removeQueries({ queryKey: linkKeys.detail(shortcode) })
+      })
+    },
+  })
+}

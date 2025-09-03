@@ -73,6 +73,24 @@ class LinkAPI {
     }
   }
 
+  async bulkDeleteLinks(shortcodes) {
+    const response = await fetch(`${API_BASE}/api/links/bulk`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authService.getAuthHeaders()
+      },
+      body: JSON.stringify({ shortcodes })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error);
+    }
+    
+    return await response.json();
+  }
+
   async getLink(shortcode) {
     const response = await fetch(`${API_BASE}/api/links/${shortcode}`, {
       headers: {

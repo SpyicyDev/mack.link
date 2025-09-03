@@ -1,13 +1,18 @@
 import { useState, useCallback, useMemo, memo } from 'react'
-import { ExternalLink, Edit, Trash2, Copy, BarChart3, Link as LinkIcon } from 'lucide-react'
+import { ExternalLink, Edit, Trash2, Copy, BarChart3, Link as LinkIcon, CheckSquare, Square, Download, X, QrCode } from 'lucide-react'
 import { EditLinkModal } from './EditLinkModal'
+import { QRCodeModal } from './QRCodeModal'
 import { ConfirmationModal } from './ui'
 
-const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
+const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelete }) {
   const [editingLink, setEditingLink] = useState(null)
   const [copiedShortcode, setCopiedShortcode] = useState(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [linkToDelete, setLinkToDelete] = useState(null)
+  const [selectedLinks, setSelectedLinks] = useState(new Set())
+  const [bulkMode, setBulkMode] = useState(false)
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [qrLink, setQrLink] = useState(null)
 
   const linkEntries = useMemo(() => 
     Object.entries(links).sort(([,a], [,b]) => 
@@ -37,6 +42,78 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
     }
   }, [linkToDelete, onDelete])
 
+  const toggleBulkMode = useCallback(() => {
+    setBulkMode(!bulkMode)
+    setSelectedLinks(new Set())
+  }, [bulkMode])
+
+  const toggleLinkSelection = useCallback((shortcode) => {
+    setSelectedLinks(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(shortcode)) {
+        newSet.delete(shortcode)
+      } else {
+        newSet.add(shortcode)
+      }
+      return newSet
+    })
+  }, [])
+
+  const selectAllLinks = useCallback(() => {
+    setSelectedLinks(new Set(linkEntries.map(([shortcode]) => shortcode)))
+  }, [linkEntries])
+
+  const clearSelection = useCallback(() => {
+    setSelectedLinks(new Set())
+  }, [])
+
+  const handleBulkDelete = useCallback(() => {
+    if (selectedLinks.size > 0 && onBulkDelete) {
+      onBulkDelete(Array.from(selectedLinks))
+      setSelectedLinks(new Set())
+      setBulkMode(false)
+    }
+  }, [selectedLinks, onBulkDelete])
+
+  const handleExportSelected = useCallback(() => {
+    const selectedEntries = linkEntries.filter(([shortcode]) => selectedLinks.has(shortcode))
+    const csvData = [
+      ['Shortcode', 'URL', 'Description', 'Clicks', 'Created', 'Updated'],
+      ...selectedEntries.map(([shortcode, link]) => [
+        shortcode,
+        link.url,
+        link.description || '',
+        link.clicks || 0,
+        link.created,
+        link.updated
+      ])
+    ]
+    
+    const csvContent = csvData.map(row => 
+      row.map(cell => `"${cell}"`).join(',')
+    ).join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `links-export-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }, [linkEntries, selectedLinks])
+
+  const handleShowQRCode = useCallback((shortcode, link) => {
+    setQrLink({ shortcode, ...link })
+    setQrModalOpen(true)
+  }, [])
+
+  const handleCloseQRCode = useCallback(() => {
+    setQrModalOpen(false)
+    setQrLink(null)
+  }, [])
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -59,13 +136,92 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
 
   return (
     <>
+      {/* Bulk Operations Toolbar */}
+      {linkEntries.length > 0 && (
+        <div className="mb-4 flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={toggleBulkMode}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                bulkMode 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+              aria-pressed={bulkMode}
+            >
+              {bulkMode ? 'Exit Bulk Mode' : 'Bulk Select'}
+            </button>
+            
+            {bulkMode && (
+              <>
+                <span className="text-sm text-gray-600">
+                  {selectedLinks.size} of {linkEntries.length} selected
+                </span>
+                <button
+                  onClick={selectAllLinks}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                  disabled={selectedLinks.size === linkEntries.length}
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={clearSelection}
+                  className="text-sm text-gray-600 hover:text-gray-800"
+                  disabled={selectedLinks.size === 0}
+                >
+                  Clear
+                </button>
+              </>
+            )}
+          </div>
+          
+          {bulkMode && selectedLinks.size > 0 && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleExportSelected}
+                className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                title="Export selected links to CSV"
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Export
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                className="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                title={`Delete ${selectedLinks.size} selected links`}
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Delete ({selectedLinks.size})
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <section className="bg-white shadow overflow-hidden sm:rounded-lg" aria-labelledby="links-heading">
         <div className="px-4 py-5 sm:p-6">
           <h2 id="links-heading" className="sr-only">Your short links</h2>
           <div className="grid gap-4" role="list" aria-label="List of short links">
             {linkEntries.map(([shortcode, link]) => (
-              <article key={shortcode} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2" role="listitem">
+              <article key={shortcode} className={`border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 ${
+                bulkMode && selectedLinks.has(shortcode) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+              }`} role="listitem">
                 <div className="flex items-start justify-between">
+                  {bulkMode && (
+                    <div className="flex items-center mr-4 mt-1">
+                      <button
+                        onClick={() => toggleLinkSelection(shortcode)}
+                        className="p-1 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-label={`${selectedLinks.has(shortcode) ? 'Unselect' : 'Select'} link ${shortcode}`}
+                      >
+                        {selectedLinks.has(shortcode) ? (
+                          <CheckSquare className="w-5 h-5 text-blue-600" />
+                        ) : (
+                          <Square className="w-5 h-5 text-gray-400" />
+                        )}
+                      </button>
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
                       <code className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-mono rounded" aria-label={`Short URL: link.mackhaymond.co/${shortcode}`}>
@@ -116,6 +272,15 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
 
                   <div className="flex items-center space-x-2 ml-4" role="group" aria-label={`Actions for ${shortcode}`}>
                     <button
+                      onClick={() => handleShowQRCode(shortcode, link)}
+                      className="p-2 text-gray-400 hover:text-green-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                      aria-label={`Generate QR code for ${shortcode}`}
+                      title="Generate QR Code"
+                    >
+                      <QrCode className="w-4 h-4" aria-hidden="true" />
+                      <span className="sr-only">QR Code</span>
+                    </button>
+                    <button
                       onClick={() => setEditingLink({ shortcode, ...link })}
                       className="p-2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                       aria-label={`Edit link ${shortcode}`}
@@ -159,6 +324,15 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
         confirmText="Delete"
         type="danger"
       />
+
+      {qrLink && (
+        <QRCodeModal
+          isOpen={qrModalOpen}
+          onClose={handleCloseQRCode}
+          shortcode={qrLink.shortcode}
+          url={qrLink.url}
+        />
+      )}
     </>
   )
 })
