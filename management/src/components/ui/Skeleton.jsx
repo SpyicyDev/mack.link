@@ -1,7 +1,7 @@
 export function Skeleton({ className = '', width, height, ...props }) {
   return (
     <div 
-      className={`animate-pulse bg-gray-200 rounded ${className}`}
+      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded transition-colors ${className}`}
       style={{ width, height }}
       {...props}
     />
@@ -10,7 +10,7 @@ export function Skeleton({ className = '', width, height, ...props }) {
 
 export function LinkSkeleton() {
   return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-800 transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-2">
@@ -47,7 +47,7 @@ export function LinkSkeleton() {
 
 export function LinkListSkeleton({ count = 5 }) {
   return (
-    <section className="bg-white shadow overflow-hidden sm:rounded-lg">
+    <section className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 overflow-hidden sm:rounded-lg transition-colors">
       <div className="px-4 py-5 sm:p-6">
         <div className="grid gap-4">
           {Array.from({ length: count }).map((_, i) => (
@@ -61,7 +61,7 @@ export function LinkListSkeleton({ count = 5 }) {
 
 export function HeaderSkeleton() {
   return (
-    <header className="bg-white shadow">
+    <header className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-6">
           <div className="flex items-center">
@@ -87,8 +87,8 @@ export function SearchSkeleton() {
 
 export function CreateFormSkeleton() {
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+    <div className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-70 overflow-y-auto h-full w-full z-50 transition-colors">
+      <div className="relative top-20 mx-auto p-5 border border-gray-200 dark:border-gray-700 w-96 shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors">
         <div className="mt-3">
           <div className="flex items-center justify-between mb-4">
             <Skeleton className="h-6 w-32" />
@@ -126,7 +126,7 @@ export function CreateFormSkeleton() {
 
 export function BulkToolbarSkeleton() {
   return (
-    <div className="mb-4 flex items-center justify-between bg-white rounded-lg shadow px-4 py-3">
+    <div className="mb-4 flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 px-4 py-3 transition-colors">
       <div className="flex items-center space-x-4">
         <Skeleton className="h-8 w-24 rounded" />
         <Skeleton className="h-4 w-32" />

@@ -64,13 +64,13 @@ export function ConfirmationModal({
   return (
     <div 
       ref={modalRef}
-      className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-70 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4 transition-colors"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full">
+      <div className="relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl max-w-md w-full transition-colors">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
@@ -79,27 +79,27 @@ export function ConfirmationModal({
                   {typeStyles[type].icon}
                 </div>
               )}
-              <h3 id="modal-title" className="text-lg font-medium text-gray-900">
+              <h3 id="modal-title" className="text-lg font-medium text-gray-900 dark:text-white">
                 {title}
               </h3>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 rounded"
+              className="text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 rounded dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800"
               aria-label="Close"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
 
-          <p className="text-sm text-gray-600 mb-6">
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 transition-colors">
             {message}
           </p>
 
           <div className="flex justify-end space-x-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 transition-colors"
             >
               {cancelText}
             </button>

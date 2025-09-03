@@ -115,12 +115,12 @@ export function CreateLinkForm({ onSubmit, onClose }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="shortcode" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="shortcode" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Short Code *
             </label>
             <div className="mt-1 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 text-xs">link.mackhaymond.co/</span>
+                <span className="text-gray-500 dark:text-gray-400 text-xs">link.mackhaymond.co/</span>
               </div>
               <input
                 ref={shortcodeRef}
@@ -129,7 +129,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 id="shortcode"
                 value={formData.shortcode}
                 onChange={handleChange}
-                className="block w-full pl-36 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="block w-full pl-36 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                 placeholder="abc123"
                 required
               />
@@ -140,7 +140,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           </div>
 
           <div>
-            <label htmlFor="url" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Destination URL *
             </label>
             <input
@@ -149,7 +149,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               id="url"
               value={formData.url}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="https://example.com"
               required
             />
@@ -159,7 +159,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Description
             </label>
             <input
@@ -168,7 +168,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               id="description"
               value={formData.description}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="Optional description"
             />
             {fieldErrors.description && (
@@ -177,7 +177,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           </div>
 
           <div>
-            <label htmlFor="redirectType" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="redirectType" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Redirect Type
             </label>
             <select
@@ -185,7 +185,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               id="redirectType"
               value={formData.redirectType}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
             >
               <option value={301}>301 - Permanent</option>
               <option value={302}>302 - Temporary</option>
@@ -193,8 +193,8 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-800 text-sm">{error}</p>
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md transition-colors">
+              <p className="text-red-800 dark:text-red-400 text-sm">{error}</p>
             </div>
           )}
 
@@ -202,14 +202,14 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500 transition-colors"
             >
               {loading ? 'Creating...' : 'Create Link'}
             </button>
