@@ -15,7 +15,7 @@ export async function handleGitHubAuth(request, env) {
 	authUrl.searchParams.set('scope', 'user:email');
 	authUrl.searchParams.set('state', state);
 	logger.info('OAuth flow initiated', { state, redirectUri });
-	return withCors(env, Response.redirect(authUrl.toString(), 302));
+	return withCors(env, Response.redirect(authUrl.toString(), 302), request);
 }
 
 export async function handleGitHubCallback(request, env) {
@@ -53,12 +53,12 @@ export async function handleGitHubCallback(request, env) {
 			return await withTimeout(userResponse.json(), env, config.timeouts.jsonParse, 'GitHub user info response parsing timed out');
 		});
 		if (config.authorizedUser && user.login !== config.authorizedUser) {
-			return withCors(env, new Response(JSON.stringify({ error: 'access_denied', error_description: `Access denied. Only ${config.authorizedUser} is authorized to use this service.` }), { status: 403, headers: { 'Content-Type': 'application/json' } }));
+			return withCors(env, new Response(JSON.stringify({ error: 'access_denied', error_description: `Access denied. Only ${config.authorizedUser} is authorized to use this service.` }), { status: 403, headers: { 'Content-Type': 'application/json' } }), request);
 		}
-		return withCors(env, new Response(JSON.stringify({ access_token: tokenData.access_token, user }), { headers: { 'Content-Type': 'application/json' } }));
+		return withCors(env, new Response(JSON.stringify({ access_token: tokenData.access_token, user }), { headers: { 'Content-Type': 'application/json' } }), request);
 	} catch (error) {
 		logger.error('OAuth callback error', { error: error.message });
-		return withCors(env, new Response('OAuth callback failed', { status: 500 }));
+		return withCors(env, new Response('OAuth callback failed', { status: 500 }), request);
 	}
 }
 

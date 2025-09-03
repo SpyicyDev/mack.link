@@ -21,7 +21,7 @@ export async function handleAPI(request, env, requestLogger) {
 	if (authResult instanceof Response) return authResult;
 
 	if (path === '/api/links') {
-		if (method === 'GET') return await getAllLinks(env);
+		if (method === 'GET') return await getAllLinks(env, request);
 		if (method === 'POST') return await createLink(request, env);
 	}
 
@@ -32,15 +32,15 @@ export async function handleAPI(request, env, requestLogger) {
 	if (path.startsWith('/api/links/')) {
 		const shortcode = path.split('/')[3];
 		if (method === 'PUT') return await updateLink(request, env, shortcode);
-		if (method === 'DELETE') return await deleteLink(env, shortcode);
-		if (method === 'GET') return await getLink(env, shortcode);
+		if (method === 'DELETE') return await deleteLink(env, shortcode, request);
+		if (method === 'GET') return await getLink(env, shortcode, request);
 	}
 
 	if (path === '/api/user') {
-		return withCors(env, new Response(JSON.stringify(authResult), { headers: { 'Content-Type': 'application/json' } }));
+		return withCors(env, new Response(JSON.stringify(authResult), { headers: { 'Content-Type': 'application/json' } }), request);
 	}
 
-	return withCors(env, new Response('API endpoint not found', { status: 404 }));
+	return withCors(env, new Response('API endpoint not found', { status: 404 }), request);
 }
 
 

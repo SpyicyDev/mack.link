@@ -7,7 +7,7 @@ export async function handleRequest(request, env, requestLogger) {
 	const url = new URL(request.url);
 
 	if (request.method === 'OPTIONS') {
-		return preflight(env);
+		return preflight(env, request);
 	}
 
 	if (url.pathname.startsWith('/api/')) {
@@ -16,7 +16,7 @@ export async function handleRequest(request, env, requestLogger) {
 
 	const redirectResponse = await handleRedirect(request, env, requestLogger);
 	if (redirectResponse) return redirectResponse;
-	return withCors(env, new Response('link.mackhaymond.co URL Shortener', { headers: { 'Content-Type': 'text/plain' } }));
+	return withCors(env, new Response('link.mackhaymond.co URL Shortener', { headers: { 'Content-Type': 'text/plain' } }), request);
 }
 
 

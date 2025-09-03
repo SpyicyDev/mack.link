@@ -19,7 +19,7 @@
 	"vars": {
 		"GITHUB_CLIENT_ID": "Ov23liS0CpATewxLcycF",
 		"AUTHORIZED_USER": "SpyicyDev",
-		"MANAGEMENT_ORIGIN": "http://localhost:5173"
+		"MANAGEMENT_ORIGIN": "https://link-management.mackhaymond.co,http://localhost:5173"
 	}
 	/**
 	 * Smart Placement
