@@ -187,45 +187,9 @@ function isRateLimited(ip, limit = 100, window = 3600000) { // 100 requests per 
 // Token verification cache
 const tokenCache = new Map();
 
-// CSRF state management
-const stateCache = new Map();
-
+// Simple state token generation (no CSRF validation for personal use)
 function generateStateToken() {
 	return crypto.randomUUID();
-}
-
-function storeState(state, data = {}) {
-	stateCache.set(state, {
-		...data,
-		timestamp: Date.now()
-	});
-	
-	// Clean up old states (older than 10 minutes)
-	if (stateCache.size > 100) {
-		const cutoff = Date.now() - 600000; // 10 minutes
-		for (const [key, value] of stateCache) {
-			if (value.timestamp < cutoff) {
-				stateCache.delete(key);
-			}
-		}
-	}
-}
-
-function validateAndConsumeState(state) {
-	const stateData = stateCache.get(state);
-	if (!stateData) {
-		return null;
-	}
-	
-	// Remove the state after use (one-time use)
-	stateCache.delete(state);
-	
-	// Check if state is expired (10 minutes)
-	if (Date.now() - stateData.timestamp > 600000) {
-		return null;
-	}
-	
-	return stateData;
 }
 
 async function verifyGitHubToken(token) {
@@ -569,11 +533,6 @@ async function handleGitHubAuth(request, env) {
 	const redirectUri = url.searchParams.get('redirect_uri') || 'http://localhost:5173/auth/callback';
 	
 	const state = generateStateToken();
-	storeState(state, {
-		redirectUri,
-		userAgent: request.headers.get('User-Agent')?.substring(0, 100),
-		clientIP: request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown'
-	});
 	
 	const authUrl = new URL('https://github.com/login/oauth/authorize');
 	authUrl.searchParams.set('client_id', env.GITHUB_CLIENT_ID);
@@ -596,30 +555,7 @@ async function handleGitHubCallback(request, env) {
 		return corsResponse(new Response('No code provided', { status: 400 }));
 	}
 
-	if (!state) {
-		logger.warn('OAuth callback missing state parameter');
-		return corsResponse(new Response('No state parameter provided', { status: 400 }));
-	}
-
-	// Validate CSRF state
-	const stateData = validateAndConsumeState(state);
-	if (!stateData) {
-		logger.warn('OAuth callback invalid or expired state', { state });
-		return corsResponse(new Response('Invalid or expired state parameter', { status: 400 }));
-	}
-
-	// Optional: Additional validation against request context
-	const currentIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
-	if (stateData.clientIP !== currentIP) {
-		logger.warn('OAuth callback IP mismatch', { 
-			storedIP: stateData.clientIP, 
-			currentIP,
-			state
-		});
-		// Note: This is logged but not blocked as IPs can change legitimately
-	}
-
-	logger.info('OAuth callback state validated', { state });
+	logger.info('OAuth callback processing', { state });
 
 	try {
 		// Exchange code for access token
