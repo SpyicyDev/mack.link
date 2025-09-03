@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { X } from 'lucide-react'
+import { Button, Input } from './ui'
 
 export function CreateLinkForm({ onSubmit, onClose }) {
   const [formData, setFormData] = useState({
@@ -10,23 +11,55 @@ export function CreateLinkForm({ onSubmit, onClose }) {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
+  const shortcodeRef = useRef(null)
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    shortcodeRef.current?.focus()
+  }, [])
+
+  const validateField = useCallback((name, value) => {
+    switch (name) {
+      case 'shortcode':
+        if (!value.trim()) return 'Shortcode is required'
+        if (!/^[a-zA-Z0-9_-]+$/.test(value)) {
+          return 'Shortcode can only contain letters, numbers, hyphens, and underscores'
+        }
+        if (value.length < 2) return 'Shortcode must be at least 2 characters'
+        if (value.length > 50) return 'Shortcode must be less than 50 characters'
+        return null
+      case 'url':
+        if (!value.trim()) return 'URL is required'
+        if (!/^https?:\/\/.+/.test(value)) {
+          return 'URL must start with http:// or https://'
+        }
+        try {
+          new URL(value)
+        } catch {
+          return 'Please enter a valid URL'
+        }
+        return null
+      case 'description':
+        if (value.length > 200) return 'Description must be less than 200 characters'
+        return null
+      default:
+        return null
+    }
+  }, [])
+
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault()
     setError(null)
+    setFieldErrors({})
 
-    if (!formData.shortcode.trim() || !formData.url.trim()) {
-      setError('Shortcode and URL are required')
-      return
-    }
+    const errors = {}
+    Object.keys(formData).forEach(key => {
+      const error = validateField(key, formData[key])
+      if (error) errors[key] = error
+    })
 
-    if (!/^https?:\/\/.+/.test(formData.url)) {
-      setError('URL must start with http:// or https://')
-      return
-    }
-
-    if (!/^[a-zA-Z0-9_-]+$/.test(formData.shortcode)) {
-      setError('Shortcode can only contain letters, numbers, hyphens, and underscores')
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
       return
     }
 
@@ -38,15 +71,34 @@ export function CreateLinkForm({ onSubmit, onClose }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [formData, onSubmit, validateField])
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target
+    const newValue = name === 'redirectType' ? parseInt(value) : value
+    
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'redirectType' ? parseInt(value) : value
+      [name]: newValue
     }))
-  }
+
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: null
+      }))
+    }
+
+    // Real-time validation
+    const error = validateField(name, newValue)
+    if (error && newValue) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: error
+      }))
+    }
+  }, [fieldErrors, validateField])
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">

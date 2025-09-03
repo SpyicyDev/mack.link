@@ -1,16 +1,21 @@
-import { useState } from 'react'
+import { useState, useCallback, useMemo, memo } from 'react'
 import { ExternalLink, Edit, Trash2, Copy, BarChart3, Link as LinkIcon } from 'lucide-react'
 import { EditLinkModal } from './EditLinkModal'
+import { ConfirmationModal } from './ui'
 
-export function LinkList({ links, onDelete, onUpdate }) {
+const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
   const [editingLink, setEditingLink] = useState(null)
   const [copiedShortcode, setCopiedShortcode] = useState(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [linkToDelete, setLinkToDelete] = useState(null)
 
-  const linkEntries = Object.entries(links).sort(([,a], [,b]) => 
-    new Date(b.created) - new Date(a.created)
+  const linkEntries = useMemo(() => 
+    Object.entries(links).sort(([,a], [,b]) => 
+      new Date(b.created) - new Date(a.created)
+    ), [links]
   )
 
-  const copyToClipboard = async (shortcode) => {
+  const copyToClipboard = useCallback(async (shortcode) => {
     try {
       await navigator.clipboard.writeText(`https://link.mackhaymond.co/${shortcode}`)
       setCopiedShortcode(shortcode)
@@ -18,7 +23,19 @@ export function LinkList({ links, onDelete, onUpdate }) {
     } catch (err) {
       console.error('Failed to copy:', err)
     }
-  }
+  }, [])
+
+  const handleDeleteClick = useCallback((shortcode) => {
+    setLinkToDelete(shortcode)
+    setDeleteModalOpen(true)
+  }, [])
+
+  const handleConfirmDelete = useCallback(() => {
+    if (linkToDelete) {
+      onDelete(linkToDelete)
+      setLinkToDelete(null)
+    }
+  }, [linkToDelete, onDelete])
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -105,11 +122,7 @@ export function LinkList({ links, onDelete, onUpdate }) {
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to delete this link?')) {
-                          onDelete(shortcode)
-                        }
-                      }}
+                      onClick={() => handleDeleteClick(shortcode)}
                       className="p-2 text-gray-400 hover:text-red-600 transition-colors"
                       title="Delete link"
                     >
@@ -133,6 +146,18 @@ export function LinkList({ links, onDelete, onUpdate }) {
           onClose={() => setEditingLink(null)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Link"
+        message={`Are you sure you want to delete the link "${linkToDelete}"? This action cannot be undone.`}
+        confirmText="Delete"
+        type="danger"
+      />
     </>
   )
-}
+})
+
+export { LinkList }

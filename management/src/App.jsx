@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { LinkList } from './components/LinkList'
 import { CreateLinkForm } from './components/CreateLinkForm'
 import { Header } from './components/Header'
@@ -7,6 +7,7 @@ import { AuthCallback } from './components/AuthCallback'
 import { linkAPI } from './services/api'
 import { authService } from './services/auth'
 import { Plus } from 'lucide-react'
+import { ErrorBoundary, ErrorMessage, PageLoader } from './components/ui'
 
 function App() {
   const [links, setLinks] = useState({})
@@ -29,9 +30,10 @@ function App() {
     loadLinks()
   }, [])
 
-  const loadLinks = async () => {
+  const loadLinks = useCallback(async () => {
     try {
       setLoading(true)
+      setError(null)
       const data = await linkAPI.getAllLinks()
       setLinks(data)
     } catch (error) {
@@ -40,9 +42,9 @@ function App() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleCreateLink = async (linkData) => {
+  const handleCreateLink = useCallback(async (linkData) => {
     try {
       const newLink = await linkAPI.createLink(
         linkData.shortcode,
@@ -58,9 +60,9 @@ function App() {
     } catch (error) {
       throw error
     }
-  }
+  }, [])
 
-  const handleDeleteLink = async (shortcode) => {
+  const handleDeleteLink = useCallback(async (shortcode) => {
     try {
       await linkAPI.deleteLink(shortcode)
       setLinks(prev => {
@@ -71,9 +73,9 @@ function App() {
     } catch (error) {
       setError('Failed to delete link')
     }
-  }
+  }, [])
 
-  const handleUpdateLink = async (shortcode, updates) => {
+  const handleUpdateLink = useCallback(async (shortcode, updates) => {
     try {
       const updatedLink = await linkAPI.updateLink(shortcode, updates)
       setLinks(prev => ({
@@ -83,59 +85,62 @@ function App() {
     } catch (error) {
       setError('Failed to update link')
     }
-  }
+  }, [])
+
+  const handleRetryError = useCallback(() => {
+    setError(null)
+    loadLinks()
+  }, [loadLinks])
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    )
+    return <PageLoader message="Loading your links..." />
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="sm:flex sm:items-center sm:justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Link Management</h1>
-            <p className="mt-2 text-sm text-gray-700">
-              Manage your short links and view analytics
-            </p>
+    <ErrorBoundary fallbackMessage="Something went wrong with the link management system.">
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="sm:flex sm:items-center sm:justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Link Management</h1>
+              <p className="mt-2 text-sm text-gray-700">
+                Manage your short links and view analytics
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0">
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Link
+              </button>
+            </div>
           </div>
-          <div className="mt-4 sm:mt-0">
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Link
-            </button>
-          </div>
-        </div>
 
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-800">{error}</p>
-          </div>
-        )}
-
-        <LinkList 
-          links={links}
-          onDelete={handleDeleteLink}
-          onUpdate={handleUpdateLink}
-        />
-
-        {showCreateForm && (
-          <CreateLinkForm
-            onSubmit={handleCreateLink}
-            onClose={() => setShowCreateForm(false)}
+          <ErrorMessage 
+            error={error}
+            onRetry={handleRetryError}
+            className="mb-4"
           />
-        )}
+
+          <LinkList 
+            links={links}
+            onDelete={handleDeleteLink}
+            onUpdate={handleUpdateLink}
+          />
+
+          {showCreateForm && (
+            <CreateLinkForm
+              onSubmit={handleCreateLink}
+              onClose={() => setShowCreateForm(false)}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   )
 }
 
