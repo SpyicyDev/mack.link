@@ -42,11 +42,12 @@ export function ThemeProvider({ children }) {
     // Apply theme to document immediately
     const root = document.documentElement
     
-    // Remove both classes first to ensure clean state
-    root.classList.remove('light', 'dark')
-    
-    // Add the current theme class
-    root.classList.add(theme)
+    // Tailwind CSS only uses 'dark' class - remove it for light mode, add it for dark mode
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
 
     // Save themeMode to localStorage
     try {

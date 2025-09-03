@@ -5,10 +5,6 @@
   color-scheme: dark;
 }
 
-.light {
-  color-scheme: light;
-}
-
 /* Screen reader only classes */
 .sr-only {
   position: absolute;
