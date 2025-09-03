@@ -1,6 +1,5 @@
-import { Link as LinkIcon, LogOut, User } from 'lucide-react'
+import { Link as LinkIcon, LogOut } from 'lucide-react'
 import { authService } from '../services/auth'
-import { ThemeToggle } from './ThemeToggle'
 
 export function Header() {
   const user = authService.getUser();
@@ -23,7 +22,6 @@ export function Header() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <ThemeToggle />
             {user && (
               <nav className="flex items-center space-x-4" role="navigation" aria-label="User menu">
                 <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300" role="status" aria-live="polite">

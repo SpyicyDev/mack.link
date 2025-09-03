@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* Dark mode consistency fixes */
-.dark {
+/* Dark mode only application */
+:root {
   color-scheme: dark;
 }
 
