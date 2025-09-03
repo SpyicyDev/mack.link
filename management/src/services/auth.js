@@ -4,6 +4,15 @@ class AuthService {
   constructor() {
     this.token = localStorage.getItem('github_token');
     this.user = JSON.parse(localStorage.getItem('user') || 'null');
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'github_token' || e.key === 'user') {
+        this.token = localStorage.getItem('github_token');
+        const userRaw = localStorage.getItem('user');
+        this.user = userRaw ? JSON.parse(userRaw) : null;
+        const event = new CustomEvent('auth:change', { detail: { token: this.token, user: this.user } });
+        window.dispatchEvent(event);
+      }
+    });
   }
 
   isAuthenticated() {
@@ -50,6 +59,8 @@ class AuthService {
       
       localStorage.setItem('github_token', this.token);
       localStorage.setItem('user', JSON.stringify(this.user));
+      const event = new CustomEvent('auth:change', { detail: { token: this.token, user: this.user } });
+      window.dispatchEvent(event);
       
       return data;
     } catch (error) {
@@ -63,6 +74,8 @@ class AuthService {
     this.user = null;
     localStorage.removeItem('github_token');
     localStorage.removeItem('user');
+    const event = new CustomEvent('auth:change', { detail: { token: null, user: null } });
+    window.dispatchEvent(event);
   }
 
   getAuthHeaders() {

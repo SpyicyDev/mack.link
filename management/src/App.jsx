@@ -5,7 +5,6 @@ import { CreateLinkForm } from './components/CreateLinkForm'
 import { Header } from './components/Header'
 import { Analytics } from './components/Analytics'
 import { LoginScreen } from './components/LoginScreen'
-import { AuthCallback } from './components/AuthCallback'
 import { authService } from './services/auth'
 import { Plus, HelpCircle, BarChart3, Link as LinkIcon } from 'lucide-react'
 import { ErrorBoundary, ErrorMessage, PageLoader, LinkListSkeleton, SearchSkeleton, BulkToolbarSkeleton } from './components/ui'
@@ -29,11 +28,6 @@ function App() {
   const deleteLinkMutation = useDeleteLink()
   const bulkDeleteMutation = useBulkDeleteLinks()
 
-  // Handle OAuth callback
-  if (window.location.pathname === '/auth/callback') {
-    return <AuthCallback onAuthSuccess={() => setIsAuthenticated(true)} />;
-  }
-
   // Show login screen if not authenticated
   if (!isAuthenticated) {
     return <LoginScreen />;
@@ -43,21 +37,12 @@ function App() {
     setFilteredLinks(links)
   }, [links])
 
-  // Listen for authentication state changes
+  // Listen for authentication state changes (no polling)
   useEffect(() => {
-    const checkAuth = () => {
-      const newAuthState = authService.isAuthenticated()
-      if (newAuthState !== isAuthenticated) {
-        setIsAuthenticated(newAuthState)
-      }
-    }
-
-    // Check immediately and then periodically
-    checkAuth()
-    const interval = setInterval(checkAuth, 1000)
-    
-    return () => clearInterval(interval)
-  }, [isAuthenticated])
+    const onAuthChange = () => setIsAuthenticated(authService.isAuthenticated())
+    window.addEventListener('auth:change', onAuthChange)
+    return () => window.removeEventListener('auth:change', onAuthChange)
+  }, [])
 
   const handleCreateLink = useCallback(async (linkData) => {
     await createLinkMutation.mutateAsync(linkData)

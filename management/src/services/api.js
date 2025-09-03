@@ -1,106 +1,28 @@
-import { authService } from './auth.js';
-
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8787';
+import { http } from './http.js';
 
 class LinkAPI {
   async getAllLinks() {
-    const response = await fetch(`${API_BASE}/api/links`, {
-      headers: {
-        ...authService.getAuthHeaders()
-      }
-    });
-    if (!response.ok) {
-      if (response.status === 401) {
-        authService.logout();
-        window.location.reload();
-        return;
-      }
-      throw new Error('Failed to fetch links');
-    }
-    return await response.json();
+    return await http.get('/api/links');
   }
 
   async createLink(shortcode, url, description = '', redirectType = 301) {
-    const response = await fetch(`${API_BASE}/api/links`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authService.getAuthHeaders()
-      },
-      body: JSON.stringify({
-        shortcode,
-        url,
-        description,
-        redirectType
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error);
-    }
-    
-    return await response.json();
+    return await http.post('/api/links', { shortcode, url, description, redirectType });
   }
 
   async updateLink(shortcode, updates) {
-    const response = await fetch(`${API_BASE}/api/links/${shortcode}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authService.getAuthHeaders()
-      },
-      body: JSON.stringify(updates)
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update link');
-    }
-    
-    return await response.json();
+    return await http.put(`/api/links/${shortcode}`, updates);
   }
 
   async deleteLink(shortcode) {
-    const response = await fetch(`${API_BASE}/api/links/${shortcode}`, {
-      method: 'DELETE',
-      headers: {
-        ...authService.getAuthHeaders()
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to delete link');
-    }
+    await http.delete(`/api/links/${shortcode}`);
   }
 
   async bulkDeleteLinks(shortcodes) {
-    const response = await fetch(`${API_BASE}/api/links/bulk`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...authService.getAuthHeaders()
-      },
-      body: JSON.stringify({ shortcodes })
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(error);
-    }
-    
-    return await response.json();
+    return await http.delete('/api/links/bulk', { body: JSON.stringify({ shortcodes }) });
   }
 
   async getLink(shortcode) {
-    const response = await fetch(`${API_BASE}/api/links/${shortcode}`, {
-      headers: {
-        ...authService.getAuthHeaders()
-      }
-    });
-    if (!response.ok) {
-      throw new Error('Failed to fetch link');
-    }
-    return await response.json();
+    return await http.get(`/api/links/${shortcode}`);
   }
 }
 
