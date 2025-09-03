@@ -11,18 +11,22 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }) {
+  const [themeMode, setThemeMode] = useState(() => {
+    try {
+      const savedTheme = localStorage.getItem('theme')
+      return savedTheme || 'system'
+    } catch {
+      return 'system'
+    }
+  })
+  
   const [theme, setTheme] = useState(() => {
     try {
-      // Check localStorage first
       const savedTheme = localStorage.getItem('theme')
-      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system')) {
-        if (savedTheme === 'system') {
-          return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        }
-        return savedTheme
-      }
+      if (savedTheme === 'light') return 'light'
+      if (savedTheme === 'dark') return 'dark'
       
-      // Default to system preference if no saved theme
+      // For 'system' or no saved theme, use system preference
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         return 'dark'
       }
@@ -31,15 +35,6 @@ export function ThemeProvider({ children }) {
     } catch {
       // Fallback if localStorage is not available
       return 'light'
-    }
-  })
-  
-  const [themeMode, setThemeMode] = useState(() => {
-    try {
-      const savedTheme = localStorage.getItem('theme')
-      return savedTheme || 'system'
-    } catch {
-      return 'system'
     }
   })
 
