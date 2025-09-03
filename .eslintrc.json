@@ -1,0 +1,27 @@
+{
+	"root": true,
+	"extends": [
+		"eslint:recommended"
+	],
+	"env": {
+		"es2022": true,
+		"browser": true,
+		"worker": true,
+		"node": true
+	},
+	"overrides": [
+		{
+			"files": ["worker/**/*.js"],
+			"env": { "worker": true, "browser": false }
+		},
+		{
+			"files": ["management/**/*.jsx", "management/**/*.js"],
+			"env": { "browser": true }
+		}
+	],
+	"parserOptions": {
+		"sourceType": "module"
+	}
+}
+
+

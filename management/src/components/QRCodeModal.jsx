@@ -2,13 +2,16 @@ import { useState, useEffect, useRef } from 'react'
 import { X, Download, Copy } from 'lucide-react'
 import QRCode from 'qrcode'
 
+const WORKER_DOMAIN = import.meta.env.VITE_WORKER_DOMAIN || 'localhost:8787'
+
 export function QRCodeModal({ isOpen, onClose, shortcode, url }) {
   const [qrDataUrl, setQrDataUrl] = useState(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const canvasRef = useRef(null)
 
-  const linkUrl = `https://link.mackhaymond.co/${shortcode}`
+  const scheme = WORKER_DOMAIN.startsWith('localhost') ? 'http' : 'https'
+  const linkUrl = `${scheme}://${WORKER_DOMAIN}/${shortcode}`
 
   useEffect(() => {
     if (isOpen && shortcode) {
