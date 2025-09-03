@@ -40,7 +40,8 @@ Edit `wrangler.jsonc`:
   "name": "your-worker-name",
   "vars": {
     "GITHUB_CLIENT_ID": "your_github_client_id",
-    "AUTHORIZED_USER": "your_github_username"
+    "AUTHORIZED_USER": "your_github_username",
+    "MANAGEMENT_ORIGIN": "http://localhost:5173"
   }
 }
 ```
@@ -55,6 +56,15 @@ Update `wrangler.jsonc` with the returned namespace ID.
 Add the GitHub client secret:
 ```bash
 echo "your_github_client_secret" | npx wrangler secret put GITHUB_CLIENT_SECRET
+```
+
+Add CORS allowlist for the management app (single or multiple origins, comma-separated):
+```bash
+# Local dev only
+echo "http://localhost:5173" | npx wrangler secret put MANAGEMENT_ORIGIN
+
+# Local + Production
+echo "https://your-management-domain.com,http://localhost:5173" | npx wrangler secret put MANAGEMENT_ORIGIN
 ```
 
 ## 4. Deploy Worker

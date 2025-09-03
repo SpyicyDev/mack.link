@@ -47,7 +47,8 @@ Edit `worker/wrangler.jsonc`:
   ],
   "vars": {
     "GITHUB_CLIENT_ID": "your_github_client_id",
-    "AUTHORIZED_USER": "your_github_username"
+    "AUTHORIZED_USER": "your_github_username",
+    "MANAGEMENT_ORIGIN": "https://link-management.example.com"
   }
 }
 ```
@@ -66,6 +67,9 @@ Copy the returned namespace ID to `wrangler.jsonc`.
 ```bash
 # Set GitHub client secret
 echo "your_github_client_secret" | npx wrangler secret put GITHUB_CLIENT_SECRET
+
+# Set CORS allowlist for management (single or multiple origins, comma-separated)
+echo "https://link-management.example.com" | npx wrangler secret put MANAGEMENT_ORIGIN
 ```
 
 ### Deploy Worker
@@ -280,6 +284,7 @@ Use different OAuth apps and domains for development:
 - Worker: `link.mackhaymond.co`
 - Management: `link-management.mackhaymond.co`  
 - OAuth callback: `https://link-management.mackhaymond.co/auth/callback`
+- Worker CORS allowlist: `MANAGEMENT_ORIGIN=https://link-management.mackhaymond.co`
 
 ## 10. Backup and Recovery
 

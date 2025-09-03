@@ -89,7 +89,8 @@ A personal URL shortener built with Cloudflare Workers and React, featuring GitH
 ```
 mack.link/
 ├── worker/                 # Cloudflare Worker
-│   ├── src/index.js       # Main worker script
+│   ├── src/               # Worker modules (router, routes, auth, utils, config)
+│   │   └── index.js       # Worker entrypoint
 │   ├── wrangler.jsonc     # Worker configuration
 │   └── package.json
 ├── management/            # React management panel
@@ -105,7 +106,7 @@ mack.link/
 
 ## 🚀 Quick Start
 
-See [SETUP.md](./docs/SETUP.md) for detailed setup instructions.
+See [SETUP.md](./docs/SETUP.md) for detailed setup instructions. In production, set `MANAGEMENT_ORIGIN` on the worker to your Pages origin (or a comma‑separated list) to enable CORS for the management app.
 
 ## 📖 Documentation
 
