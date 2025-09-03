@@ -15,7 +15,10 @@
 			"binding": "LINKS",
 			"id": "f6f51f0ba23b4a4d80bcd988bf3713d1"
 		}
-	]
+	],
+	"vars": {
+		"GITHUB_CLIENT_ID": "Ov23liS0CpATewxLcycF"
+	}
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

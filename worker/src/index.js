@@ -4,6 +4,45 @@ const CORS_HEADERS = {
 	'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+async function verifyGitHubToken(token) {
+	try {
+		const response = await fetch('https://api.github.com/user', {
+			headers: {
+				'Authorization': `token ${token}`,
+				'User-Agent': 'link.mackhaymond.co'
+			}
+		});
+		
+		if (!response.ok) {
+			return null;
+		}
+		
+		const user = await response.json();
+		return user;
+	} catch (error) {
+		console.error('GitHub token verification failed:', error);
+		return null;
+	}
+}
+
+async function authenticateRequest(request) {
+	const authHeader = request.headers.get('Authorization');
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		return null;
+	}
+	
+	const token = authHeader.substring(7);
+	return await verifyGitHubToken(token);
+}
+
+async function requireAuth(request) {
+	const user = await authenticateRequest(request);
+	if (!user) {
+		return corsResponse(new Response('Unauthorized', { status: 401 }));
+	}
+	return user;
+}
+
 function corsResponse(response) {
 	const newResponse = new Response(response.body, response);
 	Object.keys(CORS_HEADERS).forEach(key => {
@@ -45,6 +84,21 @@ async function handleAPI(request, env) {
 		return corsResponse(new Response(null, { status: 200 }));
 	}
 
+	// OAuth endpoints - no auth required
+	if (path === '/api/auth/github') {
+		return await handleGitHubAuth(request, env);
+	}
+	
+	if (path === '/api/auth/callback') {
+		return await handleGitHubCallback(request, env);
+	}
+
+	// Protected endpoints - auth required
+	const authResult = await requireAuth(request);
+	if (authResult instanceof Response) {
+		return authResult; // Return the 401 response
+	}
+
 	if (path === '/api/links') {
 		if (method === 'GET') {
 			return await getAllLinks(env);
@@ -65,6 +119,12 @@ async function handleAPI(request, env) {
 		if (method === 'GET') {
 			return await getLink(env, shortcode);
 		}
+	}
+
+	if (path === '/api/user') {
+		return corsResponse(new Response(JSON.stringify(authResult), {
+			headers: { 'Content-Type': 'application/json' }
+		}));
 	}
 
 	return corsResponse(new Response('API endpoint not found', { status: 404 }));
@@ -164,6 +224,71 @@ async function getLink(env, shortcode) {
 	return corsResponse(new Response(linkData, {
 		headers: { 'Content-Type': 'application/json' }
 	}));
+}
+
+async function handleGitHubAuth(request, env) {
+	const url = new URL(request.url);
+	const redirectUri = url.searchParams.get('redirect_uri') || 'http://localhost:5173/auth/callback';
+	
+	const authUrl = new URL('https://github.com/login/oauth/authorize');
+	authUrl.searchParams.set('client_id', env.GITHUB_CLIENT_ID);
+	authUrl.searchParams.set('redirect_uri', redirectUri);
+	authUrl.searchParams.set('scope', 'user:email');
+	authUrl.searchParams.set('state', crypto.randomUUID());
+
+	return corsResponse(Response.redirect(authUrl.toString(), 302));
+}
+
+async function handleGitHubCallback(request, env) {
+	const url = new URL(request.url);
+	const code = url.searchParams.get('code');
+	
+	if (!code) {
+		return corsResponse(new Response('No code provided', { status: 400 }));
+	}
+
+	try {
+		// Exchange code for access token
+		const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+			method: 'POST',
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				client_id: env.GITHUB_CLIENT_ID,
+				client_secret: env.GITHUB_CLIENT_SECRET,
+				code: code,
+			})
+		});
+
+		const tokenData = await tokenResponse.json();
+		
+		if (tokenData.error) {
+			return corsResponse(new Response(JSON.stringify(tokenData), { status: 400 }));
+		}
+
+		// Get user info
+		const userResponse = await fetch('https://api.github.com/user', {
+			headers: {
+				'Authorization': `token ${tokenData.access_token}`,
+				'User-Agent': 'link.mackhaymond.co'
+			}
+		});
+
+		const user = await userResponse.json();
+
+		return corsResponse(new Response(JSON.stringify({
+			access_token: tokenData.access_token,
+			user: user
+		}), {
+			headers: { 'Content-Type': 'application/json' }
+		}));
+
+	} catch (error) {
+		console.error('OAuth callback error:', error);
+		return corsResponse(new Response('OAuth callback failed', { status: 500 }));
+	}
 }
 
 export default {

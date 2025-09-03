@@ -1,9 +1,20 @@
+import { authService } from './auth.js';
+
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8787';
 
 class LinkAPI {
   async getAllLinks() {
-    const response = await fetch(`${API_BASE}/api/links`);
+    const response = await fetch(`${API_BASE}/api/links`, {
+      headers: {
+        ...authService.getAuthHeaders()
+      }
+    });
     if (!response.ok) {
+      if (response.status === 401) {
+        authService.logout();
+        window.location.reload();
+        return;
+      }
       throw new Error('Failed to fetch links');
     }
     return await response.json();
@@ -14,6 +25,7 @@ class LinkAPI {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authService.getAuthHeaders()
       },
       body: JSON.stringify({
         shortcode,
@@ -36,6 +48,7 @@ class LinkAPI {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...authService.getAuthHeaders()
       },
       body: JSON.stringify(updates)
     });
@@ -49,7 +62,10 @@ class LinkAPI {
 
   async deleteLink(shortcode) {
     const response = await fetch(`${API_BASE}/api/links/${shortcode}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        ...authService.getAuthHeaders()
+      }
     });
 
     if (!response.ok) {
@@ -58,7 +74,11 @@ class LinkAPI {
   }
 
   async getLink(shortcode) {
-    const response = await fetch(`${API_BASE}/api/links/${shortcode}`);
+    const response = await fetch(`${API_BASE}/api/links/${shortcode}`, {
+      headers: {
+        ...authService.getAuthHeaders()
+      }
+    });
     if (!response.ok) {
       throw new Error('Failed to fetch link');
     }

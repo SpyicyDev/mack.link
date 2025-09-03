@@ -11,7 +11,8 @@
       "Bash(npm:*)",
       "WebFetch(domain:tailwindcss.com)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }

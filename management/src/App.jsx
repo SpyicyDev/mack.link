@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react'
 import { LinkList } from './components/LinkList'
 import { CreateLinkForm } from './components/CreateLinkForm'
 import { Header } from './components/Header'
+import { LoginScreen } from './components/LoginScreen'
+import { AuthCallback } from './components/AuthCallback'
 import { linkAPI } from './services/api'
+import { authService } from './services/auth'
 import { Plus } from 'lucide-react'
 
 function App() {
@@ -10,6 +13,17 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [error, setError] = useState(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated())
+
+  // Handle OAuth callback
+  if (window.location.pathname === '/auth/callback') {
+    return <AuthCallback />;
+  }
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
 
   useEffect(() => {
     loadLinks()
