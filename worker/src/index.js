@@ -4,6 +4,104 @@ const CORS_HEADERS = {
 	'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+// Structured Logging System
+class Logger {
+	constructor() {
+		this.requestId = null;
+		this.context = {};
+	}
+
+	setRequestId(id) {
+		this.requestId = id;
+		return this;
+	}
+
+	setContext(context) {
+		this.context = { ...this.context, ...context };
+		return this;
+	}
+
+	_log(level, message, data = {}) {
+		const logEntry = {
+			timestamp: new Date().toISOString(),
+			level: level.toUpperCase(),
+			requestId: this.requestId,
+			message,
+			context: this.context,
+			...data
+		};
+		
+		console.log(JSON.stringify(logEntry));
+	}
+
+	debug(message, data) {
+		this._log('debug', message, data);
+	}
+
+	info(message, data) {
+		this._log('info', message, data);
+	}
+
+	warn(message, data) {
+		this._log('warn', message, data);
+	}
+
+	error(message, data) {
+		this._log('error', message, data);
+	}
+
+	// Create a new logger instance for a request
+	forRequest(request) {
+		const requestId = crypto.randomUUID();
+		const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+		const userAgent = request.headers.get('User-Agent') || 'unknown';
+		
+		return new Logger()
+			.setRequestId(requestId)
+			.setContext({
+				method: request.method,
+				url: request.url,
+				clientIP,
+				userAgent: userAgent.substring(0, 100) // Truncate long user agents
+			});
+	}
+}
+
+const logger = new Logger();
+
+// Request timeout utility
+function withTimeout(promise, timeoutMs = 10000, timeoutMessage = 'Operation timed out') {
+	return Promise.race([
+		promise,
+		new Promise((_, reject) => 
+			setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs)
+		)
+	]);
+}
+
+// Exponential backoff utility for retries
+async function retryWithBackoff(operation, maxRetries = 3, baseDelay = 1000) {
+	for (let attempt = 1; attempt <= maxRetries; attempt++) {
+		try {
+			return await operation(attempt);
+		} catch (error) {
+			if (attempt === maxRetries) {
+				throw error;
+			}
+			
+			const delay = baseDelay * Math.pow(2, attempt - 1);
+			logger.warn('Retry attempt failed, waiting before retry', { 
+				attempt, 
+				maxRetries, 
+				delay: `${delay}ms`, 
+				error: error.message 
+			});
+			
+			await new Promise(resolve => setTimeout(resolve, delay));
+		}
+	}
+}
+
 // Validation utilities
 function validateShortcode(shortcode) {
 	if (typeof shortcode !== 'string') return 'Shortcode must be a string';
@@ -89,6 +187,47 @@ function isRateLimited(ip, limit = 100, window = 3600000) { // 100 requests per 
 // Token verification cache
 const tokenCache = new Map();
 
+// CSRF state management
+const stateCache = new Map();
+
+function generateStateToken() {
+	return crypto.randomUUID();
+}
+
+function storeState(state, data = {}) {
+	stateCache.set(state, {
+		...data,
+		timestamp: Date.now()
+	});
+	
+	// Clean up old states (older than 10 minutes)
+	if (stateCache.size > 100) {
+		const cutoff = Date.now() - 600000; // 10 minutes
+		for (const [key, value] of stateCache) {
+			if (value.timestamp < cutoff) {
+				stateCache.delete(key);
+			}
+		}
+	}
+}
+
+function validateAndConsumeState(state) {
+	const stateData = stateCache.get(state);
+	if (!stateData) {
+		return null;
+	}
+	
+	// Remove the state after use (one-time use)
+	stateCache.delete(state);
+	
+	// Check if state is expired (10 minutes)
+	if (Date.now() - stateData.timestamp > 600000) {
+		return null;
+	}
+	
+	return stateData;
+}
+
 async function verifyGitHubToken(token) {
 	// Check cache first (5 minute cache)
 	const cached = tokenCache.get(token);
@@ -97,20 +236,39 @@ async function verifyGitHubToken(token) {
 	}
 
 	try {
-		const response = await fetch('https://api.github.com/user', {
-			headers: {
-				'Authorization': `token ${token}`,
-				'User-Agent': 'link.mackhaymond.co'
+		const user = await retryWithBackoff(async (attempt) => {
+			logger.debug('GitHub token verification attempt', { attempt, token: token.substring(0, 8) + '...' });
+			
+			const response = await withTimeout(
+				fetch('https://api.github.com/user', {
+					headers: {
+						'Authorization': `token ${token}`,
+						'User-Agent': 'link.mackhaymond.co'
+					}
+				}),
+				8000, // 8 second timeout
+				'GitHub API token verification timed out'
+			);
+			
+			if (!response.ok) {
+				if (response.status === 401 || response.status === 403) {
+					// Don't retry auth failures
+					tokenCache.delete(token);
+					return null;
+				}
+				throw new Error(`GitHub API returned ${response.status}: ${response.statusText}`);
 			}
+			
+			return await withTimeout(
+				response.json(),
+				2000, // 2 second timeout for JSON parsing
+				'GitHub API response parsing timed out'
+			);
 		});
-		
-		if (!response.ok) {
-			// Remove from cache if token is invalid
-			tokenCache.delete(token);
-			return null;
+
+		if (!user) {
+			return null; // Auth failure
 		}
-		
-		const user = await response.json();
 		
 		// Cache the result
 		tokenCache.set(token, {
@@ -130,7 +288,10 @@ async function verifyGitHubToken(token) {
 		
 		return user;
 	} catch (error) {
-		console.error('GitHub token verification failed:', error);
+		logger.error('GitHub token verification failed', { 
+			error: error.message,
+			stack: error.stack?.substring(0, 500)
+		});
 		return null;
 	}
 }
@@ -167,7 +328,7 @@ function corsResponse(response) {
 	return newResponse;
 }
 
-async function handleRedirect(request, env) {
+async function handleRedirect(request, env, requestLogger = logger) {
 	const url = new URL(request.url);
 	const shortcode = url.pathname.slice(1);
 
@@ -177,6 +338,7 @@ async function handleRedirect(request, env) {
 
 	const linkData = await env.LINKS.get(shortcode);
 	if (!linkData) {
+		requestLogger.info('Link not found', { shortcode });
 		return new Response('Link not found', { status: 404 });
 	}
 
@@ -188,10 +350,17 @@ async function handleRedirect(request, env) {
 		lastClicked: new Date().toISOString()
 	}));
 
+	requestLogger.info('Link redirected', { 
+		shortcode, 
+		destination: link.url, 
+		redirectType: link.redirectType || 301,
+		previousClicks: link.clicks || 0
+	});
+
 	return Response.redirect(link.url, link.redirectType || 301);
 }
 
-async function handleAPI(request, env) {
+async function handleAPI(request, env, requestLogger = logger) {
 	const url = new URL(request.url);
 	const path = url.pathname;
 	const method = request.method;
@@ -337,7 +506,10 @@ async function createLink(request, env) {
 			headers: { 'Content-Type': 'application/json' }
 		}));
 	} catch (error) {
-		console.error('Create link error:', error);
+		logger.error('Create link error', { 
+			error: error.message,
+			stack: error.stack?.substring(0, 500)
+		});
 		return corsResponse(new Response(JSON.stringify({ error: 'Invalid request data' }), { 
 			status: 400,
 			headers: { 'Content-Type': 'application/json' }
@@ -396,11 +568,20 @@ async function handleGitHubAuth(request, env) {
 	const url = new URL(request.url);
 	const redirectUri = url.searchParams.get('redirect_uri') || 'http://localhost:5173/auth/callback';
 	
+	const state = generateStateToken();
+	storeState(state, {
+		redirectUri,
+		userAgent: request.headers.get('User-Agent')?.substring(0, 100),
+		clientIP: request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown'
+	});
+	
 	const authUrl = new URL('https://github.com/login/oauth/authorize');
 	authUrl.searchParams.set('client_id', env.GITHUB_CLIENT_ID);
 	authUrl.searchParams.set('redirect_uri', redirectUri);
 	authUrl.searchParams.set('scope', 'user:email');
-	authUrl.searchParams.set('state', crypto.randomUUID());
+	authUrl.searchParams.set('state', state);
+
+	logger.info('OAuth flow initiated', { state, redirectUri });
 
 	return corsResponse(Response.redirect(authUrl.toString(), 302));
 }
@@ -408,41 +589,102 @@ async function handleGitHubAuth(request, env) {
 async function handleGitHubCallback(request, env) {
 	const url = new URL(request.url);
 	const code = url.searchParams.get('code');
+	const state = url.searchParams.get('state');
 	
 	if (!code) {
+		logger.warn('OAuth callback missing code');
 		return corsResponse(new Response('No code provided', { status: 400 }));
 	}
 
+	if (!state) {
+		logger.warn('OAuth callback missing state parameter');
+		return corsResponse(new Response('No state parameter provided', { status: 400 }));
+	}
+
+	// Validate CSRF state
+	const stateData = validateAndConsumeState(state);
+	if (!stateData) {
+		logger.warn('OAuth callback invalid or expired state', { state });
+		return corsResponse(new Response('Invalid or expired state parameter', { status: 400 }));
+	}
+
+	// Optional: Additional validation against request context
+	const currentIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+	if (stateData.clientIP !== currentIP) {
+		logger.warn('OAuth callback IP mismatch', { 
+			storedIP: stateData.clientIP, 
+			currentIP,
+			state
+		});
+		// Note: This is logged but not blocked as IPs can change legitimately
+	}
+
+	logger.info('OAuth callback state validated', { state });
+
 	try {
 		// Exchange code for access token
-		const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-			method: 'POST',
-			headers: {
-				'Accept': 'application/json',
-				'Content-Type': 'application/x-www-form-urlencoded',
-			},
-			body: new URLSearchParams({
-				client_id: env.GITHUB_CLIENT_ID,
-				client_secret: env.GITHUB_CLIENT_SECRET,
-				code: code,
-			})
-		});
+		const tokenData = await retryWithBackoff(async (attempt) => {
+			logger.debug('OAuth token exchange attempt', { attempt });
+			
+			const tokenResponse = await withTimeout(
+				fetch('https://github.com/login/oauth/access_token', {
+					method: 'POST',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: new URLSearchParams({
+						client_id: env.GITHUB_CLIENT_ID,
+						client_secret: env.GITHUB_CLIENT_SECRET,
+						code: code,
+					})
+				}),
+				8000,
+				'GitHub OAuth token exchange timed out'
+			);
 
-		const tokenData = await tokenResponse.json();
-		
-		if (tokenData.error) {
-			return corsResponse(new Response(JSON.stringify(tokenData), { status: 400 }));
-		}
-
-		// Get user info
-		const userResponse = await fetch('https://api.github.com/user', {
-			headers: {
-				'Authorization': `token ${tokenData.access_token}`,
-				'User-Agent': 'link.mackhaymond.co'
+			if (!tokenResponse.ok) {
+				throw new Error(`GitHub OAuth token exchange failed: ${tokenResponse.status}`);
 			}
+
+			const data = await withTimeout(
+				tokenResponse.json(),
+				2000,
+				'GitHub OAuth token response parsing timed out'
+			);
+			
+			if (data.error) {
+				throw new Error(`OAuth error: ${data.error_description || data.error}`);
+			}
+
+			return data;
 		});
 
-		const user = await userResponse.json();
+		// Get user info with retry
+		const user = await retryWithBackoff(async (attempt) => {
+			logger.debug('OAuth user info fetch attempt', { attempt });
+			
+			const userResponse = await withTimeout(
+				fetch('https://api.github.com/user', {
+					headers: {
+						'Authorization': `token ${tokenData.access_token}`,
+						'User-Agent': 'link.mackhaymond.co'
+					}
+				}),
+				8000,
+				'GitHub user info fetch timed out'
+			);
+
+			if (!userResponse.ok) {
+				throw new Error(`GitHub user fetch failed: ${userResponse.status}`);
+			}
+
+			return await withTimeout(
+				userResponse.json(),
+				2000,
+				'GitHub user info response parsing timed out'
+			);
+		});
 
 		// Check if user is authorized
 		if (env.AUTHORIZED_USER && user.login !== env.AUTHORIZED_USER) {
@@ -463,26 +705,54 @@ async function handleGitHubCallback(request, env) {
 		}));
 
 	} catch (error) {
-		console.error('OAuth callback error:', error);
+		logger.error('OAuth callback error', { 
+			error: error.message,
+			stack: error.stack?.substring(0, 500)
+		});
 		return corsResponse(new Response('OAuth callback failed', { status: 500 }));
 	}
 }
 
 export default {
 	async fetch(request, env, ctx) {
-		const url = new URL(request.url);
+		const requestLogger = logger.forRequest(request);
+		const startTime = Date.now();
+		
+		try {
+			requestLogger.info('Request started');
+			
+			const url = new URL(request.url);
 
-		if (url.pathname.startsWith('/api/')) {
-			return await handleAPI(request, env);
+			let response;
+			if (url.pathname.startsWith('/api/')) {
+				response = await handleAPI(request, env, requestLogger);
+			} else {
+				const redirectResponse = await handleRedirect(request, env, requestLogger);
+				if (redirectResponse) {
+					response = redirectResponse;
+				} else {
+					response = new Response('link.mackhaymond.co URL Shortener', {
+						headers: { 'Content-Type': 'text/plain' }
+					});
+				}
+			}
+
+			const duration = Date.now() - startTime;
+			requestLogger.info('Request completed', { 
+				statusCode: response.status,
+				duration: `${duration}ms`
+			});
+
+			return response;
+		} catch (error) {
+			const duration = Date.now() - startTime;
+			requestLogger.error('Request failed', { 
+				error: error.message,
+				stack: error.stack?.substring(0, 500),
+				duration: `${duration}ms`
+			});
+			
+			return corsResponse(new Response('Internal Server Error', { status: 500 }));
 		}
-
-		const redirectResponse = await handleRedirect(request, env);
-		if (redirectResponse) {
-			return redirectResponse;
-		}
-
-		return new Response('link.mackhaymond.co URL Shortener', {
-			headers: { 'Content-Type': 'text/plain' }
-		});
 	},
 };
