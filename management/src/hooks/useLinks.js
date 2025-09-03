@@ -1,0 +1,179 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { linkAPI } from '../services/api'
+
+// Query keys
+export const linkKeys = {
+  all: ['links'],
+  lists: () => [...linkKeys.all, 'list'],
+  list: (filters) => [...linkKeys.lists(), { filters }],
+  details: () => [...linkKeys.all, 'detail'],
+  detail: (id) => [...linkKeys.details(), id],
+}
+
+// Hook to fetch all links
+export function useLinks() {
+  return useQuery({
+    queryKey: linkKeys.lists(),
+    queryFn: linkAPI.getAllLinks,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  })
+}
+
+// Hook to fetch a single link
+export function useLink(shortcode) {
+  return useQuery({
+    queryKey: linkKeys.detail(shortcode),
+    queryFn: () => linkAPI.getLink(shortcode),
+    enabled: !!shortcode,
+  })
+}
+
+// Hook to create a new link
+export function useCreateLink() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ shortcode, url, description, redirectType }) =>
+      linkAPI.createLink(shortcode, url, description, redirectType),
+    
+    onMutate: async (newLink) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: linkKeys.lists() })
+
+      // Snapshot the previous value
+      const previousLinks = queryClient.getQueryData(linkKeys.lists())
+
+      // Optimistically update to the new value
+      if (previousLinks) {
+        queryClient.setQueryData(linkKeys.lists(), (old) => ({
+          ...old,
+          [newLink.shortcode]: {
+            ...newLink,
+            created: new Date().toISOString(),
+            updated: new Date().toISOString(),
+            clicks: 0,
+          },
+        }))
+      }
+
+      return { previousLinks }
+    },
+
+    onError: (err, newLink, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousLinks) {
+        queryClient.setQueryData(linkKeys.lists(), context.previousLinks)
+      }
+    },
+
+    onSuccess: (data) => {
+      // Update the links list with the actual server response
+      queryClient.setQueryData(linkKeys.lists(), (old) => ({
+        ...old,
+        [data.shortcode]: data,
+      }))
+    },
+
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: linkKeys.lists() })
+    },
+  })
+}
+
+// Hook to update a link
+export function useUpdateLink() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ shortcode, updates }) => linkAPI.updateLink(shortcode, updates),
+    
+    onMutate: async ({ shortcode, updates }) => {
+      await queryClient.cancelQueries({ queryKey: linkKeys.lists() })
+      await queryClient.cancelQueries({ queryKey: linkKeys.detail(shortcode) })
+
+      const previousLinks = queryClient.getQueryData(linkKeys.lists())
+      const previousLink = queryClient.getQueryData(linkKeys.detail(shortcode))
+
+      // Optimistically update
+      if (previousLinks && previousLinks[shortcode]) {
+        queryClient.setQueryData(linkKeys.lists(), (old) => ({
+          ...old,
+          [shortcode]: {
+            ...old[shortcode],
+            ...updates,
+            updated: new Date().toISOString(),
+          },
+        }))
+      }
+
+      if (previousLink) {
+        queryClient.setQueryData(linkKeys.detail(shortcode), (old) => ({
+          ...old,
+          ...updates,
+          updated: new Date().toISOString(),
+        }))
+      }
+
+      return { previousLinks, previousLink }
+    },
+
+    onError: (err, { shortcode }, context) => {
+      if (context?.previousLinks) {
+        queryClient.setQueryData(linkKeys.lists(), context.previousLinks)
+      }
+      if (context?.previousLink) {
+        queryClient.setQueryData(linkKeys.detail(shortcode), context.previousLink)
+      }
+    },
+
+    onSuccess: (data, { shortcode }) => {
+      queryClient.setQueryData(linkKeys.lists(), (old) => ({
+        ...old,
+        [shortcode]: data,
+      }))
+      queryClient.setQueryData(linkKeys.detail(shortcode), data)
+    },
+
+    onSettled: (data, error, { shortcode }) => {
+      queryClient.invalidateQueries({ queryKey: linkKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: linkKeys.detail(shortcode) })
+    },
+  })
+}
+
+// Hook to delete a link
+export function useDeleteLink() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: linkAPI.deleteLink,
+    
+    onMutate: async (shortcode) => {
+      await queryClient.cancelQueries({ queryKey: linkKeys.lists() })
+
+      const previousLinks = queryClient.getQueryData(linkKeys.lists())
+
+      // Optimistically remove the link
+      if (previousLinks) {
+        queryClient.setQueryData(linkKeys.lists(), (old) => {
+          const { [shortcode]: removed, ...rest } = old
+          return rest
+        })
+      }
+
+      return { previousLinks }
+    },
+
+    onError: (err, shortcode, context) => {
+      if (context?.previousLinks) {
+        queryClient.setQueryData(linkKeys.lists(), context.previousLinks)
+      }
+    },
+
+    onSettled: (data, error, shortcode) => {
+      queryClient.invalidateQueries({ queryKey: linkKeys.lists() })
+      queryClient.removeQueries({ queryKey: linkKeys.detail(shortcode) })
+    },
+  })
+}

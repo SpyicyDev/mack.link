@@ -49,8 +49,8 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
 
   if (linkEntries.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-lg shadow">
-        <LinkIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+      <div className="text-center py-12 bg-white rounded-lg shadow" role="status" aria-live="polite">
+        <LinkIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" aria-hidden="true" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">No links yet</h3>
         <p className="text-gray-600 mb-6">Get started by creating your first short link</p>
       </div>
@@ -59,26 +59,27 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
 
   return (
     <>
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+      <section className="bg-white shadow overflow-hidden sm:rounded-lg" aria-labelledby="links-heading">
         <div className="px-4 py-5 sm:p-6">
-          <div className="grid gap-4">
+          <h2 id="links-heading" className="sr-only">Your short links</h2>
+          <div className="grid gap-4" role="list" aria-label="List of short links">
             {linkEntries.map(([shortcode, link]) => (
-              <div key={shortcode} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <article key={shortcode} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2" role="listitem">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
-                      <code className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-mono rounded">
+                      <code className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-mono rounded" aria-label={`Short URL: link.mackhaymond.co/${shortcode}`}>
                         link.mackhaymond.co/{shortcode}
                       </code>
                       <button
                         onClick={() => copyToClipboard(shortcode)}
-                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                        title="Copy link"
+                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                        aria-label={`Copy link for ${shortcode} to clipboard`}
                       >
-                        <Copy className="w-4 h-4" />
+                        <Copy className="w-4 h-4" aria-hidden="true" />
                       </button>
                       {copiedShortcode === shortcode && (
-                        <span className="text-xs text-green-600">Copied!</span>
+                        <span className="text-xs text-green-600" role="status" aria-live="polite">Copied!</span>
                       )}
                     </div>
                     
@@ -113,20 +114,22 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 ml-4">
+                  <div className="flex items-center space-x-2 ml-4" role="group" aria-label={`Actions for ${shortcode}`}>
                     <button
                       onClick={() => setEditingLink({ shortcode, ...link })}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                      title="Edit link"
+                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                      aria-label={`Edit link ${shortcode}`}
                     >
-                      <Edit className="w-4 h-4" />
+                      <Edit className="w-4 h-4" aria-hidden="true" />
+                      <span className="sr-only">Edit</span>
                     </button>
                     <button
                       onClick={() => handleDeleteClick(shortcode)}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                      title="Delete link"
+                      className="p-2 text-gray-400 hover:text-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
+                      aria-label={`Delete link ${shortcode}`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" aria-hidden="true" />
+                      <span className="sr-only">Delete</span>
                     </button>
                   </div>
                 </div>

@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Search, Filter, X, Calendar, BarChart3 } from 'lucide-react'
 import { Input, Button } from './ui'
 
-export function LinkSearch({ links, onFilteredResults }) {
+export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('created')
   const [sortOrder, setSortOrder] = useState('desc')
@@ -119,13 +119,16 @@ export function LinkSearch({ links, onFilteredResults }) {
       <div className="p-4 border-b border-gray-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" aria-hidden="true" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search links by shortcode, URL, or description..."
               value={searchQuery}
               onChange={handleSearchChange}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Search links"
+              role="searchbox"
             />
           </div>
           
