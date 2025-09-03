@@ -12,32 +12,44 @@ export function useTheme() {
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    // Check localStorage first
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme) {
-      return savedTheme
+    try {
+      // Check localStorage first
+      const savedTheme = localStorage.getItem('theme')
+      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+        return savedTheme
+      }
+      
+      // Check system preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark'
+      }
+      
+      return 'light'
+    } catch (error) {
+      // Fallback if localStorage is not available
+      return 'light'
     }
-    
-    // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark'
-    }
-    
-    return 'light'
   })
 
   useEffect(() => {
-    // Apply theme to document
+    // Apply theme to document immediately
     const root = document.documentElement
     
-    if (theme === 'dark') {
-      root.classList.add('dark')
-    } else {
-      root.classList.remove('dark')
-    }
+    // Remove both classes first to ensure clean state
+    root.classList.remove('light', 'dark')
+    
+    // Add the current theme class
+    root.classList.add(theme)
 
-    // Save to localStorage
-    localStorage.setItem('theme', theme)
+    // Save to localStorage only if it's a valid theme
+    try {
+      if (theme === 'light' || theme === 'dark') {
+        localStorage.setItem('theme', theme)
+      }
+    } catch (error) {
+      // Handle localStorage errors gracefully
+      console.warn('Could not save theme to localStorage:', error)
+    }
   }, [theme])
 
   useEffect(() => {
@@ -56,13 +68,23 @@ export function ThemeProvider({ children }) {
   }, [])
 
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light')
+    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark')
   }
 
-  const setLightTheme = () => setTheme('light')
-  const setDarkTheme = () => setTheme('dark')
+  const setLightTheme = () => {
+    setTheme('light')
+  }
+  
+  const setDarkTheme = () => {
+    setTheme('dark')
+  }
+  
   const setSystemTheme = () => {
-    localStorage.removeItem('theme')
+    try {
+      localStorage.removeItem('theme')
+    } catch (error) {
+      console.warn('Could not remove theme from localStorage:', error)
+    }
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     setTheme(systemTheme)
   }

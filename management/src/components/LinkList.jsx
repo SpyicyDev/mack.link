@@ -144,8 +144,8 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
               onClick={toggleBulkMode}
               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                 bulkMode 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-blue-600 text-white dark:bg-blue-500' 
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               aria-pressed={bulkMode}
             >
@@ -154,19 +154,19 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
             
             {bulkMode && (
               <>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
                   {selectedLinks.size} of {linkEntries.length} selected
                 </span>
                 <button
                   onClick={selectAllLinks}
-                  className="text-sm text-blue-600 hover:text-blue-800"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 disabled:opacity-50"
                   disabled={selectedLinks.size === linkEntries.length}
                 >
                   Select All
                 </button>
                 <button
                   onClick={clearSelection}
-                  className="text-sm text-gray-600 hover:text-gray-800"
+                  className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 disabled:opacity-50"
                   disabled={selectedLinks.size === 0}
                 >
                   Clear
@@ -179,7 +179,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleExportSelected}
-                className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                 title="Export selected links to CSV"
               >
                 <Download className="w-4 h-4 mr-1" />
@@ -187,7 +187,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
               </button>
               <button
                 onClick={handleBulkDelete}
-                className="inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="inline-flex items-center px-3 py-1 border border-red-300 dark:border-red-500 rounded-md text-sm font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
                 title={`Delete ${selectedLinks.size} selected links`}
               >
                 <Trash2 className="w-4 h-4 mr-1" />
@@ -203,21 +203,21 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
           <h2 id="links-heading" className="sr-only">Your short links</h2>
           <div className="grid gap-4" role="list" aria-label="List of short links">
             {linkEntries.map(([shortcode, link]) => (
-              <article key={shortcode} className={`border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 ${
-                bulkMode && selectedLinks.has(shortcode) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+              <article key={shortcode} className={`border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md dark:hover:shadow-gray-700/50 transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800 bg-white dark:bg-gray-800 ${
+                bulkMode && selectedLinks.has(shortcode) ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
               }`} role="listitem">
                 <div className="flex items-start justify-between">
                   {bulkMode && (
                     <div className="flex items-center mr-4 mt-1">
                       <button
                         onClick={() => toggleLinkSelection(shortcode)}
-                        className="p-1 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         aria-label={`${selectedLinks.has(shortcode) ? 'Unselect' : 'Select'} link ${shortcode}`}
                       >
                         {selectedLinks.has(shortcode) ? (
-                          <CheckSquare className="w-5 h-5 text-blue-600" />
+                          <CheckSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         ) : (
-                          <Square className="w-5 h-5 text-gray-400" />
+                          <Square className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                         )}
                       </button>
                     </div>
@@ -273,7 +273,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                   <div className="flex items-center space-x-2 ml-4" role="group" aria-label={`Actions for ${shortcode}`}>
                     <button
                       onClick={() => handleShowQRCode(shortcode, link)}
-                      className="p-2 text-gray-400 hover:text-green-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
                       aria-label={`Generate QR code for ${shortcode}`}
                       title="Generate QR Code"
                     >
@@ -282,7 +282,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                     </button>
                     <button
                       onClick={() => setEditingLink({ shortcode, ...link })}
-                      className="p-2 text-gray-400 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                       aria-label={`Edit link ${shortcode}`}
                     >
                       <Edit className="w-4 h-4" aria-hidden="true" />
@@ -290,7 +290,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                     </button>
                     <button
                       onClick={() => handleDeleteClick(shortcode)}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
+                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
                       aria-label={`Delete link ${shortcode}`}
                     >
                       <Trash2 className="w-4 h-4" aria-hidden="true" />

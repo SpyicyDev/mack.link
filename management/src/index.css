@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Dark mode consistency fixes */
+.dark {
+  color-scheme: dark;
+}
+
+.light {
+  color-scheme: light;
+}
+
 /* Screen reader only classes */
 .sr-only {
   position: absolute;
