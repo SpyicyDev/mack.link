@@ -132,7 +132,7 @@ function App() {
               onClose={() => setShowCreateForm(false)}
             />
           )}
-        </div>
+        </main>
       </div>
     </ErrorBoundary>
   )

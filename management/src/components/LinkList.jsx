@@ -133,11 +133,11 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate }) {
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {editingLink && (
         <EditLinkModal
