@@ -38,15 +38,18 @@ async function serveStaticFile(path, env, requestLogger) {
 	const fileContent = adminAssets[cleanPath];
 	if (!fileContent) {
 		requestLogger.debug('Admin asset not found', { path: cleanPath });
-		// If a specific asset (e.g., .js) is requested but not embedded, return an empty file with correct MIME
 		const ext = cleanPath.split('.').pop()?.toLowerCase();
-		if (ext === 'js') {
-			return createResponse('', 'application/javascript', env);
+		const isAssetRequest = cleanPath.startsWith('assets/');
+		// If an embedded asset under /assets is missing, respond with empty content and correct MIME
+		if (isAssetRequest) {
+			if (ext === 'js') {
+				return createResponse('', 'application/javascript', env);
+			}
+			if (ext === 'css') {
+				return createResponse('', 'text/css', env);
+			}
 		}
-		if (ext === 'css') {
-			return createResponse('', 'text/css', env);
-		}
-		// For SPA, return index.html for unknown non-asset routes
+		// For all other admin paths (including unknown files), serve SPA index.html
 		const indexContent = adminAssets['index.html'];
 		if (indexContent) {
 			return createResponse(indexContent, 'text/html', env);
