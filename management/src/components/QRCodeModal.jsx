@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Download, Copy } from 'lucide-react'
 import QRCode from 'qrcode'
 import { shortUrl } from '../services/links'
@@ -7,20 +7,16 @@ export function QRCodeModal({ isOpen, onClose, shortcode, url }) {
   const [qrDataUrl, setQrDataUrl] = useState(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(false)
-  const canvasRef = useRef(null)
 
   const linkUrl = shortUrl(shortcode)
 
   useEffect(() => {
-    if (isOpen && shortcode) {
-      generateQRCode()
-    }
-  }, [isOpen, shortcode])
-
-  const generateQRCode = async () => {
-    setLoading(true)
-    try {
-      const dataUrl = await QRCode.toDataURL(linkUrl, {
+    let cancelled = false
+    async function run() {
+      if (!isOpen || !shortcode) return
+      setLoading(true)
+      try {
+        const dataUrl = await QRCode.toDataURL(linkUrl, {
         width: 300,
         margin: 2,
         color: {
@@ -29,13 +25,16 @@ export function QRCodeModal({ isOpen, onClose, shortcode, url }) {
         },
         errorCorrectionLevel: 'M'
       })
-      setQrDataUrl(dataUrl)
-    } catch (error) {
-      console.error('Failed to generate QR code:', error)
-    } finally {
-      setLoading(false)
+        if (!cancelled) setQrDataUrl(dataUrl)
+      } catch (error) {
+        console.error('Failed to generate QR code:', error)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
-  }
+    run()
+    return () => { cancelled = true }
+  }, [isOpen, shortcode, linkUrl])
 
   const downloadQRCode = () => {
     if (!qrDataUrl) return

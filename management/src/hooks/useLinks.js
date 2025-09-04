@@ -179,7 +179,8 @@ export function useDeleteLink() {
       // Optimistically remove the link
       if (previousLinks) {
         queryClient.setQueryData(linkKeys.lists(), (old) => {
-          const { [shortcode]: removed, ...rest } = old
+          const rest = { ...old }
+          delete rest[shortcode]
           return rest
         })
       }

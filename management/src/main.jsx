@@ -5,7 +5,6 @@ import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { AuthCallback } from './components/AuthCallback.jsx'
 import { LoginScreen } from './components/LoginScreen.jsx'
-import { authService } from './services/auth.js'
 import { QueryProvider } from './providers/QueryProvider.jsx'
 
 import { ThemeProvider } from './providers/ThemeProvider.jsx'

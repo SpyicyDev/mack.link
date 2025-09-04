@@ -11,7 +11,7 @@ function getInitialTheme() {
   try {
     const stored = localStorage.getItem('theme')
     if (stored === 'light' || stored === 'dark') return stored
-  } catch {}
+  } catch (e) { void e }
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
   return prefersDark ? 'dark' : 'light'
 }
@@ -35,7 +35,7 @@ export function ThemeProvider({ children }) {
     if (meta) meta.setAttribute('content', theme === 'dark' ? '#111827' : '#2563eb')
     try {
       localStorage.setItem('theme', theme)
-    } catch {}
+    } catch (e) { void e }
     window.dispatchEvent(new CustomEvent('theme:change', { detail: { theme } }))
   }, [theme])
 
@@ -62,6 +62,7 @@ export function ThemeProvider({ children }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTheme() {
   return useContext(ThemeContext)
 }

@@ -37,7 +37,7 @@ export function AuthCallback({ onAuthSuccess }) {
     };
 
     handleCallback();
-  }, []);
+  }, [navigate, onAuthSuccess]);
 
   if (status === 'loading') {
     return (

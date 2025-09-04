@@ -111,15 +111,6 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   // On mount, always default to not showing archived
   useEffect(() => { setShowArchived(false) }, [])
 
-  const handleSortChange = useCallback((field) => {
-    if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortBy(field)
-      setSortOrder('desc')
-    }
-  }, [sortBy, sortOrder])
-
   const clearFilters = useCallback(() => {
     setSearchQuery('')
     setDateFilter('')
