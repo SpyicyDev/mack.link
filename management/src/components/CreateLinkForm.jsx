@@ -247,6 +247,9 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             </div>
           )}
 
+          {/* Hint for date format */}
+          <p className="text-xs text-gray-500 dark:text-gray-400">Tip: Leave date fields blank to skip. Your browser may format the datetime; both blank and valid ISO strings are accepted.</p>
+
           <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"

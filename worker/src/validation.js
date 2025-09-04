@@ -58,6 +58,7 @@ export function validateTags(tags) {
 
 export function validateISODate(dateStr, { allowPast = true } = {}) {
 	if (dateStr === undefined || dateStr === null) return null;
+	if (typeof dateStr === 'string' && dateStr.trim() === '') return null;
 	if (typeof dateStr !== 'string') return 'Date must be an ISO 8601 string';
 	const d = new Date(dateStr);
 	if (isNaN(d.getTime())) return 'Invalid ISO 8601 date';
