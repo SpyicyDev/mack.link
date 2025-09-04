@@ -117,15 +117,15 @@ function renderErrorHtml({ status, title, subtitle }) {
       color:var(--text);font:16px/1.6 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
     .wrap{min-height:100svh;display:flex;align-items:center;justify-content:center;padding:24px}
     .card{width:100%;max-width:700px;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.10);border-radius:18px;backdrop-filter:blur(12px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
-    .inner{padding:32px}
-    .title{display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px;margin:0 0 8px}
-    .subtitle{margin:0 0 18px;color:var(--muted)}
-    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(23,37,84,.55);color:#c7d2fe;border:1px solid rgba(99,102,241,.35);font-weight:700;font-size:12px}
-    .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
-    .btn{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:var(--text);padding:10px 14px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.2s ease}
+    .inner{padding:40px}
+    .title{display:flex;align-items:center;gap:12px;font-weight:800;font-size:24px;margin:16px 0 12px}
+    .subtitle{margin:0 0 24px;color:var(--muted);font-size:16px;line-height:1.5}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(23,37,84,.55);color:#c7d2fe;border:1px solid rgba(99,102,241,.35);font-weight:700;font-size:12px;margin-bottom:6px}
+    .row{display:flex;gap:14px;flex-wrap:wrap;margin-top:22px}
+    .btn{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:var(--text);padding:12px 18px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.2s ease;font-size:15px;font-weight:500}
     .btn:hover{border-color:rgba(96,165,250,.7);box-shadow:0 0 0 4px var(--ring)}
-    code.k{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:2px 6px;border-radius:6px}
-    .footer{margin-top:22px;color:#9aa4b2;font-size:12px}
+    code.k{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);padding:3px 7px;border-radius:6px;font-size:11px}
+    .footer{margin-top:26px;color:#9aa4b2;font-size:12px}
     .logo{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#60a5fa,#2563eb);display:inline-block;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
   </style>
 </head>
@@ -137,7 +137,7 @@ function renderErrorHtml({ status, title, subtitle }) {
         <h1 class="title">${escapeHtml(String(title))}</h1>
         <p class="subtitle">${escapeHtml(String(subtitle))}</p>
         <div class="row">
-          <a class="btn" href="https://link-management.mackhaymond.co/">Open Management</a>
+          <a class="btn" href="https://link.mackhaymond.co/admin">Open Management</a>
           <a class="btn" href="/">Go Home</a>
         </div>
         <div class="footer">Error ${escapeHtml(String(status))} • Press <code class="k">⌘</code>/<code class="k">Ctrl</code> + <code class="k">L</code> to try another link</div>

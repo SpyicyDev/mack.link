@@ -131,13 +131,15 @@ export function Analytics({ links }) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-6 flex items-center gap-6 flex-wrap">
-        {/* Scope segmented control */}
-        <div
-          className="inline-flex rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
-          role="group"
-          aria-label="Scope"
-        >
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-6">
+          <div className="flex flex-wrap items-center gap-6">
+            {/* Scope segmented control */}
+            <div
+              className="inline-flex rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+              role="group"
+              aria-label="Scope"
+            >
           <button
             type="button"
             onClick={() => setScope('all')}
@@ -162,109 +164,111 @@ export function Analytics({ links }) {
           </button>
         </div>
 
-        {/* Shortcode picker */}
-        {scope === 'shortcode' && (
-          <div className="flex items-center gap-3">
-            <label className="text-sm text-gray-600 dark:text-gray-300">Shortcode</label>
-            <select
-              value={shortcode || ''}
-              onChange={(e) => setShortcode(e.target.value)}
-              className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {Object.keys(links).map((sc) => (
-                <option key={sc} value={sc}>
-                  {sc}
-                </option>
-              ))}
-            </select>
+            {/* Shortcode picker */}
+            {scope === 'shortcode' && (
+              <div className="flex items-center gap-3">
+                <label className="text-sm text-gray-600 dark:text-gray-300">Shortcode</label>
+                <select
+                  value={shortcode || ''}
+                  onChange={(e) => setShortcode(e.target.value)}
+                  className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {Object.keys(links).map((sc) => (
+                    <option key={sc} value={sc}>
+                      {sc}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Date range with presets */}
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-600 dark:text-gray-300">Date</label>
+              <input
+                type="date"
+                value={range.from}
+                onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
+                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-gray-500">to</span>
+              <input
+                type="date"
+                value={range.to}
+                onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
+                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div
+                className="inline-flex rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden ml-3"
+                role="group"
+                aria-label="Quick ranges"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d = new Date()
+                    const s = d.toISOString().slice(0, 10)
+                    setRange({ from: s, to: s })
+                  }}
+                  className="px-2 py-1 text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const to = new Date()
+                    const from = new Date(Date.now() - 7 * 86400000)
+                    setRange({
+                      from: from.toISOString().slice(0, 10),
+                      to: to.toISOString().slice(0, 10),
+                    })
+                  }}
+                  className="px-2 py-1 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  7d
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const to = new Date()
+                    const from = new Date(Date.now() - 30 * 86400000)
+                    setRange({
+                      from: from.toISOString().slice(0, 10),
+                      to: to.toISOString().slice(0, 10),
+                    })
+                  }}
+                  className="px-2 py-1 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  30d
+                </button>
+              </div>
+            </div>
+
+            {/* Breakdown select */}
+            <div className="flex items-center gap-3">
+              <label className="text-sm text-gray-600 dark:text-gray-300">Breakdown</label>
+              <select
+                value={dimension}
+                onChange={(e) => setDimension(e.target.value)}
+                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="ref">Referrer</option>
+                <option value="country">Country</option>
+                <option value="device">Device</option>
+                <option value="browser">Browser</option>
+                <option value="os">Operating System</option>
+                <option value="city">City</option>
+                <option value="utm_source">UTM Source</option>
+                <option value="utm_medium">UTM Medium</option>
+                <option value="utm_campaign">UTM Campaign</option>
+              </select>
+            </div>
           </div>
-        )}
 
-        {/* Date range with presets */}
-        <div className="flex items-center gap-3">
-          <label className="text-sm text-gray-600 dark:text-gray-300">Date</label>
-          <input
-            type="date"
-            value={range.from}
-            onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
-            className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <span className="text-gray-500">to</span>
-          <input
-            type="date"
-            value={range.to}
-            onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
-            className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div
-            className="inline-flex rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden ml-3"
-            role="group"
-            aria-label="Quick ranges"
-          >
+          <div className="flex items-center gap-4">
+            {/* Export Button */}
             <button
-              type="button"
-              onClick={() => {
-                const d = new Date()
-                const s = d.toISOString().slice(0, 10)
-                setRange({ from: s, to: s })
-              }}
-              className="px-2 py-1 text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const to = new Date()
-                const from = new Date(Date.now() - 7 * 86400000)
-                setRange({
-                  from: from.toISOString().slice(0, 10),
-                  to: to.toISOString().slice(0, 10),
-                })
-              }}
-              className="px-2 py-1 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              7d
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const to = new Date()
-                const from = new Date(Date.now() - 30 * 86400000)
-                setRange({
-                  from: from.toISOString().slice(0, 10),
-                  to: to.toISOString().slice(0, 10),
-                })
-              }}
-              className="px-2 py-1 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              30d
-            </button>
-          </div>
-        </div>
-
-        {/* Breakdown select */}
-        <div className="flex items-center gap-3">
-          <label className="text-sm text-gray-600 dark:text-gray-300">Breakdown</label>
-          <select
-            value={dimension}
-            onChange={(e) => setDimension(e.target.value)}
-            className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="ref">Referrer</option>
-            <option value="country">Country</option>
-            <option value="device">Device</option>
-            <option value="browser">Browser</option>
-            <option value="os">Operating System</option>
-            <option value="city">City</option>
-            <option value="utm_source">UTM Source</option>
-            <option value="utm_medium">UTM Medium</option>
-            <option value="utm_campaign">UTM Campaign</option>
-          </select>
-        </div>
-
-        {/* Export Button */}
-        <button
           onClick={async () => {
             if (isExporting) return
 
@@ -310,8 +314,8 @@ export function Analytics({ links }) {
           {isExporting ? 'Exporting...' : 'Export'}
         </button>
 
-        {/* Summary badges */}
-        <div className="ml-auto flex items-center gap-3 text-sm">
+            {/* Summary badges */}
+            <div className="flex items-center gap-3 text-sm">
           {overview && (
             <>
               <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
@@ -324,6 +328,8 @@ export function Analytics({ links }) {
               </span>
             </>
           )}
+            </div>
+          </div>
         </div>
       </div>
       {/* Stats Overview: scope-aware */}
