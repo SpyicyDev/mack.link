@@ -15,7 +15,12 @@ export function getConfig(env = {}) {
 			github: 8000
 		},
 		rateLimits: {
-			createPerHour: 50
+			createPerHour: 50,
+			updatePerHour: 200,
+			deletePerHour: 200,
+			bulkCreatePerHour: 50,
+			bulkDeletePerHour: 50,
+			windowMs: 60 * 60 * 1000
 		}
 	};
 }

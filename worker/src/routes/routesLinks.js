@@ -1,7 +1,8 @@
 import { withCors } from '../cors.js';
-import { sanitizeInput, isRateLimited } from '../utils.js';
+import { sanitizeInput, isRateLimitedPersistent } from '../utils.js';
 import { validateShortcode, validateUrl, validateDescription, validateRedirectType, validateTags, validateISODate } from '../validation.js';
 import { dbAll, dbGet, dbRun } from '../db.js';
+import { getConfig } from '../config.js';
 
 export async function getAllLinks(env, request) {
 	const rows = await dbAll(env, `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked FROM links`);
@@ -31,8 +32,8 @@ function safeParseJsonArray(text) {
 
 export async function createLink(request, env) {
 	try {
-		const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
-		if (isRateLimited(clientIP, { limit: 50, windowMs: 3600000 })) {
+		const { rateLimits } = getConfig(env);
+		if (await isRateLimitedPersistent(env, request, { key: 'create', limit: Number(rateLimits.createPerHour || 50), windowMs: Number(rateLimits.windowMs || 3600000) })) {
 			return withCors(env, new Response('Rate limit exceeded', { status: 429 }), request);
 		}
 		const body = await request.json();
@@ -105,6 +106,10 @@ export async function updateLink(request, env, shortcode) {
 			clicks: row.clicks || 0,
 			lastClicked: row.last_clicked || null
 		};
+		const { rateLimits } = getConfig(env);
+		if (await isRateLimitedPersistent(env, request, { key: 'update', limit: Number(rateLimits.updatePerHour || 200), windowMs: Number(rateLimits.windowMs || 3600000) })) {
+			return withCors(env, new Response('Rate limit exceeded', { status: 429 }), request);
+		}
 		const updates = await request.json();
 		let { url, description, redirectType, tags, archived, activatesAt, expiresAt } = updates;
 		if (url !== undefined) url = sanitizeInput(url);
@@ -153,12 +158,20 @@ export async function updateLink(request, env, shortcode) {
 export async function deleteLink(env, shortcode, request) {
 	const existing = await dbGet(env, `SELECT shortcode FROM links WHERE shortcode = ?`, [shortcode]);
 	if (!existing) return withCors(env, new Response('Link not found', { status: 404 }), request);
+	const { rateLimits } = getConfig(env);
+	if (await isRateLimitedPersistent(env, request, { key: 'delete', limit: Number(rateLimits.deletePerHour || 200), windowMs: Number(rateLimits.windowMs || 3600000) })) {
+		return withCors(env, new Response('Rate limit exceeded', { status: 429 }), request);
+	}
 	await dbRun(env, `DELETE FROM links WHERE shortcode = ?`, [shortcode]);
 	return withCors(env, new Response(null, { status: 204 }), request);
 }
 
 export async function bulkDeleteLinks(request, env) {
 	try {
+		const { rateLimits } = getConfig(env);
+		if (await isRateLimitedPersistent(env, request, { key: 'bulkDelete', limit: Number(rateLimits.bulkDeletePerHour || 50), windowMs: Number(rateLimits.windowMs || 3600000) })) {
+			return withCors(env, new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json' } }), request);
+		}
 		const { shortcodes } = await request.json();
 		if (!Array.isArray(shortcodes) || shortcodes.length === 0) {
 			return withCors(env, new Response(JSON.stringify({ error: 'Shortcodes array is required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
@@ -210,6 +223,10 @@ export async function getLink(env, shortcode, request) {
 
 export async function bulkCreateLinks(request, env) {
 	try {
+		const { rateLimits } = getConfig(env);
+		if (await isRateLimitedPersistent(env, request, { key: 'bulkCreate', limit: Number(rateLimits.bulkCreatePerHour || 50), windowMs: Number(rateLimits.windowMs || 3600000) })) {
+			return withCors(env, new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: { 'Content-Type': 'application/json' } }), request);
+		}
 		const { items } = await request.json();
 		if (!Array.isArray(items) || items.length === 0) {
 			return withCors(env, new Response(JSON.stringify({ error: 'Items array is required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);

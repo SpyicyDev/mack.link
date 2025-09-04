@@ -1,4 +1,5 @@
 import { getConfig } from './config.js';
+import { dbAll } from './db.js';
 
 export function sanitizeInput(input) {
 	if (typeof input !== 'string') return input;
@@ -43,21 +44,33 @@ export async function retryWithBackoff(operation, { maxRetries = 3, baseDelay = 
 export const tokenCache = new Map();
 export const rateLimitCache = new Map();
 
-export function isRateLimited(ip, { limit = 100, windowMs = 3600000 } = {}) {
-	const now = Date.now();
-	const key = `${ip}-${Math.floor(now / windowMs)}`;
-	const current = rateLimitCache.get(key) || 0;
-	if (current >= limit) return true;
-	rateLimitCache.set(key, current + 1);
-	// opportunistic cleanup
-	if (rateLimitCache.size > 1000) {
-		const cutoff = now - windowMs;
-		for (const [k] of rateLimitCache) {
-			const tsBucket = parseInt(k.split('-')[1]);
-			if (tsBucket * windowMs < cutoff) rateLimitCache.delete(k);
-		}
+export function getClientIP(request) {
+	const xff = request.headers.get('X-Forwarded-For');
+	if (xff) return xff.split(',')[0].trim();
+	return request.headers.get('CF-Connecting-IP') || 'unknown';
+}
+
+// Persistent (D1-based) rate limit per IP and window bucket
+export async function isRateLimitedPersistent(env, request, { key = 'default', limit = 100, windowMs = 3600000 } = {}) {
+	try {
+		const now = Date.now();
+		const bucket = Math.floor(now / windowMs);
+		const ip = getClientIP(request);
+		const name = `rate:${key}:${windowMs}:${bucket}:${ip}`;
+		// Use INSERT ... ON CONFLICT ... RETURNING value to atomically increment and read
+		const rows = await dbAll(env,
+			`INSERT INTO counters (name, value) VALUES (?, 1)
+			 ON CONFLICT(name) DO UPDATE SET value = counters.value + 1
+			 RETURNING value`,
+			[name]
+		);
+		const value = (rows && rows[0] && (rows[0].value ?? rows[0].VALUE)) || 0;
+		return Number(value) > Number(limit);
+	} catch (e) {
+		// Fallback to in-memory limiter on failure
+		const ip = getClientIP(request);
+		return isRateLimited(ip, { limit, windowMs });
 	}
-	return false;
 }
 
 // Import placed at end to avoid circular dep
