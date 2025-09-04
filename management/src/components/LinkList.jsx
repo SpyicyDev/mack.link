@@ -154,7 +154,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
               }`}
               aria-pressed={bulkMode}
             >
-              {bulkMode ? 'Exit Bulk Mode' : 'Bulk Select'}
+              {bulkMode ? 'Exit Bulk Mode' : 'Bulk Mode'}
             </button>
             
             {bulkMode && (
@@ -180,7 +180,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
             )}
           </div>
           
-          {bulkMode && selectedLinks.size > 0 && (
+          {bulkMode && (
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setBulkImportOpen(true)}
@@ -192,19 +192,21 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
               </button>
               <button
                 onClick={handleExportSelected}
-                className="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
                 title="Export selected links to CSV"
+                disabled={selectedLinks.size === 0}
               >
                 <Download className="w-4 h-4 mr-1" />
                 Export
               </button>
               <button
                 onClick={handleBulkDelete}
-                className="inline-flex items-center px-3 py-1 border border-red-300 dark:border-red-500 rounded-md text-sm font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
-                title={`Delete ${selectedLinks.size} selected links`}
+                className="inline-flex items-center px-3 py-1 border border-red-300 dark:border-red-500 rounded-md text-sm font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+                title={selectedLinks.size > 0 ? `Delete ${selectedLinks.size} selected links` : 'Delete selected links'}
+                disabled={selectedLinks.size === 0}
               >
                 <Trash2 className="w-4 h-4 mr-1" />
-                Delete ({selectedLinks.size})
+                Delete{selectedLinks.size > 0 ? ` (${selectedLinks.size})` : ''}
               </button>
             </div>
           )}
