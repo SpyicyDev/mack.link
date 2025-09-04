@@ -1,20 +1,80 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { X } from 'lucide-react'
+import { workerHost } from '../services/links'
 
 export function EditLinkModal({ link, onSave, onClose }) {
-  const [formData, setFormData] = useState({
+  // Helper to convert ISO -> value accepted by <input type="datetime-local">
+  const toLocalInput = (iso) => {
+    if (!iso) return ''
+    try {
+      const d = new Date(iso)
+      if (isNaN(d.getTime())) return ''
+      // Adjust to local and trim seconds
+      const tzOffset = d.getTimezoneOffset()
+      const local = new Date(d.getTime() - tzOffset * 60000)
+      return local.toISOString().slice(0, 16)
+    } catch {
+      return ''
+    }
+  }
+
+  const initial = useMemo(() => ({
     url: link.url || '',
     description: link.description || '',
     redirectType: link.redirectType || 301,
-    tags: link.tags || [],
+    tags: Array.isArray(link.tags) ? link.tags : [],
     archived: !!link.archived,
-    activatesAt: link.activatesAt || '',
-    expiresAt: link.expiresAt || '',
+    activatesAt: toLocalInput(link.activatesAt),
+    expiresAt: toLocalInput(link.expiresAt),
     password: '',
     passwordProtectionEnabled: !!link.passwordEnabled,
-  })
+  }), [link])
+
+  const [formData, setFormData] = useState(initial)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  // Close on Escape
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose?.()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  // Detect dirty state to disable save if nothing changed
+  const isDirty = useMemo(() => {
+    const normTags = (t) => (Array.isArray(t) ? t.map((s) => s.trim()).filter(Boolean) : [])
+    const a = {
+      ...initial,
+      url: (initial.url || '').trim(),
+      description: (initial.description || '').trim(),
+      tags: normTags(initial.tags),
+    }
+    const b = {
+      ...formData,
+      url: (formData.url || '').trim(),
+      description: (formData.description || '').trim(),
+      tags: normTags(formData.tags),
+    }
+    const keys = [
+      'url',
+      'description',
+      'redirectType',
+      'archived',
+      'activatesAt',
+      'expiresAt',
+      'passwordProtectionEnabled',
+    ]
+    const sameScalars = keys.every((k) => a[k] === b[k])
+    const sameTags = a.tags.join(',') === b.tags.join(',')
+    // Password content doesn't affect enablement if protection is off
+    const passwordRelevant = b.passwordProtectionEnabled
+      ? a.password === b.password // both are empty most times; keeps logic simple
+      : true
+    return !(sameScalars && sameTags && passwordRelevant)
+  }, [initial, formData])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -63,22 +123,32 @@ export function EditLinkModal({ link, onSave, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out">
-      <div className="relative top-20 mx-auto p-5 border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors">
+    <div
+      className="fixed inset-0 bg-black/30 dark:bg-black/40 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-link-title"
+    >
+      <div
+        className="relative top-20 mx-auto p-5 border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Edit Link</h3>
+          <h3 id="edit-link-title" className="text-lg font-medium text-gray-900 dark:text-white">Edit Link</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+            aria-label="Close"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-md transition-colors">
-          <div className="text-sm text-gray-600 dark:text-gray-300">Short Code</div>
+          <div className="text-sm text-gray-600 dark:text-gray-300">Short Link</div>
           <div className="font-mono text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded mt-1 transition-colors">
-            link.mackhaymond.co/{link.shortcode}
+            {workerHost()}/{link.shortcode}
           </div>
         </div>
 
@@ -99,6 +169,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
               className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="https://example.com"
               required
+              autoFocus
             />
           </div>
 
@@ -345,10 +416,11 @@ export function EditLinkModal({ link, onSave, onClose }) {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !isDirty}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors"
+              aria-disabled={loading || !isDirty}
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? 'Saving...' : isDirty ? 'Save Changes' : 'No Changes'}
             </button>
           </div>
         </form>
