@@ -132,11 +132,11 @@ export function Analytics({ links }) {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-6">
-        <div className="grid gap-4 lg:grid-cols-[1fr_auto] items-center">
-          <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center justify-between gap-4 flex-wrap md:flex-nowrap">
+          <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
             {/* Scope segmented control */}
             <div
-              className="inline-flex rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+              className="inline-flex rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden shrink-0"
               role="group"
               aria-label="Scope"
             >
@@ -184,22 +184,22 @@ export function Analytics({ links }) {
 
             {/* Date range with presets */}
             <div className="flex items-center gap-3">
-              <label className="text-sm text-gray-600 dark:text-gray-300">Date</label>
+              <label className="text-sm text-gray-600 dark:text-gray-300 shrink-0">Date</label>
               <input
                 type="date"
                 value={range.from}
                 onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
-                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-40 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <span className="text-gray-500">to</span>
+              <span className="text-gray-500 shrink-0">to</span>
               <input
                 type="date"
                 value={range.to}
                 onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
-                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-40 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <div
-                className="inline-flex rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden ml-3"
+                className="inline-flex rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden ml-3 shrink-0"
                 role="group"
                 aria-label="Quick ranges"
               >
@@ -246,12 +246,12 @@ export function Analytics({ links }) {
             </div>
 
             {/* Breakdown select */}
-            <div className="flex items-center gap-3">
-              <label className="text-sm text-gray-600 dark:text-gray-300">Breakdown</label>
+            <div className="flex items-center gap-3 shrink-0">
+              <label className="text-sm text-gray-600 dark:text-gray-300 shrink-0">Breakdown</label>
               <select
                 value={dimension}
                 onChange={(e) => setDimension(e.target.value)}
-                className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-56 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="ref">Referrer</option>
                 <option value="country">Country</option>
@@ -266,7 +266,7 @@ export function Analytics({ links }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 justify-start lg:justify-end">
+          <div className="flex items-center gap-3 justify-start md:justify-end shrink-0">
             {/* Export Button */}
             <button
           onClick={async () => {
@@ -315,7 +315,7 @@ export function Analytics({ links }) {
         </button>
 
             {/* Summary badges */}
-            <div className="hidden sm:flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-3 text-sm">
           {overview && (
             <>
               <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
