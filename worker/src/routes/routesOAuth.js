@@ -15,11 +15,9 @@ export async function handleGitHubAuth(request, env) {
 	authUrl.searchParams.set('scope', 'user:email');
 	authUrl.searchParams.set('state', state);
 	logger.info('OAuth flow initiated', { state, redirectUri });
-	const redirectResponse = Response.redirect(authUrl.toString(), 302);
-	// store state in a short-lived, HttpOnly cookie for CSRF protection
-	// SameSite=None to allow inclusion on cross-site subrequests from the management app during callback
+	// Build redirect response manually to allow setting Set-Cookie
 	const cookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly; Secure; SameSite=None`;
-	redirectResponse.headers.append('Set-Cookie', cookie);
+	const redirectResponse = new Response(null, { status: 302, headers: { 'Location': authUrl.toString(), 'Set-Cookie': cookie } });
 	return withCors(env, redirectResponse, request);
 }
 
