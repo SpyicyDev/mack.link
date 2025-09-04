@@ -29,7 +29,7 @@ export function validateUrl(url) {
 export function validateDescription(description) {
 	if (description !== undefined && description !== null) {
 		if (typeof description !== 'string') return 'Description must be a string';
-		if (description.length > 500) return 'Description must be less than 500 characters';
+		if (description.length > 200) return 'Description must be less than 200 characters';
 	}
 	return null;
 }

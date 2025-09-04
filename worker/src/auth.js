@@ -2,6 +2,7 @@ import { getConfig } from './config.js';
 import { withTimeout, retryWithBackoff, tokenCache } from './utils.js';
 import { withCors } from './cors.js';
 import { logger } from './logger.js';
+import { parseCookies, verifySessionJwt } from './session.js';
 
 export async function verifyGitHubToken(env, token) {
 	const cached = tokenCache.get(token);
@@ -43,6 +44,15 @@ export async function verifyGitHubToken(env, token) {
 }
 
 export async function authenticateRequest(env, request) {
+	// Prefer session cookie; fall back to Authorization for backward compatibility
+	const cookieHeader = request.headers.get('Cookie') || '';
+	const cookies = parseCookies(cookieHeader);
+	const { sessionCookieName } = getConfig(env);
+	const sessionToken = cookies[sessionCookieName || '__Host-link_session'];
+	if (sessionToken) {
+		const user = await verifySessionJwt(env, sessionToken);
+		if (user) return user;
+	}
 	const authHeader = request.headers.get('Authorization');
 	if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
 	const token = authHeader.substring(7);
@@ -61,6 +71,13 @@ export async function requireAuth(env, request) {
 
 export function generateStateToken() {
 	return crypto.randomUUID();
+}
+
+export async function handleLogout(env, request) {
+	const response = new Response(null, { status: 204 });
+	const { clearSessionCookie } = await import('./session.js');
+	response.headers.append('Set-Cookie', clearSessionCookie(env));
+	return withCors(env, response, request);
 }
 
 

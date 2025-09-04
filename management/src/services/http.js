@@ -6,9 +6,9 @@ async function request(path, { method = 'GET', headers = {}, body } = {}) {
 	const init = {
 		method,
 		headers: {
-			...authService.getAuthHeaders(),
 			...headers,
 		},
+		credentials: 'include',
 	}
 	if (body !== undefined) {
 		init.body = typeof body === 'string' ? body : JSON.stringify(body)

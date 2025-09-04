@@ -15,7 +15,11 @@ export async function handleGitHubAuth(request, env) {
 	authUrl.searchParams.set('scope', 'user:email');
 	authUrl.searchParams.set('state', state);
 	logger.info('OAuth flow initiated', { state, redirectUri });
-	return withCors(env, Response.redirect(authUrl.toString(), 302), request);
+	const redirectResponse = Response.redirect(authUrl.toString(), 302);
+	// store state in a short-lived, HttpOnly cookie for CSRF protection
+	const cookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly; Secure; SameSite=Lax`;
+	redirectResponse.headers.append('Set-Cookie', cookie);
+	return withCors(env, redirectResponse, request);
 }
 
 export async function handleGitHubCallback(request, env) {
@@ -25,6 +29,17 @@ export async function handleGitHubCallback(request, env) {
 	if (!code) return withCors(env, new Response('No code provided', { status: 400 }));
 	logger.info('OAuth callback processing', { state });
 	const config = getConfig(env);
+	// Verify OAuth state from cookie
+	const cookieHeader = request.headers.get('Cookie') || '';
+	const cookies = Object.fromEntries(cookieHeader.split(/;\s*/).filter(Boolean).map(kv => {
+		const idx = kv.indexOf('=');
+		if (idx === -1) return [kv, ''];
+		return [kv.slice(0, idx), kv.slice(idx + 1)];
+	}));
+	const cookieState = cookies['oauth_state'];
+	if (!cookieState || (state && cookieState !== state)) {
+		return withCors(env, new Response(JSON.stringify({ error: 'invalid_state', error_description: 'OAuth state mismatch' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+	}
 	try {
 		const tokenData = await retryWithBackoff(async (attempt) => {
 			const tokenResponse = await withTimeout(
@@ -55,7 +70,15 @@ export async function handleGitHubCallback(request, env) {
 		if (config.authorizedUser && user.login !== config.authorizedUser) {
 			return withCors(env, new Response(JSON.stringify({ error: 'access_denied', error_description: `Access denied. Only ${config.authorizedUser} is authorized to use this service.` }), { status: 403, headers: { 'Content-Type': 'application/json' } }), request);
 		}
-		return withCors(env, new Response(JSON.stringify({ access_token: tokenData.access_token, user }), { headers: { 'Content-Type': 'application/json' } }), request);
+		// Create session JWT and set in HttpOnly cookie. Do not expose GitHub token to the client.
+		const { createSessionJwt, buildSessionCookie, clearOauthStateCookie } = await import('../session.js');
+		const sessionJwt = await createSessionJwt(env, { login: user.login, id: user.id, avatar_url: user.avatar_url, name: user.name });
+		const responseBody = { user };
+		const response = new Response(JSON.stringify(responseBody), { headers: { 'Content-Type': 'application/json' } });
+		response.headers.append('Set-Cookie', buildSessionCookie(sessionJwt));
+		// Clear oauth_state cookie after successful exchange
+		response.headers.append('Set-Cookie', clearOauthStateCookie());
+		return withCors(env, response, request);
 	} catch (error) {
 		logger.error('OAuth callback error', { error: error.message });
 		return withCors(env, new Response('OAuth callback failed', { status: 500 }), request);

@@ -10,11 +10,13 @@ https://link.mackhaymond.co
 
 ## Authentication
 
-All management API endpoints require a GitHub access token in the Authorization header:
+All management API endpoints require authentication. Historically this used a GitHub access token in the Authorization header:
 
 ```
 Authorization: Bearer <github_access_token>
 ```
+
+The management UI now uses a secure HttpOnly session cookie instead of exposing the GitHub token client‑side. Browsers include the cookie automatically when requests are made with credentials.
 
 ## Endpoints
 
@@ -63,7 +65,6 @@ Handles GitHub OAuth callback.
 **Response:**
 ```json
 {
-  "access_token": "github_access_token",
   "user": {
     "login": "username",
     "avatar_url": "https://...",
@@ -80,6 +81,9 @@ Handles GitHub OAuth callback.
 }
 ```
 
+#### `POST /api/auth/logout`
+Clears the session cookie.
+
 ---
 
 ### 🔐 Protected Endpoints
@@ -87,20 +91,48 @@ Handles GitHub OAuth callback.
 All protected endpoints require authentication and user authorization.
 
 #### `GET /api/links`
-Get all links.
+Get links. For large datasets, use pagination with `limit` and `cursor`.
+
+**Query Parameters:**
+- `limit` (optional) Max number of items (1-1000)
+- `cursor` (optional) Opaque cursor from previous response
+
+**Paginated Response:**
+```json
+{
+  "links": {
+    "abc123": {
+      "url": "https://example.com",
+      "description": "Example link",
+      "redirectType": 301,
+      "created": "2025-09-03T16:00:00Z",
+      "updated": "2025-09-03T16:00:00Z",
+      "clicks": 42,
+      "lastClicked": "2025-09-03T17:30:00Z"
+    }
+  },
+  "cursor": "..." // null when complete
+}
+```
+#### `POST /api/links/bulk`
+Create multiple links (up to 100 items).
+
+**Request Body:**
+```json
+{
+  "items": [
+    { "shortcode": "abc123", "url": "https://example.com", "description": "Optional", "redirectType": 301 },
+    { "shortcode": "def456", "url": "https://example.org" }
+  ]
+}
+```
 
 **Response:**
 ```json
 {
-  "abc123": {
-    "url": "https://example.com",
-    "description": "Example link",
-    "redirectType": 301,
-    "created": "2025-09-03T16:00:00Z",
-    "updated": "2025-09-03T16:00:00Z",
-    "clicks": 42,
-    "lastClicked": "2025-09-03T17:30:00Z"
-  }
+  "created": [ { "shortcode": "abc123", "url": "https://example.com", "description": "Optional", "redirectType": 301, "created": "...", "updated": "...", "clicks": 0 } ],
+  "conflicts": [ "def456" ],
+  "errors": [ { "shortcode": "ghi789", "error": "URL is required" } ]
 }
 ```
 
@@ -213,7 +245,7 @@ Get current authenticated user info.
 interface Link {
   url: string;                    // Destination URL
   description?: string;           // Optional description
-  redirectType: 301 | 302;       // HTTP redirect status
+  redirectType: 301 | 302 | 307 | 308;       // HTTP redirect status
   created: string;                // ISO 8601 timestamp
   updated: string;                // ISO 8601 timestamp
   clicks: number;                 // Total click count
@@ -251,11 +283,12 @@ Cloudflare Free Tier limits:
 
 ## CORS
 
-All API endpoints include CORS headers. In production, the worker echoes the request Origin if it matches the allowlist configured via `MANAGEMENT_ORIGIN` (single origin or comma‑separated list). Example headers:
+All API endpoints include CORS headers. In production, the worker echoes the request Origin if it matches the allowlist configured via `MANAGEMENT_ORIGIN` (single origin or comma‑separated list). `Vary: Origin` and `Access-Control-Allow-Credentials: true` are included to support cookie-based auth. Example headers:
 ```
 Access-Control-Allow-Origin: https://link-management.example.com
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 Access-Control-Allow-Headers: Content-Type, Authorization
+Access-Control-Allow-Credentials: true
 Vary: Origin
 ```
 

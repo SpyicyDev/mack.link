@@ -2,11 +2,10 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8787';
 
 class AuthService {
   constructor() {
-    this.token = localStorage.getItem('github_token');
+    this.token = null; // no longer used client-side
     this.user = JSON.parse(localStorage.getItem('user') || 'null');
     window.addEventListener('storage', (e) => {
-      if (e.key === 'github_token' || e.key === 'user') {
-        this.token = localStorage.getItem('github_token');
+      if (e.key === 'user') {
         const userRaw = localStorage.getItem('user');
         this.user = userRaw ? JSON.parse(userRaw) : null;
         const event = new CustomEvent('auth:change', { detail: { token: this.token, user: this.user } });
@@ -16,7 +15,7 @@ class AuthService {
   }
 
   isAuthenticated() {
-    return !!this.token && !!this.user;
+    return !!this.user;
   }
 
   getToken() {
@@ -42,7 +41,7 @@ class AuthService {
         url.searchParams.set('state', state);
       }
       
-      const response = await fetch(url.toString());
+      const response = await fetch(url.toString(), { credentials: 'include' });
       
       if (!response.ok) {
         throw new Error('Failed to authenticate');
@@ -54,10 +53,7 @@ class AuthService {
         throw new Error(data.error_description || 'Access denied: You are not authorized to use this service');
       }
       
-      this.token = data.access_token;
       this.user = data.user;
-      
-      localStorage.setItem('github_token', this.token);
       localStorage.setItem('user', JSON.stringify(this.user));
       const event = new CustomEvent('auth:change', { detail: { token: this.token, user: this.user } });
       window.dispatchEvent(event);
@@ -72,17 +68,13 @@ class AuthService {
   logout() {
     this.token = null;
     this.user = null;
-    localStorage.removeItem('github_token');
     localStorage.removeItem('user');
+    fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
     const event = new CustomEvent('auth:change', { detail: { token: null, user: null } });
     window.dispatchEvent(event);
   }
 
-  getAuthHeaders() {
-    return this.token ? {
-      'Authorization': `Bearer ${this.token}`
-    } : {};
-  }
+  getAuthHeaders() { return {}; }
 }
 
 export const authService = new AuthService();

@@ -54,7 +54,16 @@ export async function updateLink(request, env, shortcode) {
 		if (!existing) return withCors(env, new Response('Link not found', { status: 404 }), request);
 		const currentData = JSON.parse(existing);
 		const updates = await request.json();
-		const linkData = { ...currentData, ...updates, updated: new Date().toISOString() };
+		let { url, description, redirectType } = updates;
+		if (url !== undefined) url = sanitizeInput(url);
+		if (description !== undefined) description = sanitizeInput(description);
+		const urlError = url !== undefined ? validateUrl(url) : null;
+		if (urlError) return withCors(env, new Response(JSON.stringify({ error: urlError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		const descriptionError = description !== undefined ? validateDescription(description) : null;
+		if (descriptionError) return withCors(env, new Response(JSON.stringify({ error: descriptionError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		const redirectTypeError = redirectType !== undefined ? validateRedirectType(redirectType) : null;
+		if (redirectTypeError) return withCors(env, new Response(JSON.stringify({ error: redirectTypeError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		const linkData = { ...currentData, ...(url !== undefined ? { url: url.trim() } : {}), ...(description !== undefined ? { description: description ? description.trim() : '' } : {}), ...(redirectType !== undefined ? { redirectType } : {}), updated: new Date().toISOString() };
 		await env.LINKS.put(shortcode, JSON.stringify(linkData));
 		return withCors(env, new Response(JSON.stringify({ shortcode, ...linkData }), { headers: { 'Content-Type': 'application/json' } }), request);
 	} catch (error) {
@@ -105,6 +114,59 @@ export async function getLink(env, shortcode, request) {
 	const linkData = await env.LINKS.get(shortcode);
 	if (!linkData) return withCors(env, new Response('Link not found', { status: 404 }), request);
 	return withCors(env, new Response(linkData, { headers: { 'Content-Type': 'application/json' } }), request);
+}
+
+export async function bulkCreateLinks(request, env) {
+	try {
+		const { items } = await request.json();
+		if (!Array.isArray(items) || items.length === 0) {
+			return withCors(env, new Response(JSON.stringify({ error: 'Items array is required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		}
+		if (items.length > 100) {
+			return withCors(env, new Response(JSON.stringify({ error: 'Cannot create more than 100 links at once' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		}
+		const results = { created: [], conflicts: [], errors: [] };
+		for (const item of items) {
+			try {
+				let { shortcode, url, description = '', redirectType = 301 } = item;
+				shortcode = sanitizeInput(shortcode);
+				url = sanitizeInput(url);
+				description = sanitizeInput(description);
+				const shortcodeError = validateShortcode(shortcode);
+				if (shortcodeError) { results.errors.push({ shortcode, error: shortcodeError }); continue; }
+				const urlError = validateUrl(url);
+				if (urlError) { results.errors.push({ shortcode, error: urlError }); continue; }
+				const descriptionError = validateDescription(description);
+				if (descriptionError) { results.errors.push({ shortcode, error: descriptionError }); continue; }
+				const redirectTypeError = validateRedirectType(redirectType);
+				if (redirectTypeError) { results.errors.push({ shortcode, error: redirectTypeError }); continue; }
+				const existing = await env.LINKS.get(shortcode);
+				if (existing) { results.conflicts.push(shortcode); continue; }
+				const linkData = { url: url.trim(), description: description ? description.trim() : '', redirectType: redirectType || 301, created: new Date().toISOString(), updated: new Date().toISOString(), clicks: 0 };
+				await env.LINKS.put(shortcode, JSON.stringify(linkData));
+				results.created.push({ shortcode, ...linkData });
+			} catch (err) {
+				results.errors.push({ shortcode: item?.shortcode, error: err.message });
+			}
+		}
+		return withCors(env, new Response(JSON.stringify(results), { status: 207, headers: { 'Content-Type': 'application/json' } }), request);
+	} catch (error) {
+		return withCors(env, new Response(JSON.stringify({ error: 'Invalid request data' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+	}
+}
+
+export async function listLinks(env, request) {
+	const url = new URL(request.url);
+	const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '100', 10), 1), 1000);
+	const cursor = url.searchParams.get('cursor') || undefined;
+	const list = await env.LINKS.list({ limit, cursor });
+	const links = {};
+	for (const key of list.keys) {
+		const linkData = await env.LINKS.get(key.name);
+		if (linkData) links[key.name] = JSON.parse(linkData);
+	}
+	const body = { links, cursor: list.list_complete ? null : list.cursor };
+	return withCors(env, new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }), request);
 }
 
 

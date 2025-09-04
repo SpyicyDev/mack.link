@@ -1,6 +1,6 @@
-import { requireAuth } from '../auth.js';
+import { requireAuth, handleLogout } from '../auth.js';
 import { withCors } from '../cors.js';
-import { getAllLinks, createLink, updateLink, deleteLink, bulkDeleteLinks, getLink } from './routesLinks.js';
+import { getAllLinks, createLink, updateLink, deleteLink, bulkDeleteLinks, getLink, bulkCreateLinks, listLinks } from './routesLinks.js';
 import { handleGitHubAuth, handleGitHubCallback } from './routesOAuth.js';
 
 export async function handleAPI(request, env, requestLogger) {
@@ -15,18 +15,29 @@ export async function handleAPI(request, env, requestLogger) {
 	if (path === '/api/auth/callback') {
 		return await handleGitHubCallback(request, env);
 	}
+	if (path === '/api/auth/logout' && method === 'POST') {
+		return await handleLogout(env, request);
+	}
 
 	// Protected endpoints - auth required
 	const authResult = await requireAuth(env, request);
 	if (authResult instanceof Response) return authResult;
 
 	if (path === '/api/links') {
-		if (method === 'GET') return await getAllLinks(env, request);
+		if (method === 'GET') {
+			// Backward-compatible: if query params present, use paginated list
+			const u = new URL(request.url);
+			if (u.searchParams.has('limit') || u.searchParams.has('cursor')) {
+				return await listLinks(env, request);
+			}
+			return await getAllLinks(env, request);
+		}
 		if (method === 'POST') return await createLink(request, env);
 	}
 
 	if (path === '/api/links/bulk') {
 		if (method === 'DELETE') return await bulkDeleteLinks(request, env);
+		if (method === 'POST') return await bulkCreateLinks(request, env);
 	}
 
 	if (path.startsWith('/api/links/')) {

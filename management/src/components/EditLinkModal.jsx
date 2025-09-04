@@ -107,6 +107,8 @@ export function EditLinkModal({ link, onSave, onClose }) {
             >
               <option value={301}>301 - Permanent</option>
               <option value={302}>302 - Temporary</option>
+              <option value={307}>307 - Temporary (preserve method)</option>
+              <option value={308}>308 - Permanent (preserve method)</option>
             </select>
           </div>
 

@@ -10,11 +10,18 @@ export async function handleRedirect(request, env, requestLogger = logger) {
 		return new Response('Link not found', { status: 404 });
 	}
 	const link = JSON.parse(linkData);
-	await env.LINKS.put(shortcode, JSON.stringify({
-		...link,
-		clicks: (link.clicks || 0) + 1,
-		lastClicked: new Date().toISOString()
-	}));
+	// Skip counting for bots, crawlers, and prefetch/HEAD
+	const ua = request.headers.get('User-Agent') || '';
+	const method = request.method || 'GET';
+	const isBot = /(bot|spider|crawler|preview|facebookexternalhit|slackbot|discordbot|twitterbot|linkedinbot|embedly|quora link|whatsapp|skypeuripreview)/i.test(ua);
+	const isHead = method === 'HEAD';
+	if (!isBot && !isHead) {
+		await env.LINKS.put(shortcode, JSON.stringify({
+			...link,
+			clicks: (link.clicks || 0) + 1,
+			lastClicked: new Date().toISOString()
+		}));
+	}
 	requestLogger.info('Link redirected', { shortcode, destination: link.url, redirectType: link.redirectType || 301, previousClicks: link.clicks || 0 });
 	return Response.redirect(link.url, link.redirectType || 301);
 }
