@@ -231,8 +231,8 @@ describe('Admin Panel Integration', () => {
     const html = await response.text();
 
     // Should contain references to built assets
-    expect(html).toMatch(/assets\/index-[a-zA-Z0-9]+\.js/);
-    expect(html).toMatch(/assets\/index-[a-zA-Z0-9]+\.css/);
+    expect(html).toMatch(/\/admin\/assets\/index-[a-zA-Z0-9_-]+\.js/);
+    expect(html).toMatch(/\/admin\/assets\/index-[a-zA-Z0-9_-]+\.css/);
 
     // Should have proper base path
     expect(html).toContain('href="/admin/');
