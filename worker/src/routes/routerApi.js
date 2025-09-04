@@ -3,7 +3,6 @@ import { withCors } from '../cors.js';
 import { getAllLinks, createLink, updateLink, deleteLink, bulkDeleteLinks, getLink, bulkCreateLinks, listLinks } from './routesLinks.js';
 import { handleGitHubAuth, handleGitHubCallback } from './routesOAuth.js';
 import { getTimeseries, getBreakdown, getOverview } from '../analytics.js';
-import { getUsage } from './routesUsage.js';
 
 export async function handleAPI(request, env, requestLogger) {
 	const url = new URL(request.url);
@@ -44,10 +43,6 @@ export async function handleAPI(request, env, requestLogger) {
 			return withCors(env, new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }), request);
 		}
 		return withCors(env, new Response('API endpoint not found', { status: 404 }), request);
-	}
-
-	if (path === '/api/usage') {
-		return await getUsage(env, request);
 	}
 
 	// Protected endpoints - auth required
