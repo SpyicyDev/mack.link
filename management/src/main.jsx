@@ -10,27 +10,38 @@ import { QueryProvider } from './providers/QueryProvider.jsx'
 
 import { ThemeProvider } from './providers/ThemeProvider.jsx'
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: '/',
+      element: <App />,
+    },
+    {
+      path: '/login',
+      element: <LoginScreen />,
+    },
+    {
+      path: '/auth/callback',
+      element: (
+        <AuthCallback
+          onAuthSuccess={() => {
+            // Navigation will be handled by the AuthCallback component itself
+          }}
+        />
+      ),
+    },
+  ],
   {
-    path: '/',
-    element: <App />,
-  },
-  {
-    path: '/login',
-    element: <LoginScreen />,
-  },
-  {
-    path: '/auth/callback',
-    element: <AuthCallback onAuthSuccess={() => { if (authService.isAuthenticated()) window.location.replace('/') }} />,
-  },
-])
+    basename: '/admin',
+  }
+)
 
 createRoot(document.getElementById('root')).render(
-	<StrictMode>
-		<QueryProvider>
-			<ThemeProvider>
-				<RouterProvider router={router} />
-			</ThemeProvider>
-		</QueryProvider>
-	</StrictMode>,
+  <StrictMode>
+    <QueryProvider>
+      <ThemeProvider>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </QueryProvider>
+  </StrictMode>
 )

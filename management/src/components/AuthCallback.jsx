@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { authService } from '../services/auth'
 
 export function AuthCallback({ onAuthSuccess }) {
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -11,22 +13,22 @@ export function AuthCallback({ onAuthSuccess }) {
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
         const state = urlParams.get('state');
-        
+
         if (!code) {
           throw new Error('No authorization code received');
         }
 
         setStatus('authenticating');
         await authService.handleCallback(code, state);
-        
+
         setStatus('success');
         onAuthSuccess?.();
-        
-        // Redirect to main app after short delay
+
+        // Redirect to admin dashboard after short delay
         setTimeout(() => {
-          window.location.href = '/';
+          navigate('/');
         }, 1000);
-        
+
       } catch (error) {
         console.error('OAuth callback failed:', error);
         setError(error.message);
@@ -86,7 +88,7 @@ export function AuthCallback({ onAuthSuccess }) {
           <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">Authentication Failed</h3>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{error}</p>
           <button
-            onClick={() => window.location.href = '/'}
+            onClick={() => navigate('/')}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-900"
           >
             Try Again
