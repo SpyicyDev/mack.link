@@ -26,16 +26,16 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-cache-dependency-path: |
+          cache-dependency-path: |
             package-lock.json
 
-- name: Install dependencies
+      - name: Install dependencies
         run: npm ci
 
-- name: Lint admin
-        run: npm -w management run lint
+      - name: Lint admin
+        run: npm -w admin run lint
 
-- name: Test worker
+      - name: Test worker
         run: npm -w worker run test
 
   deploy:
@@ -57,13 +57,11 @@ cache-dependency-path: |
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            worker/package-lock.json
-            management/package-lock.json
 
       - name: Install dependencies
-        run: npm run install:all
+        run: npm ci
 
-- name: Build worker with embedded admin
+      - name: Build worker with embedded admin
         run: |
           echo "Building worker with embedded admin assets..."
           npm -w worker run build:admin
