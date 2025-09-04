@@ -4,6 +4,7 @@ import { Input, Button } from './ui'
 
 export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [sortBy, setSortBy] = useState('created')
   const [sortOrder, setSortOrder] = useState('desc')
   const [showFilters, setShowFilters] = useState(false)
@@ -16,8 +17,8 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
     let filtered = Object.entries(links)
 
     // Text search
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
+    if (debouncedQuery.trim()) {
+      const query = debouncedQuery.toLowerCase()
       filtered = filtered.filter(([shortcode, link]) => 
         shortcode.toLowerCase().includes(query) ||
         link.url.toLowerCase().includes(query) ||
@@ -95,11 +96,17 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
     })
 
     return Object.fromEntries(filtered)
-  }, [links, searchQuery, sortBy, sortOrder, dateFilter, clicksFilter])
+  }, [links, debouncedQuery, sortBy, sortOrder, dateFilter, clicksFilter, tagFilter, showArchived])
 
   const handleSearchChange = useCallback((e) => {
     setSearchQuery(e.target.value)
   }, [])
+
+  // Debounce the free-text query for smoother UX
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQuery(searchQuery), 250)
+    return () => clearTimeout(id)
+  }, [searchQuery])
 
   const handleSortChange = useCallback((field) => {
     if (sortBy === field) {
@@ -145,7 +152,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
             />
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -156,7 +163,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
               Filters
               {hasFilters && (
                 <span className="ml-2 bg-blue-600 text-white text-xs rounded-full px-2 py-0.5">
-                  {[searchQuery, dateFilter, clicksFilter].filter(Boolean).length}
+                  {[searchQuery, dateFilter, clicksFilter, tagFilter, showArchived ? 'archived' : ''].filter(Boolean).length}
                 </span>
               )}
             </Button>
@@ -253,7 +260,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
 
       {(searchQuery || hasFilters) && (
         <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center justify-between text-sm flex-wrap gap-3">
             <span className="text-gray-600 dark:text-gray-300">
               Showing {resultCount} of {totalCount} links
               {searchQuery && (
@@ -269,6 +276,30 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
               </span>
             )}
           </div>
+
+          {/* Active filter chips */}
+          {hasFilters && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs">query: {searchQuery} ×</button>
+              )}
+              {dateFilter && (
+                <button onClick={() => setDateFilter('')} className="px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 text-xs">created ≥ {dateFilter} ×</button>
+              )}
+              {clicksFilter && (
+                <button onClick={() => setClicksFilter('')} className="px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 text-xs">≥ {clicksFilter} clicks ×</button>
+              )}
+              {tagFilter && (
+                <button onClick={() => setTagFilter('')} className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs">tag: {tagFilter} ×</button>
+              )}
+              {showArchived && (
+                <button onClick={() => setShowArchived(false)} className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs">show archived ×</button>
+              )}
+              {(sortBy !== 'created' || sortOrder !== 'desc') && (
+                <button onClick={() => { setSortBy('created'); setSortOrder('desc') }} className="px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 text-xs">sort reset ×</button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
