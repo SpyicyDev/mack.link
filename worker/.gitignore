@@ -165,3 +165,6 @@ dist
 .env*
 !.env.example
 .wrangler/
+
+# Generated admin asset bundle (do not commit)
+src/admin-assets.js
