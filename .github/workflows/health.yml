@@ -1,0 +1,41 @@
+name: Health
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # daily at 02:00 UTC
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "20"
+  PRODUCTION_URL: "https://link.mackhaymond.co"
+
+jobs:
+  health:
+    name: Daily Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install root deps (for scripts)
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else echo "No root deps"; fi
+
+      - name: Endpoint health
+        run: node scripts/validate-deployment.js ${{ env.PRODUCTION_URL }}
+
+      - name: Auth sanity (non-fatal)
+        run: node scripts/test-auth-live.js ${{ env.PRODUCTION_URL }}
+        continue-on-error: true
+
+      - name: Summary
+        run: |
+          echo "✅ Health check completed for ${{ env.PRODUCTION_URL }}"
+
