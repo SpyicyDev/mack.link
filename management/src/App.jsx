@@ -4,6 +4,7 @@ import { LinkSearch } from './components/LinkSearch'
 import { CreateLinkForm } from './components/CreateLinkForm'
 import { Header } from './components/Header'
 import { Analytics } from './components/Analytics'
+import { Usage } from './components/Usage'
 import { LoginScreen } from './components/LoginScreen'
 import { authService } from './services/auth'
 import { Plus, HelpCircle, BarChart3, Link as LinkIcon } from 'lucide-react'
@@ -16,7 +17,7 @@ function App() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated())
-  const [currentView, setCurrentView] = useState('links') // 'links' or 'analytics'
+  const [currentView, setCurrentView] = useState('links') // 'links' | 'analytics' | 'usage'
   const searchInputRef = useRef(null)
   
   // React Query hooks - only run when authenticated
@@ -182,6 +183,17 @@ function App() {
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Analytics
               </button>
+              <button
+                onClick={() => setCurrentView('usage')}
+                className={`${
+                  currentView === 'usage'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center transition-colors`}
+              >
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Usage
+              </button>
             </nav>
           </div>
 
@@ -207,8 +219,10 @@ function App() {
                 onBulkDelete={handleBulkDeleteLinks}
               />
             </>
-          ) : (
+          ) : currentView === 'analytics' ? (
             <Analytics links={links} />
+          ) : (
+            <Usage />
           )}
 
           {showCreateForm && (
