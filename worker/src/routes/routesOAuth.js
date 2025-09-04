@@ -17,7 +17,8 @@ export async function handleGitHubAuth(request, env) {
 	logger.info('OAuth flow initiated', { state, redirectUri });
 	const redirectResponse = Response.redirect(authUrl.toString(), 302);
 	// store state in a short-lived, HttpOnly cookie for CSRF protection
-	const cookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly; Secure; SameSite=Lax`;
+	// SameSite=None to allow inclusion on cross-site subrequests from the management app during callback
+	const cookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly; Secure; SameSite=None`;
 	redirectResponse.headers.append('Set-Cookie', cookie);
 	return withCors(env, redirectResponse, request);
 }
@@ -81,7 +82,7 @@ export async function handleGitHubCallback(request, env) {
 		return withCors(env, response, request);
 	} catch (error) {
 		logger.error('OAuth callback error', { error: error.message });
-		return withCors(env, new Response('OAuth callback failed', { status: 500 }), request);
+		return withCors(env, new Response(JSON.stringify({ error: 'oauth_callback_failed', error_description: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } }), request);
 	}
 }
 
