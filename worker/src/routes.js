@@ -3,7 +3,7 @@ import { json } from './utils.js';
 import { handleRedirect } from './routes/redirect.js';
 import { handleAPI } from './routes/routerApi.js';
 
-export async function handleRequest(request, env, requestLogger) {
+export async function handleRequest(request, env, requestLogger, ctx) {
 	const url = new URL(request.url);
 
 	if (request.method === 'OPTIONS') {
@@ -14,7 +14,7 @@ export async function handleRequest(request, env, requestLogger) {
 		return await handleAPI(request, env, requestLogger);
 	}
 
-	const redirectResponse = await handleRedirect(request, env, requestLogger);
+	const redirectResponse = await handleRedirect(request, env, requestLogger, ctx);
 	if (redirectResponse) return redirectResponse;
 	return withCors(env, new Response(renderHomeHtml(), { headers: { 'Content-Type': 'text/html; charset=utf-8' } }), request);
 }

@@ -2,7 +2,7 @@ import { logger } from '../logger.js';
 import { withCors } from '../cors.js';
 import { recordClick } from '../analytics.js';
 
-export async function handleRedirect(request, env, requestLogger = logger) {
+export async function handleRedirect(request, env, requestLogger = logger, ctx) {
 	const url = new URL(request.url);
 	const shortcode = url.pathname.slice(1);
 	if (!shortcode || shortcode.startsWith('api/')) return null;
@@ -40,7 +40,9 @@ export async function handleRedirect(request, env, requestLogger = logger) {
 			lastClicked: new Date().toISOString()
 		}));
 		// Record analytics breakdowns
-		recordClick(env, request, shortcode);
+		const recordPromise = recordClick(env, request, shortcode);
+		// If runtime context available, run in background
+		try { ctx && typeof ctx.waitUntil === 'function' ? ctx.waitUntil(recordPromise) : await recordPromise; } catch {}
 	}
 	requestLogger.info('Link redirected', { shortcode, destination: link.url, redirectType: link.redirectType || 301, previousClicks: link.clicks || 0 });
 	return Response.redirect(link.url, link.redirectType || 301);

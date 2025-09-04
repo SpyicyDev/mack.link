@@ -8,7 +8,7 @@ export default {
 		const startTime = Date.now();
 		try {
 			requestLogger.info('Request started');
-			const response = await handleRequest(request, env, requestLogger);
+			const response = await handleRequest(request, env, requestLogger, ctx);
 			const duration = Date.now() - startTime;
 			requestLogger.info('Request completed', { statusCode: response.status, duration: `${duration}ms` });
 			return response;

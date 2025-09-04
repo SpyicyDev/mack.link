@@ -6,8 +6,17 @@ export async function getAllLinks(env, request) {
 	const links = {};
 	const list = await env.LINKS.list();
 	for (const key of list.keys) {
+		// Skip analytics and any non-link keys (they use colon-delimited prefixes)
+		if (key.name.includes(':')) continue;
 		const linkData = await env.LINKS.get(key.name);
-		if (linkData) links[key.name] = JSON.parse(linkData);
+		if (!linkData) continue;
+		try {
+			const parsed = JSON.parse(linkData);
+			// Ensure parsed object looks like a link (has url)
+			if (parsed && typeof parsed === 'object' && 'url' in parsed) {
+				links[key.name] = parsed;
+			}
+		} catch {}
 	}
 	return withCors(env, new Response(JSON.stringify(links), { headers: { 'Content-Type': 'application/json' } }), request);
 }
@@ -190,8 +199,16 @@ export async function listLinks(env, request) {
 	const list = await env.LINKS.list({ limit, cursor });
 	const links = {};
 	for (const key of list.keys) {
+		// Skip analytics and any non-link keys (they use colon-delimited prefixes)
+		if (key.name.includes(':')) continue;
 		const linkData = await env.LINKS.get(key.name);
-		if (linkData) links[key.name] = JSON.parse(linkData);
+		if (!linkData) continue;
+		try {
+			const parsed = JSON.parse(linkData);
+			if (parsed && typeof parsed === 'object' && 'url' in parsed) {
+				links[key.name] = parsed;
+			}
+		} catch {}
 	}
 	const body = { links, cursor: list.list_complete ? null : list.cursor };
 	return withCors(env, new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }), request);

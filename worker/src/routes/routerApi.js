@@ -22,8 +22,8 @@ export async function handleAPI(request, env, requestLogger) {
 
 	if (path.startsWith('/api/analytics/')) {
 		const urlObj = new URL(request.url);
+		// shortcode is optional; if omitted, compute global analytics across all links
 		const shortcode = urlObj.searchParams.get('shortcode');
-		if (!shortcode) return withCors(env, new Response(JSON.stringify({ error: 'shortcode required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
 		if (path === '/api/analytics/timeseries') {
 			const from = urlObj.searchParams.get('from');
 			const to = urlObj.searchParams.get('to');

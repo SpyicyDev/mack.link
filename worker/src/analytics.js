@@ -32,15 +32,26 @@ export async function recordClick(env, request, shortcode) {
 		const country = (request.cf && request.cf.country) || '??';
 		const device = parseDevice(request.headers.get('User-Agent') || '');
 		const day = formatDay();
+		const allKey = '_all';
 		await Promise.all([
+			// Per-shortcode counters
 			incrementCounter(env, `analytics:${shortcode}:day:${day}`, 1),
 			refHost ? incrementCounter(env, `analytics:${shortcode}:ref:${refHost}`, 1) : Promise.resolve(),
 			incrementCounter(env, `analytics:${shortcode}:country:${country}`, 1),
 			incrementCounter(env, `analytics:${shortcode}:device:${device}`, 1),
-			// day-scoped breakdowns for range queries
+			// Per-shortcode day-scoped breakdowns for range queries
 			refHost ? incrementCounter(env, `analytics:${shortcode}:refd:${day}:${refHost}`, 1) : Promise.resolve(),
 			incrementCounter(env, `analytics:${shortcode}:countryd:${day}:${country}`, 1),
-			incrementCounter(env, `analytics:${shortcode}:deviced:${day}:${device}`, 1)
+			incrementCounter(env, `analytics:${shortcode}:deviced:${day}:${device}`, 1),
+			// Global counters (all links)
+			incrementCounter(env, `analytics:${allKey}:day:${day}`, 1),
+			refHost ? incrementCounter(env, `analytics:${allKey}:ref:${refHost}`, 1) : Promise.resolve(),
+			incrementCounter(env, `analytics:${allKey}:country:${country}`, 1),
+			incrementCounter(env, `analytics:${allKey}:device:${device}`, 1),
+			// Global day-scoped breakdowns
+			refHost ? incrementCounter(env, `analytics:${allKey}:refd:${day}:${refHost}`, 1) : Promise.resolve(),
+			incrementCounter(env, `analytics:${allKey}:countryd:${day}:${country}`, 1),
+			incrementCounter(env, `analytics:${allKey}:deviced:${day}:${device}`, 1)
 		]);
 	} catch {}
 }
@@ -50,8 +61,9 @@ export async function getTimeseries(env, shortcode, fromISO, toISO) {
 	const to = new Date(toISO);
 	if (isNaN(from) || isNaN(to) || from > to) return { points: [] };
 	const points = [];
+	const scKey = shortcode || '_all';
 	for (let d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate())); d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
-		const key = `analytics:${shortcode}:day:${formatDay(d.getTime())}`;
+		const key = `analytics:${scKey}:day:${formatDay(d.getTime())}`;
 		const val = await env.LINKS.get(key);
 		points.push({ date: d.toISOString().slice(0, 10), clicks: parseInt(val || '0', 10) || 0 });
 	}
@@ -59,7 +71,8 @@ export async function getTimeseries(env, shortcode, fromISO, toISO) {
 }
 
 export async function getBreakdown(env, shortcode, dimension, limit = 10, fromISO, toISO) {
-	const prefix = `analytics:${shortcode}:${dimension}:`;
+	const scKey = shortcode || '_all';
+	const prefix = `analytics:${scKey}:${dimension}:`;
 	const out = [];
 	// If date range provided, aggregate per-day keys
 	if (fromISO && toISO) {
@@ -68,7 +81,7 @@ export async function getBreakdown(env, shortcode, dimension, limit = 10, fromIS
 		if (!isNaN(from) && !isNaN(to) && from <= to) {
 			const map = new Map();
 			for (let d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate())); d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
-				const dayKey = `analytics:${shortcode}:${dimension}d:${formatDay(d.getTime())}:`;
+				const dayKey = `analytics:${scKey}:${dimension}d:${formatDay(d.getTime())}:`;
 				let cursor;
 				do {
 					const res = await env.LINKS.list({ prefix: dayKey, cursor, limit: 1000 });
@@ -98,11 +111,26 @@ export async function getBreakdown(env, shortcode, dimension, limit = 10, fromIS
 }
 
 export async function getOverview(env, shortcode) {
-	// Use link stored clicks as total, and today's clicks from day counter
-	const link = await env.LINKS.get(shortcode);
+	// Per-shortcode: use stored clicks as total. Global: sum across links.
 	let total = 0;
-	try { total = JSON.parse(link || '{}').clicks || 0; } catch {}
-	const todayKey = `analytics:${shortcode}:day:${formatDay()}`;
+	if (shortcode) {
+		const link = await env.LINKS.get(shortcode);
+		try { total = JSON.parse(link || '{}').clicks || 0; } catch {}
+	} else {
+		let cursor;
+		do {
+			const list = await env.LINKS.list({ cursor, limit: 1000 });
+			for (const key of list.keys) {
+				if (key.name.includes(':')) continue;
+				const linkData = await env.LINKS.get(key.name);
+				if (!linkData) continue;
+				try { total += (JSON.parse(linkData).clicks || 0); } catch {}
+			}
+			cursor = list.list_complete ? undefined : list.cursor;
+		} while (cursor);
+	}
+	const scKey = shortcode || '_all';
+	const todayKey = `analytics:${scKey}:day:${formatDay()}`;
 	const today = parseInt((await env.LINKS.get(todayKey)) || '0', 10) || 0;
 	return { totalClicks: total, clicksToday: today };
 }
