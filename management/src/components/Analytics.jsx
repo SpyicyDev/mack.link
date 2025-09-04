@@ -137,44 +137,79 @@ export function Analytics({ links }) {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-4 flex items-center gap-3 flex-wrap">
-        <div className="text-sm text-gray-600 dark:text-gray-300">Scope:</div>
-        <div className="flex items-center gap-2">
-          <label className="inline-flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
-            <input type="radio" name="scope" value="all" checked={scope==='all'} onChange={()=>setScope('all')} />
-            All links
-          </label>
-          <label className="inline-flex items-center gap-1 text-sm text-gray-700 dark:text-gray-300">
-            <input type="radio" name="scope" value="shortcode" checked={scope==='shortcode'} onChange={()=>setScope('shortcode')} />
-            Single link
-          </label>
+        {/* Scope segmented control */}
+        <div className="inline-flex rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden" role="group" aria-label="Scope">
+          <button
+            type="button"
+            onClick={() => setScope('all')}
+            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+              scope==='all'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >All</button>
+          <button
+            type="button"
+            onClick={() => setScope('shortcode')}
+            className={`px-3 py-1.5 text-sm font-medium transition-colors border-l border-gray-200 dark:border-gray-700 ${
+              scope==='shortcode'
+                ? 'bg-blue-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >Single</button>
         </div>
 
+        {/* Shortcode picker */}
         {scope === 'shortcode' && (
-          <>
-            <div className="text-sm text-gray-600 dark:text-gray-300">Shortcode:</div>
-            <select value={shortcode || ''} onChange={(e)=>setShortcode(e.target.value)} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 dark:text-gray-300">Shortcode</label>
+            <select value={shortcode || ''} onChange={(e)=>setShortcode(e.target.value)} className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
               {Object.keys(links).map(sc => (<option key={sc} value={sc}>{sc}</option>))}
             </select>
-          </>
+          </div>
         )}
 
-        <div className="text-sm text-gray-600 dark:text-gray-300 ml-2">Date range:</div>
-        <input type="date" value={range.from} onChange={(e)=>setRange(r=>({...r, from:e.target.value}))} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
-        <span className="text-gray-500">to</span>
-        <input type="date" value={range.to} onChange={(e)=>setRange(r=>({...r, to:e.target.value}))} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+        {/* Date range with presets */}
+        <div className="flex items-center gap-2 ml-2">
+          <label className="text-sm text-gray-600 dark:text-gray-300">Date</label>
+          <input type="date" value={range.from} onChange={(e)=>setRange(r=>({...r, from:e.target.value}))} className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <span className="text-gray-500">to</span>
+          <input type="date" value={range.to} onChange={(e)=>setRange(r=>({...r, to:e.target.value}))} className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <div className="inline-flex rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden ml-1" role="group" aria-label="Quick ranges">
+            <button type="button" onClick={()=>{
+              const d=new Date();
+              const s=d.toISOString().slice(0,10);
+              setRange({from:s,to:s});
+            }} className="px-2 py-1 text-xs hover:bg-gray-50 dark:hover:bg-gray-700">Today</button>
+            <button type="button" onClick={()=>{
+              const to=new Date();
+              const from=new Date(Date.now()-7*86400000);
+              setRange({from:from.toISOString().slice(0,10),to:to.toISOString().slice(0,10)});
+            }} className="px-2 py-1 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">7d</button>
+            <button type="button" onClick={()=>{
+              const to=new Date();
+              const from=new Date(Date.now()-30*86400000);
+              setRange({from:from.toISOString().slice(0,10),to:to.toISOString().slice(0,10)});
+            }} className="px-2 py-1 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">30d</button>
+          </div>
+        </div>
 
-        <div className="text-sm text-gray-600 dark:text-gray-300 ml-2">Breakdown:</div>
-        <select value={dimension} onChange={(e)=>setDimension(e.target.value)} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-          <option value="ref">Referrer</option>
-          <option value="country">Country</option>
-          <option value="device">Device</option>
-        </select>
+        {/* Breakdown select */}
+        <div className="flex items-center gap-2 ml-2">
+          <label className="text-sm text-gray-600 dark:text-gray-300">Breakdown</label>
+          <select value={dimension} onChange={(e)=>setDimension(e.target.value)} className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="ref">Referrer</option>
+            <option value="country">Country</option>
+            <option value="device">Device</option>
+          </select>
+        </div>
 
-        <div className="ml-auto flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+        {/* Summary badges */}
+        <div className="ml-auto flex items-center gap-2 text-sm">
           {overview && (
             <>
-              <span>Total: <span className="font-semibold">{overview.totalClicks.toLocaleString()}</span></span>
-              <span>Today: <span className="font-semibold">{overview.clicksToday.toLocaleString()}</span></span>
+              <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">Total: <span className="ml-1 font-semibold">{overview.totalClicks.toLocaleString()}</span></span>
+              <span className="inline-flex items-center px-2 py-1 rounded-md bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800">Today: <span className="ml-1 font-semibold">{overview.clicksToday.toLocaleString()}</span></span>
             </>
           )}
         </div>
@@ -241,7 +276,7 @@ export function Analytics({ links }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
                 <TrendingUp className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
                 Top Performing Links
               </h3>
@@ -286,7 +321,7 @@ export function Analytics({ links }) {
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
                 <Clock className="w-5 h-5 mr-2 text-orange-600" />
                 Recently Created
               </h3>
