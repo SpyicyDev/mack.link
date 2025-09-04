@@ -20,6 +20,12 @@ export async function handleAPI(request, env, requestLogger) {
 		return await handleLogout(env, request);
 	}
 
+
+	// Protected endpoints - auth required
+	const authResult = await requireAuth(env, request);
+	if (authResult instanceof Response) return authResult;
+
+	// Analytics endpoints (protected)
 	if (path.startsWith('/api/analytics/')) {
 		const urlObj = new URL(request.url);
 		// shortcode is optional; if omitted, compute global analytics across all links
@@ -42,12 +48,7 @@ export async function handleAPI(request, env, requestLogger) {
 			const data = await getOverview(env, shortcode);
 			return withCors(env, new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }), request);
 		}
-		return withCors(env, new Response('API endpoint not found', { status: 404 }), request);
 	}
-
-	// Protected endpoints - auth required
-	const authResult = await requireAuth(env, request);
-	if (authResult instanceof Response) return authResult;
 
 	if (path === '/api/links') {
 		if (method === 'GET') {

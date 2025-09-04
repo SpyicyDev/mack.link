@@ -13,7 +13,7 @@ export async function verifyGitHubToken(env, token) {
 	const config = getConfig(env);
 	try {
 		const user = await retryWithBackoff(async (attempt) => {
-			logger.debug('GitHub token verification attempt', { attempt, token: token.substring(0, 8) + '...' });
+			logger.debug('GitHub token verification attempt', { attempt });
 			const response = await withTimeout(
 				fetch('https://api.github.com/user', {
 					headers: {
