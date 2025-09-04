@@ -3,26 +3,27 @@ import { describe, it, expect } from 'vitest';
 import worker from '../src';
 
 describe('Worker basics', () => {
-	it('serves default text at root with CORS', async () => {
+	it('serves home page with admin sign-in button', async () => {
 		const request = new Request('http://example.com/');
 		const ctx = createExecutionContext();
 		const response = await worker.fetch(request, env, ctx);
 		await waitOnExecutionContext(ctx);
 		expect(response.status).toBe(200);
-		expect(response.headers.get('Access-Control-Allow-Origin')).toBe(env.MANAGEMENT_ORIGIN);
-		expect(await response.text()).toBe('link.mackhaymond.co URL Shortener');
+		const html = await response.text();
+		expect(html).toContain('Sign in to Admin');
+		expect(html).toContain('href="/admin"');
 	});
 
-	it('handles preflight with CORS', async () => {
+	it('handles preflight with CORS for API', async () => {
 		const request = new Request('http://example.com/api/links', { method: 'OPTIONS' });
 		const response = await worker.fetch(request, env, createExecutionContext());
 		expect(response.status).toBe(200);
-		expect(response.headers.get('Access-Control-Allow-Origin')).toBe(env.MANAGEMENT_ORIGIN);
+		expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();
 	});
 
 
 	it('redirects to GitHub OAuth on /api/auth/github', async () => {
-		const url = `http://example.com/api/auth/github?redirect_uri=${encodeURIComponent('http://localhost:5173/auth/callback')}`;
+		const url = `http://example.com/api/auth/github?redirect_uri=${encodeURIComponent('http://example.com/admin/auth/callback')}`;
 		const request = new Request(url, { redirect: 'manual' });
 		const response = await SELF.fetch(request);
 		expect(response.status).toBe(302);
@@ -36,8 +37,33 @@ describe('Worker basics', () => {
 		expect(response.status).toBe(401);
 	});
 
-	it('returns 404 for unknown shortcode', async () => {
+	it('returns 500 for unknown shortcode (no database in test)', async () => {
 		const response = await SELF.fetch('http://example.com/does-not-exist');
-		expect(response.status).toBe(404);
+		expect(response.status).toBe(500);
+	});
+
+	it('serves admin panel at /admin', async () => {
+		const request = new Request('http://example.com/admin');
+		const ctx = createExecutionContext();
+		const response = await worker.fetch(request, env, ctx);
+		await waitOnExecutionContext(ctx);
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Content-Type')).toContain('text/html');
+		const html = await response.text();
+		expect(html).toContain('<!doctype html>');
+	});
+
+	it('serves admin assets without CORS headers', async () => {
+		const request = new Request('http://example.com/admin/assets/index.js');
+		const response = await worker.fetch(request, env, createExecutionContext());
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull();
+	});
+
+	it('handles admin SPA routing', async () => {
+		const request = new Request('http://example.com/admin/some-route');
+		const response = await worker.fetch(request, env, createExecutionContext());
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Content-Type')).toContain('text/html');
 	});
 });

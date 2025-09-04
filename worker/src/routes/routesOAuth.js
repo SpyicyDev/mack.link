@@ -71,17 +71,20 @@ export async function handleGitHubCallback(request, env) {
 		}
 		// Create session JWT and set in HttpOnly cookie. Do not expose GitHub token to the client.
 		const { createSessionJwt, buildSessionCookie, clearOauthStateCookie } = await import('../session.js');
+		logger.info('Creating session for user', { login: user.login, id: user.id });
 		const sessionJwt = await createSessionJwt(env, { login: user.login, id: user.id, avatar_url: user.avatar_url, name: user.name });
+		logger.info('Session JWT created', { jwtLength: sessionJwt?.length });
+		const sessionCookie = buildSessionCookie(sessionJwt, env);
+		logger.info('Session cookie built', { cookiePreview: sessionCookie.substring(0, 50) + '...' });
 		const responseBody = { user };
 		const response = new Response(JSON.stringify(responseBody), { headers: { 'Content-Type': 'application/json' } });
-		response.headers.append('Set-Cookie', buildSessionCookie(sessionJwt));
+		response.headers.append('Set-Cookie', sessionCookie);
 		// Clear oauth_state cookie after successful exchange
 		response.headers.append('Set-Cookie', clearOauthStateCookie());
+		logger.info('OAuth callback complete', { userId: user.login, cookiesSet: 2 });
 		return withCors(env, response, request);
 	} catch (error) {
 		logger.error('OAuth callback error', { error: error.message });
 		return withCors(env, new Response(JSON.stringify({ error: 'oauth_callback_failed', error_description: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } }), request);
 	}
 }
-
-

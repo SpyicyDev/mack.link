@@ -67,17 +67,17 @@ export async function verifySessionJwt(env, token) {
 export function buildSessionCookie(token, env) {
 	const { sessionCookieName, sessionMaxAgeSeconds } = getConfig(env);
 	const maxAge = Number(sessionMaxAgeSeconds || 28800);
-	// Use SameSite=None to ensure inclusion on cross-site requests from the management origin
-	return `${sessionCookieName || '__Host-link_session'}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=None`;
+	// Use SameSite=Lax for same-domain operation (admin panel integrated)
+	return `${sessionCookieName || '__Host-link_session'}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Lax`;
 }
 
 export function clearSessionCookie(env) {
 	const { sessionCookieName } = getConfig(env);
-	return `${sessionCookieName || '__Host-link_session'}=deleted; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None`;
+	return `${sessionCookieName || '__Host-link_session'}=deleted; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`;
 }
 
 export function clearOauthStateCookie() {
-	return `oauth_state=deleted; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None`;
+	return `oauth_state=deleted; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`;
 }
 
 export function parseCookies(cookieHeader) {
@@ -89,5 +89,3 @@ export function parseCookies(cookieHeader) {
 	}));
 	return out;
 }
-
-

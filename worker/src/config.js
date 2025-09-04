@@ -5,14 +5,13 @@ export function getConfig(env = {}) {
 		githubClientId: env.GITHUB_CLIENT_ID,
 		githubClientSecret: env.GITHUB_CLIENT_SECRET,
 		authorizedUser: env.AUTHORIZED_USER,
-		managementOrigin: env.MANAGEMENT_ORIGIN || '*',
 		jwtSecret: env.JWT_SECRET,
 		sessionCookieName: env.SESSION_COOKIE_NAME || '__Host-link_session',
 		sessionMaxAgeSeconds: env.SESSION_MAX_AGE || 60 * 60 * 8,
 		timeouts: {
 			default: 10000,
 			jsonParse: 2000,
-			github: 8000
+			github: 8000,
 		},
 		rateLimits: {
 			createPerHour: 50,
@@ -20,9 +19,7 @@ export function getConfig(env = {}) {
 			deletePerHour: 200,
 			bulkCreatePerHour: 50,
 			bulkDeletePerHour: 50,
-			windowMs: 60 * 60 * 1000
-		}
+			windowMs: 60 * 60 * 1000,
+		},
 	};
 }
-
-

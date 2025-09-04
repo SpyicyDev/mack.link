@@ -8,24 +8,23 @@
 	"main": "src/index.js",
 	"compatibility_date": "2025-09-03",
 	"observability": {
-		"enabled": true
+		"enabled": true,
 	},
 
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "mack-link",
-			"database_id": "ca5c3b4a-0a9e-4b49-bb14-4435eed0ecb3"
-		}
+			"database_id": "ca5c3b4a-0a9e-4b49-bb14-4435eed0ecb3",
+		},
 	],
 
 	"vars": {
 		"GITHUB_CLIENT_ID": "Ov23liS0CpATewxLcycF",
 		"AUTHORIZED_USER": "SpyicyDev",
-		"MANAGEMENT_ORIGIN": "https://link-management.mackhaymond.co,http://localhost:5173",
 		"SESSION_MAX_AGE": "28800",
-		"SESSION_COOKIE_NAME": "__Host-link_session"
-	}
+		"SESSION_COOKIE_NAME": "link_session",
+	},
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

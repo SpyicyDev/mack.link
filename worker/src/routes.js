@@ -2,6 +2,7 @@ import { withCors, preflight } from './cors.js';
 import { json } from './utils.js';
 import { handleRedirect } from './routes/redirect.js';
 import { handleAPI } from './routes/routerApi.js';
+import { handleAdmin } from './routes/admin.js';
 
 export async function handleRequest(request, env, requestLogger, ctx) {
 	const url = new URL(request.url);
@@ -14,11 +15,15 @@ export async function handleRequest(request, env, requestLogger, ctx) {
 		return await handleAPI(request, env, requestLogger);
 	}
 
+	// Handle admin panel routes
+	if (url.pathname.startsWith('/admin')) {
+		return await handleAdmin(request, env, requestLogger);
+	}
+
 	const redirectResponse = await handleRedirect(request, env, requestLogger, ctx);
 	if (redirectResponse) return redirectResponse;
 	return withCors(env, new Response(renderHomeHtml(), { headers: { 'Content-Type': 'text/html; charset=utf-8' } }), request);
 }
-
 
 function renderHomeHtml() {
 	return `<!DOCTYPE html>
@@ -56,7 +61,7 @@ function renderHomeHtml() {
       <h1>link.mackhaymond.co</h1>
       <p class="sub">Fast personal URL shortener on Cloudflare Workers. Secure. Simple. Beautiful.</p>
       <div class="row">
-        <a class="btn" href="https://link-management.mackhaymond.co/">Open Management</a>
+        <a class="btn" href="/admin">Sign in to Admin</a>
         <a class="btn" href="https://github.com/SpyicyDev/mack.link">View Source</a>
       </div>
       <div class="foot">Tip: paste a shortcode after the domain to jump to a destination, e.g. <code>/github</code></div>
@@ -65,4 +70,3 @@ function renderHomeHtml() {
 </body>
 </html>`;
 }
-
