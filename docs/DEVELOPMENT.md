@@ -9,23 +9,18 @@ Guide for local development and contributing to link.mackhaymond.co.
 - Git
 - Cloudflare account (for KV namespace)
 
-## Initial Setup
+## Initial Setup (Workspaces)
 
 ```bash
 # Clone the repository
 git clone https://github.com/SpyicyDev/mack.link.git
 cd mack.link
 
-# Install worker dependencies
-cd worker
-npm install
+# Install all workspace dependencies (single lockfile)
+npm ci
 
 # Apply D1 schema locally (required once or when schema changes)
-npm run db:apply:local
-
-# Install management panel dependencies
-cd ../management
-npm install
+npm -w worker run db:apply:local
 ```
 
 ## Environment Configuration
@@ -38,6 +33,8 @@ GITHUB_CLIENT_ID=your_oauth_client_id
 GITHUB_CLIENT_SECRET=your_oauth_client_secret
 AUTHORIZED_USER=your_github_username
 ```
+
+Optional: set SESSION_COOKIE_NAME=__Host-link_session for best security.
 
 ### Management Panel Environment
 
@@ -52,8 +49,7 @@ VITE_WORKER_DOMAIN=localhost:8787
 ### 1. Start the Worker
 
 ```bash
-cd worker
-npm run dev
+npm -w worker run dev
 ```
 
 This starts the worker on `http://localhost:8787` with:
@@ -64,8 +60,7 @@ This starts the worker on `http://localhost:8787` with:
 ### 2. Start the Management Panel
 
 ```bash
-cd management
-npm run dev
+npm -w management run dev
 ```
 
 This starts the React app on `http://localhost:5173` with:
@@ -81,7 +76,7 @@ This starts the React app on `http://localhost:5173` with:
 4. Create test links
 5. Test redirects at `http://localhost:8787/{shortcode}`
 
-## Project Structure
+## Project Structure (Workspaces)
 
 ```
 mack.link/

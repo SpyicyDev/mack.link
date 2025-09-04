@@ -114,27 +114,27 @@ mack.link/
 
 ## 🚀 Quick Start
 
-### Development
+### Development (npm workspaces)
 ```bash
-# Install all dependencies
-npm run install:all
+# Install all workspace dependencies (single lockfile)
+npm ci
 
-# Build admin panel and start worker
+# Start both dev servers (Worker + Admin)
 npm run dev
 
 # Or run separately
-npm run dev:worker    # Start worker with embedded admin
-npm run dev:management  # Development server for admin panel
+npm run dev:worker      # Build admin assets and start wrangler dev (http://localhost:8787)
+npm run dev:management  # Vite dev server for admin (http://localhost:5173)
 ```
 
 ### Production Deployment
 ```bash
-# Build everything and deploy
+# Build everything and deploy (CI or local)
 npm run deploy
 
 # Or step by step
-npm run build        # Build management app and worker
-cd worker && npm run deploy
+npm run build                  # Builds admin and worker via workspaces
+npm -w worker run deploy       # Deploy worker with Wrangler
 ```
 
 See [SETUP.md](./docs/SETUP.md) for detailed setup instructions. The admin panel is now served directly from the worker at `/admin` - no separate deployment needed!

@@ -47,13 +47,17 @@ cd management && npm run preview
 ```
 
 ### Full Stack Development
-Start both services for complete local development:
+With npm workspaces, you can start both from the repo root:
 ```bash
-# Terminal 1: Start worker
-cd worker && npm run dev
+# Terminal 1: Start worker (builds admin and runs wrangler dev)
+npm -w worker run dev
 
-# Terminal 2: Start management panel
-cd management && npm run dev
+# Terminal 2: Start admin (Vite)
+npm -w management run dev
+```
+Or start both in one terminal using:
+```bash
+npm run dev
 ```
 
 Access:

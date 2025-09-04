@@ -6,13 +6,14 @@
 	"scripts": {
 		"prebuild": "npm run build:admin",
 		"build": "echo 'Worker build complete'",
-		"build:admin": "cd ../management && npm run build && cd ../worker && node scripts/build-admin.js",
+		"build:admin": "npm -w management run build && node scripts/build-admin.js",
 		"deploy": "npm run build && wrangler deploy",
 		"dev": "npm run build:admin && wrangler dev",
 		"start": "wrangler dev",
 		"test": "vitest",
 		"db:apply:local": "wrangler d1 execute mack-link --local --file src/schema.sql",
-		"db:apply": "wrangler d1 execute mack-link --file src/schema.sql"
+		"db:apply": "wrangler d1 execute mack-link --file src/schema.sql",
+		"clean": "rm -rf node_modules .wrangler"
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.8.19",

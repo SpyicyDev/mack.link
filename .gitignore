@@ -5,6 +5,9 @@ node_modules/
 # Build outputs
 **/dist/
 **/dist-ssr/
+# Workspace lockfiles (monorepo uses root lockfile)
+worker/package-lock.json
+management/package-lock.json
 
 # OS files
 .DS_Store

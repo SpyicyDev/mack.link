@@ -26,19 +26,17 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: |
+cache-dependency-path: |
             package-lock.json
-            worker/package-lock.json
-            management/package-lock.json
 
-      - name: Install dependencies
-        run: npm run install:all
+- name: Install dependencies
+        run: npm ci
 
-      - name: Lint admin
-        run: cd management && npm run lint
+- name: Lint admin
+        run: npm -w management run lint
 
-      - name: Test worker
-        run: cd worker && npm test
+- name: Test worker
+        run: npm -w worker run test
 
   deploy:
     name: Deploy (production)
@@ -65,11 +63,10 @@ jobs:
       - name: Install dependencies
         run: npm run install:all
 
-      - name: Build worker with embedded admin
+- name: Build worker with embedded admin
         run: |
           echo "Building worker with embedded admin assets..."
-          cd worker
-          npm run build:admin
+          npm -w worker run build:admin
 
       - name: Deploy with Wrangler
         uses: cloudflare/wrangler-action@v3
