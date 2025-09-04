@@ -42,4 +42,25 @@ export function validateRedirectType(redirectType) {
 	return null;
 }
 
+export function validateTags(tags) {
+	if (tags === undefined || tags === null) return null;
+	if (!Array.isArray(tags)) return 'Tags must be an array of strings';
+	if (tags.length > 20) return 'Too many tags (max 20)';
+	for (const t of tags) {
+		if (typeof t !== 'string') return 'Tags must be an array of strings';
+		const tag = t.trim();
+		if (!tag) return 'Tags cannot be empty strings';
+		if (tag.length > 32) return 'Tag length must be <= 32 characters';
+		if (!/^[a-zA-Z0-9_-]+$/.test(tag)) return 'Tags may contain letters, numbers, hyphens, and underscores';
+	}
+	return null;
+}
 
+export function validateISODate(dateStr, { allowPast = true } = {}) {
+	if (dateStr === undefined || dateStr === null) return null;
+	if (typeof dateStr !== 'string') return 'Date must be an ISO 8601 string';
+	const d = new Date(dateStr);
+	if (isNaN(d.getTime())) return 'Invalid ISO 8601 date';
+	if (!allowPast && d.getTime() < Date.now()) return 'Date must be in the future';
+	return null;
+}

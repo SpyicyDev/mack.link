@@ -10,6 +10,22 @@ export async function handleRedirect(request, env, requestLogger = logger) {
 		return new Response('Link not found', { status: 404 });
 	}
 	const link = JSON.parse(linkData);
+	// Enforce activation/expiration and archive
+	if (link.archived) {
+		return new Response('Link not available', { status: 404 });
+	}
+	if (link.activatesAt) {
+		const start = new Date(link.activatesAt).getTime();
+		if (!isNaN(start) && Date.now() < start) {
+			return new Response('Link not available', { status: 404 });
+		}
+	}
+	if (link.expiresAt) {
+		const end = new Date(link.expiresAt).getTime();
+		if (!isNaN(end) && Date.now() > end) {
+			return new Response('Link expired', { status: 410 });
+		}
+	}
 	// Skip counting for bots, crawlers, and prefetch/HEAD
 	const ua = request.headers.get('User-Agent') || '';
 	const method = request.method || 'GET';

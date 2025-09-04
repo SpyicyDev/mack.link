@@ -9,6 +9,8 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   const [showFilters, setShowFilters] = useState(false)
   const [dateFilter, setDateFilter] = useState('')
   const [clicksFilter, setClicksFilter] = useState('')
+  const [tagFilter, setTagFilter] = useState('')
+  const [showArchived, setShowArchived] = useState(false)
 
   const filteredAndSortedLinks = useMemo(() => {
     let filtered = Object.entries(links)
@@ -39,6 +41,17 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
       if (!isNaN(minClicks)) {
         filtered = filtered.filter(([, link]) => (link.clicks || 0) >= minClicks)
       }
+    }
+
+    // Tag filter
+    if (tagFilter.trim()) {
+      const tag = tagFilter.toLowerCase()
+      filtered = filtered.filter(([, link]) => Array.isArray(link.tags) && link.tags.some(t => t.toLowerCase().includes(tag)))
+    }
+
+    // Archive filter
+    if (!showArchived) {
+      filtered = filtered.filter(([, link]) => !link.archived)
     }
 
     // Sort
@@ -105,7 +118,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
     setSortOrder('desc')
   }, [])
 
-  const hasFilters = searchQuery || dateFilter || clicksFilter || sortBy !== 'created' || sortOrder !== 'desc'
+  const hasFilters = searchQuery || dateFilter || clicksFilter || tagFilter || showArchived || sortBy !== 'created' || sortOrder !== 'desc'
   const resultCount = Object.keys(filteredAndSortedLinks).length
   const totalCount = Object.keys(links).length
 
@@ -212,6 +225,26 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                   onChange={(e) => setClicksFilter(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Tag contains
+                </label>
+                <input
+                  type="text"
+                  placeholder="work"
+                  value={tagFilter}
+                  onChange={(e) => setTagFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                />
+              </div>
+
+              <div className="flex items-end">
+                <label className="inline-flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+                  <span>Show archived</span>
+                </label>
               </div>
             </div>
           </div>

@@ -45,8 +45,7 @@ export function useCreateLink() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ shortcode, url, description, redirectType }) =>
-      linkAPI.createLink(shortcode, url, description, redirectType),
+    mutationFn: (data) => linkAPI.createLink(data),
     
     onMutate: async (newLink) => {
       // Cancel any outgoing refetches
@@ -61,6 +60,10 @@ export function useCreateLink() {
           ...old,
           [newLink.shortcode]: {
             ...newLink,
+            tags: newLink.tags || [],
+            archived: !!newLink.archived,
+            activatesAt: newLink.activatesAt || '',
+            expiresAt: newLink.expiresAt || '',
             created: new Date().toISOString(),
             updated: new Date().toISOString(),
             clicks: 0,

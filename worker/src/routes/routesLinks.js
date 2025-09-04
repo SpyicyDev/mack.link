@@ -1,6 +1,6 @@
 import { withCors } from '../cors.js';
 import { sanitizeInput, isRateLimited } from '../utils.js';
-import { validateShortcode, validateUrl, validateDescription, validateRedirectType } from '../validation.js';
+import { validateShortcode, validateUrl, validateDescription, validateRedirectType, validateTags, validateISODate } from '../validation.js';
 
 export async function getAllLinks(env, request) {
 	const links = {};
@@ -19,10 +19,11 @@ export async function createLink(request, env) {
 			return withCors(env, new Response('Rate limit exceeded', { status: 429 }), request);
 		}
 		const body = await request.json();
-		let { shortcode, url, description, redirectType } = body;
+		let { shortcode, url, description, redirectType, tags, archived, activatesAt, expiresAt } = body;
 		shortcode = sanitizeInput(shortcode);
 		url = sanitizeInput(url);
 		description = sanitizeInput(description);
+		if (Array.isArray(tags)) tags = tags.map(sanitizeInput);
 		const shortcodeError = validateShortcode(shortcode);
 		if (shortcodeError) return withCors(env, new Response(JSON.stringify({ error: shortcodeError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
 		const urlError = validateUrl(url);
@@ -31,6 +32,12 @@ export async function createLink(request, env) {
 		if (descriptionError) return withCors(env, new Response(JSON.stringify({ error: descriptionError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
 		const redirectTypeError = validateRedirectType(redirectType);
 		if (redirectTypeError) return withCors(env, new Response(JSON.stringify({ error: redirectTypeError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		const tagsError = validateTags(tags);
+		if (tagsError) return withCors(env, new Response(JSON.stringify({ error: tagsError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		const activatesAtError = validateISODate(activatesAt);
+		if (activatesAtError) return withCors(env, new Response(JSON.stringify({ error: activatesAtError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		const expiresAtError = validateISODate(expiresAt);
+		if (expiresAtError) return withCors(env, new Response(JSON.stringify({ error: expiresAtError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
 		const existing = await env.LINKS.get(shortcode);
 		if (existing) return withCors(env, new Response(JSON.stringify({ error: 'Shortcode already exists' }), { status: 409, headers: { 'Content-Type': 'application/json' } }), request);
 		const linkData = {
@@ -39,7 +46,11 @@ export async function createLink(request, env) {
 			redirectType: redirectType || 301,
 			created: new Date().toISOString(),
 			updated: new Date().toISOString(),
-			clicks: 0
+			clicks: 0,
+			tags: Array.isArray(tags) ? tags.filter(Boolean) : [],
+			archived: !!archived,
+			activatesAt: activatesAt || null,
+			expiresAt: expiresAt || null
 		};
 		await env.LINKS.put(shortcode, JSON.stringify(linkData));
 		return withCors(env, new Response(JSON.stringify({ shortcode, ...linkData }), { status: 201, headers: { 'Content-Type': 'application/json' } }), request);
@@ -54,16 +65,33 @@ export async function updateLink(request, env, shortcode) {
 		if (!existing) return withCors(env, new Response('Link not found', { status: 404 }), request);
 		const currentData = JSON.parse(existing);
 		const updates = await request.json();
-		let { url, description, redirectType } = updates;
+		let { url, description, redirectType, tags, archived, activatesAt, expiresAt } = updates;
 		if (url !== undefined) url = sanitizeInput(url);
 		if (description !== undefined) description = sanitizeInput(description);
+		if (Array.isArray(tags)) tags = tags.map(sanitizeInput);
 		const urlError = url !== undefined ? validateUrl(url) : null;
 		if (urlError) return withCors(env, new Response(JSON.stringify({ error: urlError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
 		const descriptionError = description !== undefined ? validateDescription(description) : null;
 		if (descriptionError) return withCors(env, new Response(JSON.stringify({ error: descriptionError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
 		const redirectTypeError = redirectType !== undefined ? validateRedirectType(redirectType) : null;
 		if (redirectTypeError) return withCors(env, new Response(JSON.stringify({ error: redirectTypeError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
-		const linkData = { ...currentData, ...(url !== undefined ? { url: url.trim() } : {}), ...(description !== undefined ? { description: description ? description.trim() : '' } : {}), ...(redirectType !== undefined ? { redirectType } : {}), updated: new Date().toISOString() };
+		const tagsError = tags !== undefined ? validateTags(tags) : null;
+		if (tagsError) return withCors(env, new Response(JSON.stringify({ error: tagsError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		const activatesAtError = activatesAt !== undefined ? validateISODate(activatesAt) : null;
+		if (activatesAtError) return withCors(env, new Response(JSON.stringify({ error: activatesAtError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		const expiresAtError = expiresAt !== undefined ? validateISODate(expiresAt) : null;
+		if (expiresAtError) return withCors(env, new Response(JSON.stringify({ error: expiresAtError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		const linkData = {
+			...currentData,
+			...(url !== undefined ? { url: url.trim() } : {}),
+			...(description !== undefined ? { description: description ? description.trim() : '' } : {}),
+			...(redirectType !== undefined ? { redirectType } : {}),
+			...(tags !== undefined ? { tags: Array.isArray(tags) ? tags.filter(Boolean) : [] } : {}),
+			...(archived !== undefined ? { archived: !!archived } : {}),
+			...(activatesAt !== undefined ? { activatesAt: activatesAt || null } : {}),
+			...(expiresAt !== undefined ? { expiresAt: expiresAt || null } : {}),
+			updated: new Date().toISOString()
+		};
 		await env.LINKS.put(shortcode, JSON.stringify(linkData));
 		return withCors(env, new Response(JSON.stringify({ shortcode, ...linkData }), { headers: { 'Content-Type': 'application/json' } }), request);
 	} catch (error) {

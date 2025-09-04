@@ -23,6 +23,10 @@ export function BulkImportModal({ isOpen, onClose }) {
         url: String(row.url || row.URL || '').trim(),
         description: (row.description || row.Description || '').trim(),
         redirectType: row.redirectType ? Number(row.redirectType) : undefined,
+        tags: (row.tags || row.Tags || '').split(',').map(s => s.trim()).filter(Boolean),
+        archived: String(row.archived || row.Archived || '').toLowerCase() === 'true',
+        activatesAt: row.activatesAt || row.ActivatesAt || '',
+        expiresAt: row.expiresAt || row.ExpiresAt || '',
       })).filter(i => i.shortcode && i.url)
       if (items.length === 0) throw new Error('No valid rows found. Include columns: shortcode,url[,description,redirectType]')
       const res = await linkAPI.bulkCreateLinks(items)
@@ -46,7 +50,7 @@ export function BulkImportModal({ isOpen, onClose }) {
           </button>
         </div>
         <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-300">Paste CSV with columns: <code>shortcode,url,description,redirectType</code>. Up to 100 rows.</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300">Paste CSV with columns: <code>shortcode,url,description,redirectType,tags,archived,activatesAt,expiresAt</code>. Up to 100 rows.</p>
           <textarea
             className="w-full h-48 p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             placeholder="shortcode,url,description,redirectType\nabc123,https://example.com,Example,301"

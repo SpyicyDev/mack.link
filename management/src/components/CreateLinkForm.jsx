@@ -7,7 +7,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
     shortcode: '',
     url: '',
     description: '',
-    redirectType: 301
+    redirectType: 301,
+    tags: [],
+    activatesAt: '',
+    expiresAt: ''
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -192,6 +195,50 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               <option value={307}>307 - Temporary (preserve method)</option>
               <option value={308}>308 - Permanent (preserve method)</option>
             </select>
+          </div>
+
+          <div>
+            <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Tags (comma separated)
+            </label>
+            <input
+              type="text"
+              name="tags"
+              id="tags"
+              value={formData.tags.join(',')}
+              onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+              placeholder="personal,work"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="activatesAt" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Activates At (optional)
+              </label>
+              <input
+                type="datetime-local"
+                name="activatesAt"
+                id="activatesAt"
+                value={formData.activatesAt}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label htmlFor="expiresAt" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Expires At (optional)
+              </label>
+              <input
+                type="datetime-local"
+                name="expiresAt"
+                id="expiresAt"
+                value={formData.expiresAt}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
           </div>
 
           {error && (

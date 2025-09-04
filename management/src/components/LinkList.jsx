@@ -270,6 +270,16 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                       <p className="text-sm text-gray-600 mb-2">{link.description}</p>
                     )}
 
+                    {/* Tags and archived badge */}
+                    <div className="flex items-center flex-wrap gap-2 mb-2">
+                      {Array.isArray(link.tags) && link.tags.map(tag => (
+                        <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{tag}</span>
+                      ))}
+                      {link.archived && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Archived</span>
+                      )}
+                    </div>
+
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
                       <div className="flex items-center space-x-1">
                         <BarChart3 className="w-3 h-3" />
@@ -282,6 +292,12 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                       <span className="px-2 py-1 bg-gray-100 rounded text-xs">
                         {link.redirectType || 301}
                       </span>
+                      {link.activatesAt && (
+                        <span title="Activates" className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs">Starts {formatDate(link.activatesAt)}</span>
+                      )}
+                      {link.expiresAt && (
+                        <span title="Expires" className="px-2 py-1 bg-red-50 text-red-700 rounded text-xs">Ends {formatDate(link.expiresAt)}</span>
+                      )}
                     </div>
                   </div>
 

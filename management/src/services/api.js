@@ -12,8 +12,11 @@ class LinkAPI {
     return await http.get(`/api/links?${q.toString()}`);
   }
 
-  async createLink(shortcode, url, description = '', redirectType = 301) {
-    return await http.post('/api/links', { shortcode, url, description, redirectType });
+  async createLink(shortcodeOrData, url, description = '', redirectType = 301) {
+    const payload = typeof shortcodeOrData === 'object' && shortcodeOrData !== null
+      ? shortcodeOrData
+      : { shortcode: shortcodeOrData, url, description, redirectType };
+    return await http.post('/api/links', payload);
   }
 
   async updateLink(shortcode, updates) {
