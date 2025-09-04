@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo, memo } from 'react'
-import { ExternalLink, Edit, Trash2, Copy, BarChart3, Link as LinkIcon, CheckSquare, Square, Download, X, QrCode } from 'lucide-react'
+import { ExternalLink, Edit, Trash2, Copy, BarChart3, Link as LinkIcon, CheckSquare, Square, Download, X, QrCode, Upload } from 'lucide-react'
 import { EditLinkModal } from './EditLinkModal'
 import { QRCodeModal } from './QRCodeModal'
 import { ConfirmationModal } from './ui'
+import { BulkImportModal } from './BulkImportModal'
 
 const WORKER_DOMAIN = import.meta.env.VITE_WORKER_DOMAIN || 'localhost:8787'
 const SCHEME = WORKER_DOMAIN.startsWith('localhost') ? 'http' : 'https'
@@ -16,6 +17,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
   const [bulkMode, setBulkMode] = useState(false)
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [qrLink, setQrLink] = useState(null)
+  const [bulkImportOpen, setBulkImportOpen] = useState(false)
 
   const linkEntries = useMemo(() => 
     Object.entries(links).sort(([,a], [,b]) => 
@@ -181,6 +183,14 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
           {bulkMode && selectedLinks.size > 0 && (
             <div className="flex items-center space-x-2">
               <button
+                onClick={() => setBulkImportOpen(true)}
+                className="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                title="Bulk import links from CSV"
+              >
+                <Upload className="w-4 h-4 mr-1" />
+                Import CSV
+              </button>
+              <button
                 onClick={handleExportSelected}
                 className="inline-flex items-center px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                 title="Export selected links to CSV"
@@ -334,6 +344,13 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
           onClose={handleCloseQRCode}
           shortcode={qrLink.shortcode}
           url={qrLink.url}
+        />
+      )}
+
+      {bulkImportOpen && (
+        <BulkImportModal
+          isOpen={bulkImportOpen}
+          onClose={() => setBulkImportOpen(false)}
         />
       )}
     </>

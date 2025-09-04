@@ -5,6 +5,13 @@ class LinkAPI {
     return await http.get('/api/links');
   }
 
+  async listLinks(limit = 500, cursor) {
+    const q = new URLSearchParams();
+    if (limit) q.set('limit', String(limit));
+    if (cursor) q.set('cursor', cursor);
+    return await http.get(`/api/links?${q.toString()}`);
+  }
+
   async createLink(shortcode, url, description = '', redirectType = 301) {
     return await http.post('/api/links', { shortcode, url, description, redirectType });
   }
@@ -19,6 +26,10 @@ class LinkAPI {
 
   async bulkDeleteLinks(shortcodes) {
     return await http.delete('/api/links/bulk', { body: JSON.stringify({ shortcodes }) });
+  }
+
+  async bulkCreateLinks(items) {
+    return await http.post('/api/links/bulk', { items });
   }
 
   async getLink(shortcode) {

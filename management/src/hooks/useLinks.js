@@ -14,8 +14,19 @@ export const linkKeys = {
 export function useLinks(options = {}) {
   return useQuery({
     queryKey: linkKeys.lists(),
-    queryFn: linkAPI.getAllLinks,
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    queryFn: async () => {
+      // Use paginated endpoint and merge pages client-side for now
+      let cursor
+      const links = {}
+      do {
+        const page = await linkAPI.listLinks(500, cursor)
+        const pageLinks = page.links || page
+        Object.assign(links, pageLinks)
+        cursor = page.cursor
+      } while (cursor)
+      return links
+    },
+    staleTime: 1000 * 60 * 2,
     ...options,
   })
 }
