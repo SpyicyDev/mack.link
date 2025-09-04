@@ -29,7 +29,7 @@ The CI/CD pipeline supports the unified architecture where:
 CLOUDFLARE_API_TOKEN     # Cloudflare API access
 CLOUDFLARE_ACCOUNT_ID    # Your Cloudflare account ID
 JWT_SECRET               # Session encryption key
-GITHUB_CLIENT_SECRET     # OAuth integration
+OAUTH_CLIENT_SECRET      # GitHub OAuth app client secret
 ```
 
 ### 2. Staging Deployment (`deploy-staging.yml`)
@@ -99,14 +99,14 @@ Configure these secrets in GitHub Settings → Secrets:
 | `CLOUDFLARE_API_TOKEN` | Cloudflare API token | [Cloudflare Dashboard](https://dash.cloudflare.com/profile/api-tokens) |
 | `CLOUDFLARE_ACCOUNT_ID` | Your account ID | Cloudflare Dashboard sidebar |
 | `JWT_SECRET` | Random secure string | `openssl rand -base64 32` |
-| `GITHUB_CLIENT_SECRET` | OAuth app secret | [GitHub Developer Settings](https://github.com/settings/developers) |
+| `OAUTH_CLIENT_SECRET` | GitHub OAuth app secret | [GitHub Developer Settings](https://github.com/settings/developers) |
 
 ### 2. Staging Secrets (Optional)
 
 For staging environment, add these with `STAGING_` prefix:
 
 - `STAGING_JWT_SECRET`
-- `STAGING_GITHUB_CLIENT_SECRET`
+- `STAGING_OAUTH_CLIENT_SECRET`
 
 ### 3. Cloudflare Workers Configuration
 
@@ -203,7 +203,7 @@ Before major deployments:
 
 **Admin Panel Shows "Failed to fetch"**
 - Ensure `JWT_SECRET` is set in worker secrets
-- Check `GITHUB_CLIENT_SECRET` for OAuth
+- Check `OAUTH_CLIENT_SECRET` for OAuth
 - Verify Cloudflare D1 database binding
 
 **Tests Fail in CI**

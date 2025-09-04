@@ -163,7 +163,7 @@ jobs:
         env:
           # Secrets for JWT and GitHub OAuth
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.OAUTH_CLIENT_SECRET }}
 
   # Post-deployment validation
   validate-deployment:

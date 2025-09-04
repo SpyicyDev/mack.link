@@ -120,7 +120,7 @@ jobs:
           wranglerVersion: ${{ env.WRANGLER_VERSION }}
         env:
           JWT_SECRET: ${{ secrets.STAGING_JWT_SECRET }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.STAGING_GITHUB_CLIENT_SECRET }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.STAGING_OAUTH_CLIENT_SECRET }}
 
       - name: Test staging deployment
         run: |
