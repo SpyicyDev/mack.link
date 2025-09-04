@@ -23,10 +23,12 @@ A personal URL shortener built with Cloudflare Workers and React, featuring GitH
 │              Cloudflare Worker                          │
 │           (link.mackhaymond.co)                         │
 │                                                         │
-│  • Handles redirects                                    │
-│  • Manages API endpoints                                │
+│  • Handles redirects (/{shortcode})                     │
+│  • Serves React admin panel (/admin/*)                  │
+│  • Manages API endpoints (/api/*)                       │
 │  • GitHub OAuth verification                            │
 │  • Click analytics tracking                             │
+│  • Static asset serving for admin UI                    │
 └─────────────────┬───────────────────────────────────────┘
                   │
                   ▼
@@ -40,20 +42,21 @@ A personal URL shortener built with Cloudflare Workers and React, featuring GitH
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
-│            Management Interface                         │
-│        (link-management.mackhaymond.co)                 │
+│         Embedded Admin Interface                        │
+│          (link.mackhaymond.co/admin)                    │
 │                                                         │
-│  • React + Tailwind CSS                                 │
-│  • GitHub OAuth login                                   │
+│  • React + Tailwind CSS (embedded in worker)            │
+│  • GitHub OAuth login (same-domain)                     │
 │  • CRUD operations for links                            │
 │  • Analytics dashboard                                  │
+│  • No CORS issues - same domain                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ## 🌐 Live Deployment
 
 - **Short URLs**: https://link.mackhaymond.co
-- **Management Panel**: https://link-management.mackhaymond.co
+- **Admin Panel**: https://link.mackhaymond.co/admin
 - **Repository**: https://github.com/SpyicyDev/mack.link
 
 ## 📊 Usage Stats (Cloudflare Free Tier)
@@ -91,30 +94,58 @@ A personal URL shortener built with Cloudflare Workers and React, featuring GitH
 mack.link/
 ├── worker/                 # Cloudflare Worker
 │   ├── src/               # Worker modules (router, routes, auth, utils, config)
+│   │   ├── routes/        # Route handlers (admin, api, redirect, oauth)
+│   │   ├── admin-assets.js # Embedded React build files
 │   │   └── index.js       # Worker entrypoint
+│   ├── scripts/           # Build tools
+│   │   └── build-admin.js # Embeds React build into worker
 │   ├── wrangler.jsonc     # Worker configuration
 │   └── package.json
-├── management/            # React management panel
+├── management/            # React management panel (builds to worker)
 │   ├── src/
 │   │   ├── components/    # React components
 │   │   ├── services/      # API & auth services
 │   │   └── App.jsx        # Main application
-│   ├── public/
-│   │   └── favicon.jpg    # Custom banana favicon
+│   ├── dist/             # Build output (embedded in worker)
 │   └── package.json
-└── docs/                  # Documentation
+├── docs/                  # Documentation
+└── package.json          # Root build scripts
 ```
 
 ## 🚀 Quick Start
 
-See [SETUP.md](./docs/SETUP.md) for detailed setup instructions. In production, set `MANAGEMENT_ORIGIN` on the worker to your Pages origin (or a comma‑separated list) to enable CORS for the management app.
+### Development
+```bash
+# Install all dependencies
+npm run install:all
+
+# Build admin panel and start worker
+npm run dev
+
+# Or run separately
+npm run dev:worker    # Start worker with embedded admin
+npm run dev:management  # Development server for admin panel
+```
+
+### Production Deployment
+```bash
+# Build everything and deploy
+npm run deploy
+
+# Or step by step
+npm run build        # Build management app and worker
+cd worker && npm run deploy
+```
+
+See [SETUP.md](./docs/SETUP.md) for detailed setup instructions. The admin panel is now served directly from the worker at `/admin` - no separate deployment needed!
 
 ## 📖 Documentation
 
 - [Setup Guide](./docs/SETUP.md) - Complete deployment instructions
-- [API Documentation](./docs/API.md) - Worker API endpoints
+- [API Documentation](./docs/API.md) - Worker API endpoints  
 - [Development Guide](./docs/DEVELOPMENT.md) - Local development setup
 - [Deployment Guide](./docs/DEPLOYMENT.md) - Production deployment
+- [Architecture Decision](./docs/ADMIN_INTEGRATION.md) - Why we merged admin into worker
 
 ## 🤝 Contributing
 
