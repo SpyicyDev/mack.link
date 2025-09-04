@@ -198,7 +198,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm install --no-fund --no-audit
+        run: npm ci
 
       - name: Run comprehensive validation
         run: |

@@ -185,7 +185,7 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: npm install --no-fund --no-audit
+        run: npm ci
 
       - name: Wait for deployment propagation
         run: sleep 30
