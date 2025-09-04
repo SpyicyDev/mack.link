@@ -4,9 +4,8 @@ import { EditLinkModal } from './EditLinkModal'
 import { QRCodeModal } from './QRCodeModal'
 import { ConfirmationModal } from './ui'
 import { BulkImportModal } from './BulkImportModal'
+import { shortUrl, workerHost } from '../services/links'
 
-const WORKER_DOMAIN = import.meta.env.VITE_WORKER_DOMAIN || 'localhost:8787'
-const SCHEME = WORKER_DOMAIN.startsWith('localhost') ? 'http' : 'https'
 
 const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelete }) {
   const [editingLink, setEditingLink] = useState(null)
@@ -27,7 +26,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
 
   const copyToClipboard = useCallback(async (shortcode) => {
     try {
-      await navigator.clipboard.writeText(`${SCHEME}://${WORKER_DOMAIN}/${shortcode}`)
+      await navigator.clipboard.writeText(shortUrl(shortcode))
       setCopiedShortcode(shortcode)
       setTimeout(() => setCopiedShortcode(null), 2000)
     } catch (err) {
@@ -239,8 +238,8 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
-                      <code className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-mono rounded" aria-label={`Short URL: ${WORKER_DOMAIN}/${shortcode}`}>
-                        {WORKER_DOMAIN}/{shortcode}
+                      <code className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-mono rounded" aria-label={`Short URL: ${workerHost()}/${shortcode}`}>
+                        {workerHost()}/{shortcode}
                       </code>
                       <button
                         onClick={() => copyToClipboard(shortcode)}
