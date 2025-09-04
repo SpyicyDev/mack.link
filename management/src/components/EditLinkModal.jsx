@@ -30,7 +30,17 @@ export function EditLinkModal({ link, onSave, onClose }) {
 
     try {
       setLoading(true)
-      await onSave(formData)
+      const toISO = (s) => (s && typeof s === 'string' && s.trim() !== '' ? new Date(s).toISOString() : undefined)
+      const payload = {
+        url: formData.url,
+        description: formData.description,
+        redirectType: formData.redirectType,
+        tags: Array.isArray(formData.tags) ? formData.tags : [],
+        archived: !!formData.archived,
+        activatesAt: toISO(formData.activatesAt),
+        expiresAt: toISO(formData.expiresAt),
+      }
+      await onSave(payload)
     } catch (error) {
       setError(error.message)
     } finally {

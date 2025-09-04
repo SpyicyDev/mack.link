@@ -68,7 +68,18 @@ export function CreateLinkForm({ onSubmit, onClose }) {
 
     try {
       setLoading(true)
-      await onSubmit(formData)
+      // Normalize datetime-local to ISO 8601 (UTC)
+      const toISO = (s) => (s && typeof s === 'string' && s.trim() !== '' ? new Date(s).toISOString() : undefined)
+      const payload = {
+        shortcode: formData.shortcode,
+        url: formData.url,
+        description: formData.description,
+        redirectType: formData.redirectType,
+        tags: Array.isArray(formData.tags) ? formData.tags : [],
+        activatesAt: toISO(formData.activatesAt),
+        expiresAt: toISO(formData.expiresAt),
+      }
+      await onSubmit(payload)
     } catch (error) {
       setError(error.message)
     } finally {
