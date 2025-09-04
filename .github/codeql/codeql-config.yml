@@ -1,0 +1,86 @@
+name: "CodeQL Config for mack.link"
+
+disable-default-queries: false
+
+queries:
+  - uses: security-and-quality
+  - uses: security-extended
+
+paths-ignore:
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/.wrangler/**"
+  - "**/test/**"
+  - "**/*.spec.js"
+  - "**/*.test.js"
+  - "**/scripts/test-*.js"
+  - "**/scripts/validate-*.js"
+
+paths:
+  - worker/src
+  - management/src
+  - scripts
+
+query-filters:
+  # Ignore some false positives specific to our architecture
+  - exclude:
+      id: js/unused-local-variable
+      kind: problem
+  - exclude:
+      id: js/useless-assignment-to-local
+      kind: problem
+
+  # Focus on security-critical issues
+  - include:
+      tags:
+        - security
+        - external/cwe/cwe-079  # Cross-site scripting
+        - external/cwe/cwe-089  # SQL injection
+        - external/cwe/cwe-022  # Path traversal
+        - external/cwe/cwe-352  # Cross-site request forgery
+        - external/cwe/cwe-798  # Hard-coded credentials
+
+packs:
+  javascript:
+    - codeql/javascript-queries:AlertSuppression.ql
+    - codeql/javascript-queries:Security/CWE-079
+    - codeql/javascript-queries:Security/CWE-089
+    - codeql/javascript-queries:Security/CWE-022
+
+# Custom configurations for our specific tech stack
+extraction:
+  javascript:
+    index:
+      include:
+        - "**/*.js"
+        - "**/*.jsx"
+        - "**/*.mjs"
+        - "**/*.ts"
+        - "**/*.tsx"
+      exclude:
+        - "**/node_modules/**"
+        - "**/.wrangler/**"
+        - "**/dist/**"
+        - "**/build/**"
+
+    # Cloudflare Workers specific settings
+    typescript:
+      noImplicitAny: false
+
+# Define custom threat model for URL shortener
+threat-models:
+  - name: "URL Shortener Specific"
+    description: "Security checks specific to URL shortening services"
+    sources:
+      - "user input parameters"
+      - "URL destinations"
+      - "shortcode generation"
+    sinks:
+      - "database queries"
+      - "HTTP redirects"
+      - "analytics recording"
+    sanitizers:
+      - "URL validation"
+      - "authentication checks"
+      - "input sanitization"

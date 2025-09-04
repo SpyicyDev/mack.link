@@ -1,0 +1,55 @@
+{
+  "name": "mack-link",
+  "version": "1.0.0",
+  "description": "A personal URL shortener built with Cloudflare Workers and React",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:worker\" \"npm run dev:management\"",
+    "dev:worker": "cd worker && npm run dev",
+    "dev:management": "cd management && npm run dev",
+    "build": "npm run build:management && npm run build:worker",
+    "build:management": "cd management && npm run build",
+    "build:worker": "cd worker && npm run build",
+    "deploy": "npm run build && cd worker && npm run deploy",
+    "test": "cd worker && npm test",
+    "test:ci": "npm run test && npm run validate:local",
+    "validate": "node scripts/validate-deployment.js",
+    "validate:local": "node scripts/validate-deployment.js http://localhost:8787",
+    "validate:prod": "node scripts/validate-deployment.js https://link.mackhaymond.co",
+    "install:all": "npm install && cd worker && npm install && cd ../management && npm install",
+    "clean": "cd management && rm -rf dist node_modules && cd ../worker && rm -rf node_modules .wrangler && rm -f src/admin-assets.js",
+    "lint": "cd management && npm run lint",
+    "lint:all": "npm run lint && echo 'All linting completed'",
+    "security:audit": "npm audit --audit-level=moderate && cd worker && npm audit --audit-level=moderate && cd ../management && npm audit --audit-level=moderate",
+    "security:fix": "npm audit fix && cd worker && npm audit fix && cd ../management && npm audit fix",
+    "maintenance": "npm run security:audit && npm run test:ci && npm run validate:prod",
+    "db:apply:local": "cd worker && npm run db:apply:local",
+    "db:apply": "cd worker && npm run db:apply",
+    "ci:build": "npm run install:all && npm run lint:all && npm run build",
+    "ci:test": "npm run ci:build && npm run test:ci"
+  },
+  "workspaces": [
+    "worker",
+    "management"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "url-shortener",
+    "cloudflare-workers",
+    "react",
+    "d1-database"
+  ],
+  "author": "SpyicyDev",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SpyicyDev/mack.link.git"
+  },
+  "homepage": "https://link.mackhaymond.co"
+}
