@@ -10,12 +10,7 @@
 	"observability": {
 		"enabled": true
 	},
-	"kv_namespaces": [
-		{
-			"binding": "LINKS",
-			"id": "f6f51f0ba23b4a4d80bcd988bf3713d1"
-		}
-	],
+
 	"d1_databases": [
 		{
 			"binding": "DB",
