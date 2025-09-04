@@ -88,7 +88,7 @@ Configure custom domain in Cloudflare Dashboard:
 ## 5. Setup Management Panel
 
 ```bash
-cd ../management
+cd ../admin
 npm install
 ```
 

@@ -31,10 +31,10 @@ cd worker && npm run db:apply:local
 cd worker && npm run db:apply
 ```
 
-### Management Panel Development
+### Admin Panel Development
 ```bash
 # Start development server (requires worker running)
-cd management && npm run dev
+npm -w admin run dev
 
 # Build for production
 cd management && npm run build
