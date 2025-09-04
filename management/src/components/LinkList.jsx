@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, memo } from 'react'
-import { ExternalLink, Edit, Trash2, Copy, BarChart3, Link as LinkIcon, CheckSquare, Square, Download, X, QrCode, Upload } from 'lucide-react'
+import { ExternalLink, Edit, Trash2, Copy, BarChart3, Link as LinkIcon, CheckSquare, Square, Download, X, QrCode, Upload, Archive, ArchiveRestore } from 'lucide-react'
 import { EditLinkModal } from './EditLinkModal'
 import { QRCodeModal } from './QRCodeModal'
 import { ConfirmationModal } from './ui'
@@ -302,6 +302,14 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                   </div>
 
                   <div className="flex items-center space-x-2 ml-4" role="group" aria-label={`Actions for ${shortcode}`}>
+                    <button
+                      onClick={() => onUpdate(shortcode, { archived: !link.archived })}
+                      className={`p-2 ${link.archived ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-500'} hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 rounded`}
+                      aria-label={`${link.archived ? 'Unarchive' : 'Archive'} link ${shortcode}`}
+                      title={link.archived ? 'Unarchive' : 'Archive'}
+                    >
+                      {link.archived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+                    </button>
                     <button
                       onClick={() => handleShowQRCode(shortcode, link)}
                       className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
