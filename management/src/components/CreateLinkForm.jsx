@@ -10,7 +10,8 @@ export function CreateLinkForm({ onSubmit, onClose }) {
     redirectType: 301,
     tags: [],
     activatesAt: '',
-    expiresAt: ''
+    expiresAt: '',
+    password: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -45,96 +46,110 @@ export function CreateLinkForm({ onSubmit, onClose }) {
       case 'description':
         if (value.length > 200) return 'Description must be less than 200 characters'
         return null
+      case 'password':
+        if (value && value.length < 8) return 'Password must be at least 8 characters'
+        if (value && value.length > 128) return 'Password must be less than 128 characters'
+        return null
       default:
         return null
     }
   }, [])
 
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault()
-    setError(null)
-    setFieldErrors({})
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault()
+      setError(null)
+      setFieldErrors({})
 
-    const errors = {}
-    Object.keys(formData).forEach(key => {
-      const error = validateField(key, formData[key])
-      if (error) errors[key] = error
-    })
+      const errors = {}
+      Object.keys(formData).forEach((key) => {
+        const error = validateField(key, formData[key])
+        if (error) errors[key] = error
+      })
 
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors)
-      return
-    }
-
-    try {
-      setLoading(true)
-      // Normalize datetime-local to ISO 8601 (UTC)
-      const toISO = (s) => (s && typeof s === 'string' && s.trim() !== '' ? new Date(s).toISOString() : undefined)
-      const payload = {
-        shortcode: formData.shortcode,
-        url: formData.url,
-        description: formData.description,
-        redirectType: formData.redirectType,
-        tags: Array.isArray(formData.tags) ? formData.tags : [],
-        activatesAt: toISO(formData.activatesAt),
-        expiresAt: toISO(formData.expiresAt),
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors)
+        return
       }
-      await onSubmit(payload)
-    } catch (error) {
-      setError(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [formData, onSubmit, validateField])
 
-  const handleChange = useCallback((e) => {
-    const { name, value } = e.target
-    const newValue = name === 'redirectType' ? parseInt(value) : value
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: newValue
-    }))
+      try {
+        setLoading(true)
+        // Normalize datetime-local to ISO 8601 (UTC)
+        const toISO = (s) =>
+          s && typeof s === 'string' && s.trim() !== '' ? new Date(s).toISOString() : undefined
+        const payload = {
+          shortcode: formData.shortcode,
+          url: formData.url,
+          description: formData.description,
+          redirectType: formData.redirectType,
+          tags: Array.isArray(formData.tags) ? formData.tags : [],
+          activatesAt: toISO(formData.activatesAt),
+          expiresAt: toISO(formData.expiresAt),
+          password: formData.password.trim() || undefined,
+        }
+        await onSubmit(payload)
+      } catch (error) {
+        setError(error.message)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [formData, onSubmit, validateField]
+  )
 
-    // Clear field error when user starts typing
-    if (fieldErrors[name]) {
-      setFieldErrors(prev => ({
+  const handleChange = useCallback(
+    (e) => {
+      const { name, value } = e.target
+      const newValue = name === 'redirectType' ? parseInt(value) : value
+
+      setFormData((prev) => ({
         ...prev,
-        [name]: null
+        [name]: newValue,
       }))
-    }
 
-    // Real-time validation
-    const error = validateField(name, newValue)
-    if (error && newValue) {
-      setFieldErrors(prev => ({
-        ...prev,
-        [name]: error
-      }))
-    }
-  }, [fieldErrors, validateField])
+      // Clear field error when user starts typing
+      if (fieldErrors[name]) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          [name]: null,
+        }))
+      }
+
+      // Real-time validation
+      const error = validateField(name, newValue)
+      if (error && newValue) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          [name]: error,
+        }))
+      }
+    },
+    [fieldErrors, validateField]
+  )
 
   return (
     <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out">
       <div className="relative top-20 mx-auto p-5 border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">Create New Link</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-6 h-6" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="shortcode" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="shortcode"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Short Code *
             </label>
             <div className="mt-1 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 dark:text-gray-400 text-xs">link.mackhaymond.co/</span>
+                <span className="text-gray-500 dark:text-gray-400 text-xs">
+                  link.mackhaymond.co/
+                </span>
               </div>
               <input
                 ref={shortcodeRef}
@@ -154,7 +169,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           </div>
 
           <div>
-            <label htmlFor="url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="url"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Destination URL *
             </label>
             <input
@@ -167,13 +185,14 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               placeholder="https://example.com"
               required
             />
-            {fieldErrors.url && (
-              <p className="mt-1 text-sm text-red-600">{fieldErrors.url}</p>
-            )}
+            {fieldErrors.url && <p className="mt-1 text-sm text-red-600">{fieldErrors.url}</p>}
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Description
             </label>
             <input
@@ -191,7 +210,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           </div>
 
           <div>
-            <label htmlFor="redirectType" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="redirectType"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Redirect Type
             </label>
             <select
@@ -209,7 +231,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           </div>
 
           <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="tags"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Tags (comma separated)
             </label>
             <input
@@ -217,7 +242,15 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               name="tags"
               id="tags"
               value={formData.tags.join(',')}
-              onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  tags: e.target.value
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter(Boolean),
+                }))
+              }
               className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="personal,work"
             />
@@ -225,7 +258,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="activatesAt" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="activatesAt"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Activates At (optional)
               </label>
               <input
@@ -238,7 +274,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               />
             </div>
             <div>
-              <label htmlFor="expiresAt" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="expiresAt"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Expires At (optional)
               </label>
               <input
@@ -252,6 +291,30 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             </div>
           </div>
 
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Password Protection (optional)
+            </label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+              placeholder="Leave blank for public access"
+            />
+            {fieldErrors.password && (
+              <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              If set, users will need to enter this password before accessing the link
+            </p>
+          </div>
+
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md transition-colors">
               <p className="text-red-800 dark:text-red-400 text-sm">{error}</p>
@@ -259,7 +322,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           )}
 
           {/* Hint for date format */}
-          <p className="text-xs text-gray-500 dark:text-gray-400">Tip: Leave date fields blank to skip. Your browser may format the datetime; both blank and valid ISO strings are accepted.</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Tip: Leave date fields blank to skip. Your browser may format the datetime; both blank
+            and valid ISO strings are accepted.
+          </p>
 
           <div className="flex justify-end space-x-3 pt-4">
             <button

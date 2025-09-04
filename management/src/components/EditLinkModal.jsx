@@ -9,7 +9,9 @@ export function EditLinkModal({ link, onSave, onClose }) {
     tags: link.tags || [],
     archived: !!link.archived,
     activatesAt: link.activatesAt || '',
-    expiresAt: link.expiresAt || ''
+    expiresAt: link.expiresAt || '',
+    password: '',
+    removePassword: false,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -30,7 +32,8 @@ export function EditLinkModal({ link, onSave, onClose }) {
 
     try {
       setLoading(true)
-      const toISO = (s) => (s && typeof s === 'string' && s.trim() !== '' ? new Date(s).toISOString() : undefined)
+      const toISO = (s) =>
+        s && typeof s === 'string' && s.trim() !== '' ? new Date(s).toISOString() : undefined
       const payload = {
         url: formData.url,
         description: formData.description,
@@ -39,6 +42,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
         archived: !!formData.archived,
         activatesAt: toISO(formData.activatesAt),
         expiresAt: toISO(formData.expiresAt),
+        password: formData.removePassword ? null : formData.password.trim() || undefined,
       }
       await onSave(payload)
     } catch (error) {
@@ -50,9 +54,9 @@ export function EditLinkModal({ link, onSave, onClose }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'redirectType' ? parseInt(value) : value
+      [name]: name === 'redirectType' ? parseInt(value) : value,
     }))
   }
 
@@ -78,7 +82,10 @@ export function EditLinkModal({ link, onSave, onClose }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="url"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Destination URL *
             </label>
             <input
@@ -94,7 +101,10 @@ export function EditLinkModal({ link, onSave, onClose }) {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Description
             </label>
             <input
@@ -109,7 +119,10 @@ export function EditLinkModal({ link, onSave, onClose }) {
           </div>
 
           <div>
-            <label htmlFor="redirectType" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="redirectType"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Redirect Type
             </label>
             <select
@@ -127,7 +140,10 @@ export function EditLinkModal({ link, onSave, onClose }) {
           </div>
 
           <div>
-            <label htmlFor="tags" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="tags"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Tags (comma separated)
             </label>
             <input
@@ -135,7 +151,15 @@ export function EditLinkModal({ link, onSave, onClose }) {
               name="tags"
               id="tags"
               value={(formData.tags || []).join(',')}
-              onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value.split(',').map(s => s.trim()).filter(Boolean) }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  tags: e.target.value
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter(Boolean),
+                }))
+              }
               className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="personal,work"
             />
@@ -143,7 +167,10 @@ export function EditLinkModal({ link, onSave, onClose }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="activatesAt" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="activatesAt"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Activates At (optional)
               </label>
               <input
@@ -156,7 +183,10 @@ export function EditLinkModal({ link, onSave, onClose }) {
               />
             </div>
             <div>
-              <label htmlFor="expiresAt" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="expiresAt"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
                 Expires At (optional)
               </label>
               <input
@@ -171,8 +201,67 @@ export function EditLinkModal({ link, onSave, onClose }) {
           </div>
 
           <div className="flex items-center space-x-2">
-            <input id="archived" name="archived" type="checkbox" checked={!!formData.archived} onChange={(e) => setFormData(prev => ({ ...prev, archived: e.target.checked }))} className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
-            <label htmlFor="archived" className="text-sm text-gray-700 dark:text-gray-300">Archived</label>
+            <input
+              id="archived"
+              name="archived"
+              type="checkbox"
+              checked={!!formData.archived}
+              onChange={(e) => setFormData((prev) => ({ ...prev, archived: e.target.checked }))}
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+            />
+            <label htmlFor="archived" className="text-sm text-gray-700 dark:text-gray-300">
+              Archived
+            </label>
+          </div>
+
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Password Protection
+            </label>
+            {link.passwordEnabled && (
+              <div className="mb-2">
+                <label className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                  <input
+                    type="checkbox"
+                    checked={formData.removePassword}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        removePassword: e.target.checked,
+                        password: '',
+                      }))
+                    }
+                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                  />
+                  <span>Remove password protection</span>
+                </label>
+              </div>
+            )}
+            {!formData.removePassword && (
+              <>
+                <input
+                  type="password"
+                  name="password"
+                  id="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                  placeholder={
+                    link.passwordEnabled
+                      ? 'Enter new password or leave blank to keep current'
+                      : 'Enter password to enable protection'
+                  }
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {link.passwordEnabled
+                    ? 'Leave blank to keep current password, or enter a new one to change it'
+                    : 'Enter a password to enable protection for this link'}
+                </p>
+              </>
+            )}
           </div>
 
           {error && (

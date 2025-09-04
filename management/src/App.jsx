@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { LinkList } from './components/LinkList'
 import { LinkSearch } from './components/LinkSearch'
 import { CreateLinkForm } from './components/CreateLinkForm'
@@ -7,37 +7,48 @@ import { Analytics } from './components/Analytics'
 import { LoginScreen } from './components/LoginScreen'
 import { authService } from './services/auth'
 import { Plus, HelpCircle, BarChart3, Link as LinkIcon } from 'lucide-react'
-import { ErrorBoundary, ErrorMessage, PageLoader, LinkListSkeleton, SearchSkeleton, BulkToolbarSkeleton } from './components/ui'
-import { useLinks, useCreateLink, useUpdateLink, useDeleteLink, useBulkDeleteLinks } from './hooks/useLinks'
+import {
+  ErrorBoundary,
+  ErrorMessage,
+  PageLoader,
+  LinkListSkeleton,
+  SearchSkeleton,
+  BulkToolbarSkeleton,
+} from './components/ui'
+import {
+  useLinks,
+  useCreateLink,
+  useUpdateLink,
+  useDeleteLink,
+  useBulkDeleteLinks,
+} from './hooks/useLinks'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 
 function App() {
   const [filteredLinks, setFilteredLinks] = useState({})
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
+  const [_showKeyboardHelp, _setShowKeyboardHelp] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated())
   const [currentView, setCurrentView] = useState('links') // 'links' or 'analytics'
   const searchInputRef = useRef(null)
-  
+
   // React Query hooks - only run when authenticated
   // Make UI more realtime: periodic refetch tuned by current view
-  const { data: links = {}, isLoading, error, refetch } = useLinks({ 
+  const {
+    data: links = {},
+    isLoading,
+    error,
+    refetch,
+  } = useLinks({
     enabled: isAuthenticated,
     // Reduce polling to cut KV list usage on the server
     refetchInterval: currentView === 'analytics' ? 15000 : 10000,
-    refetchIntervalInBackground: currentView === 'analytics'
+    refetchIntervalInBackground: currentView === 'analytics',
   })
   const createLinkMutation = useCreateLink()
   const updateLinkMutation = useUpdateLink()
   const deleteLinkMutation = useDeleteLink()
   const bulkDeleteMutation = useBulkDeleteLinks()
-
-  // Show login screen if not authenticated
-  if (!isAuthenticated) {
-    return <LoginScreen />;
-  }
-
-  // Filter results are managed by LinkSearch via onFilteredResults
 
   // Listen for authentication state changes (no polling)
   useEffect(() => {
@@ -46,22 +57,34 @@ function App() {
     return () => window.removeEventListener('auth:change', onAuthChange)
   }, [])
 
-  const handleCreateLink = useCallback(async (linkData) => {
-    await createLinkMutation.mutateAsync(linkData)
-    setShowCreateForm(false)
-  }, [createLinkMutation])
+  const handleCreateLink = useCallback(
+    async (linkData) => {
+      await createLinkMutation.mutateAsync(linkData)
+      setShowCreateForm(false)
+    },
+    [createLinkMutation]
+  )
 
-  const handleDeleteLink = useCallback(async (shortcode) => {
-    await deleteLinkMutation.mutateAsync(shortcode)
-  }, [deleteLinkMutation])
+  const handleDeleteLink = useCallback(
+    async (shortcode) => {
+      await deleteLinkMutation.mutateAsync(shortcode)
+    },
+    [deleteLinkMutation]
+  )
 
-  const handleBulkDeleteLinks = useCallback(async (shortcodes) => {
-    await bulkDeleteMutation.mutateAsync(shortcodes)
-  }, [bulkDeleteMutation])
+  const handleBulkDeleteLinks = useCallback(
+    async (shortcodes) => {
+      await bulkDeleteMutation.mutateAsync(shortcodes)
+    },
+    [bulkDeleteMutation]
+  )
 
-  const handleUpdateLink = useCallback(async (shortcode, updates) => {
-    await updateLinkMutation.mutateAsync({ shortcode, updates })
-  }, [updateLinkMutation])
+  const handleUpdateLink = useCallback(
+    async (shortcode, updates) => {
+      await updateLinkMutation.mutateAsync({ shortcode, updates })
+    },
+    [updateLinkMutation]
+  )
 
   const handleRetryError = useCallback(() => {
     refetch()
@@ -76,12 +99,19 @@ function App() {
     'mod+n': () => setShowCreateForm(true),
     'mod+k': () => searchInputRef.current?.focus(),
     '/': () => searchInputRef.current?.focus(),
-    'escape': () => {
+    escape: () => {
       setShowCreateForm(false)
-      setShowKeyboardHelp(false)
+      _setShowKeyboardHelp(false)
     },
-    'mod+/': () => setShowKeyboardHelp(true),
+    'mod+/': () => _setShowKeyboardHelp(true),
   })
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <LoginScreen />
+  }
+
+  // Filter results are managed by LinkSearch via onFilteredResults
 
   if (isLoading) {
     return (
@@ -93,13 +123,19 @@ function App() {
           >
             Skip to main content
           </a>
-          
+
           <Header />
-          
-          <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
+
+          <main
+            id="main-content"
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+            role="main"
+          >
             <div className="sm:flex sm:items-center sm:justify-between mb-8">
               <header>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Link Management</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  Link Management
+                </h1>
                 <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
                   Manage your short links and view analytics
                 </p>
@@ -134,9 +170,9 @@ function App() {
         >
           Skip to main content
         </a>
-        
+
         <Header />
-        
+
         <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
           <div className="sm:flex sm:items-center sm:justify-between mb-8">
             <header>
@@ -185,22 +221,18 @@ function App() {
             </nav>
           </div>
 
-          <ErrorMessage 
-            error={error}
-            onRetry={handleRetryError}
-            className="mb-4"
-          />
+          <ErrorMessage error={error} onRetry={handleRetryError} className="mb-4" />
 
           {/* Content based on current view */}
           {currentView === 'links' ? (
             <>
-              <LinkSearch 
+              <LinkSearch
                 links={links}
                 onFilteredResults={handleFilteredResults}
                 searchInputRef={searchInputRef}
               />
 
-              <LinkList 
+              <LinkList
                 links={filteredLinks}
                 onDelete={handleDeleteLink}
                 onUpdate={handleUpdateLink}
@@ -212,10 +244,7 @@ function App() {
           )}
 
           {showCreateForm && (
-            <CreateLinkForm
-              onSubmit={handleCreateLink}
-              onClose={() => setShowCreateForm(false)}
-            />
+            <CreateLinkForm onSubmit={handleCreateLink} onClose={() => setShowCreateForm(false)} />
           )}
         </main>
       </div>

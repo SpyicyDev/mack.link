@@ -2,12 +2,17 @@ import { logger } from '../logger.js';
 import { withCors } from '../cors.js';
 import { recordClick } from '../analytics.js';
 import { dbGet, dbRun } from '../db.js';
+import { verifyPasswordSession, renderPasswordPrompt } from './password.js';
 
 export async function handleRedirect(request, env, requestLogger = logger, ctx) {
 	const url = new URL(request.url);
 	const shortcode = url.pathname.slice(1);
 	if (!shortcode || shortcode.startsWith('api/')) return null;
-	const row = await dbGet(env, `SELECT url, description, redirect_type, archived, activates_at, expires_at, clicks FROM links WHERE shortcode = ?`, [shortcode]);
+	const row = await dbGet(
+		env,
+		`SELECT url, description, redirect_type, archived, activates_at, expires_at, clicks, password_enabled, password_hash FROM links WHERE shortcode = ?`,
+		[shortcode],
+	);
 	if (!row) {
 		requestLogger.info('Link not found', { shortcode });
 		return htmlError(env, request, 404, 'Link not found', 'The short link you requested does not exist.');
@@ -19,7 +24,9 @@ export async function handleRedirect(request, env, requestLogger = logger, ctx) 
 		archived: !!row.archived,
 		activatesAt: row.activates_at,
 		expiresAt: row.expires_at,
-		clicks: row.clicks || 0
+		clicks: row.clicks || 0,
+		passwordEnabled: !!row.password_enabled,
+		passwordHash: row.password_hash,
 	};
 	// Enforce activation/expiration and archive
 	if (link.archived) {
@@ -37,20 +44,53 @@ export async function handleRedirect(request, env, requestLogger = logger, ctx) 
 			return htmlError(env, request, 410, 'Link expired', 'This link has expired and is no longer available.');
 		}
 	}
+
+	// Check for password protection
+	if (link.passwordEnabled && link.passwordHash) {
+		const url = new URL(request.url);
+		const sessionToken = url.searchParams.get('session');
+
+		// Check if valid session token provided
+		if (sessionToken) {
+			const isValidSession = await verifyPasswordSession(env, shortcode, sessionToken);
+			if (!isValidSession) {
+				return new Response(renderPasswordPrompt(shortcode, 'Session expired. Please enter password again.'), {
+					status: 401,
+					headers: { 'Content-Type': 'text/html; charset=utf-8' },
+				});
+			}
+		} else {
+			// No session token, show password prompt
+			return new Response(renderPasswordPrompt(shortcode), {
+				status: 401,
+				headers: { 'Content-Type': 'text/html; charset=utf-8' },
+			});
+		}
+	}
 	// Skip counting for bots, crawlers, and prefetch/HEAD
 	const ua = request.headers.get('User-Agent') || '';
 	const method = request.method || 'GET';
-	const isBot = /(bot|spider|crawler|preview|facebookexternalhit|slackbot|discordbot|twitterbot|linkedinbot|embedly|quora link|whatsapp|skypeuripreview)/i.test(ua);
+	const isBot =
+		/(bot|spider|crawler|preview|facebookexternalhit|slackbot|discordbot|twitterbot|linkedinbot|embedly|quora link|whatsapp|skypeuripreview)/i.test(
+			ua,
+		);
 	const isHead = method === 'HEAD';
 	if (!isBot && !isHead) {
 		const now = new Date().toISOString();
 		await dbRun(env, `UPDATE links SET clicks = COALESCE(clicks,0) + 1, last_clicked = ? WHERE shortcode = ?`, [now, shortcode]);
 		// Record analytics breakdowns
-		const recordPromise = recordClick(env, request, shortcode);
+		const recordPromise = recordClick(env, request, shortcode, link.url);
 		// If runtime context available, run in background
-		try { ctx && typeof ctx.waitUntil === 'function' ? ctx.waitUntil(recordPromise) : await recordPromise; } catch {}
+		try {
+			ctx && typeof ctx.waitUntil === 'function' ? ctx.waitUntil(recordPromise) : await recordPromise;
+		} catch {}
 	}
-	requestLogger.info('Link redirected', { shortcode, destination: link.url, redirectType: link.redirectType || 301, previousClicks: link.clicks || 0 });
+	requestLogger.info('Link redirected', {
+		shortcode,
+		destination: link.url,
+		redirectType: link.redirectType || 301,
+		previousClicks: link.clicks || 0,
+	});
 	return Response.redirect(link.url, link.redirectType || 301);
 }
 
@@ -108,8 +148,6 @@ function renderErrorHtml({ status, title, subtitle }) {
 </html>`;
 }
 
-function escapeHtml(s){
-	return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+function escapeHtml(s) {
+	return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
-
-

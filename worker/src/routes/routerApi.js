@@ -2,7 +2,8 @@ import { requireAuth, handleLogout } from '../auth.js';
 import { withCors } from '../cors.js';
 import { getAllLinks, createLink, updateLink, deleteLink, bulkDeleteLinks, getLink, bulkCreateLinks, listLinks } from './routesLinks.js';
 import { handleGitHubAuth, handleGitHubCallback } from './routesOAuth.js';
-import { getTimeseries, getBreakdown, getOverview } from '../analytics.js';
+import { getTimeseries, getBreakdown, getOverview, exportAnalytics } from '../analytics.js';
+import { handlePasswordVerification } from './password.js';
 
 export async function handleAPI(request, env, requestLogger) {
 	const url = new URL(request.url);
@@ -20,6 +21,10 @@ export async function handleAPI(request, env, requestLogger) {
 		return await handleLogout(env, request);
 	}
 
+	// Password verification endpoint (no auth required)
+	if (path === '/api/password/verify' && method === 'POST') {
+		return await handlePasswordVerification(request, env);
+	}
 
 	// Protected endpoints - auth required
 	const authResult = await requireAuth(env, request);
@@ -47,6 +52,36 @@ export async function handleAPI(request, env, requestLogger) {
 		if (path === '/api/analytics/overview') {
 			const data = await getOverview(env, shortcode);
 			return withCors(env, new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }), request);
+		}
+		if (path === '/api/analytics/export') {
+			const from = urlObj.searchParams.get('from');
+			const to = urlObj.searchParams.get('to');
+			const format = urlObj.searchParams.get('format') || 'json';
+
+			try {
+				const data = await exportAnalytics(env, shortcode, from, to, format);
+				const filename = `analytics-${shortcode || 'global'}-${from || 'all'}-${to || 'all'}.json`;
+
+				return withCors(
+					env,
+					new Response(JSON.stringify(data, null, 2), {
+						headers: {
+							'Content-Type': 'application/json',
+							'Content-Disposition': `attachment; filename="${filename}"`,
+						},
+					}),
+					request,
+				);
+			} catch (error) {
+				return withCors(
+					env,
+					new Response(JSON.stringify({ error: error.message }), {
+						status: 400,
+						headers: { 'Content-Type': 'application/json' },
+					}),
+					request,
+				);
+			}
 		}
 	}
 
@@ -80,5 +115,3 @@ export async function handleAPI(request, env, requestLogger) {
 
 	return withCors(env, new Response('API endpoint not found', { status: 404 }), request);
 }
-
-

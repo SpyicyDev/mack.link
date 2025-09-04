@@ -1,11 +1,26 @@
 import { useState, useCallback, useMemo, memo } from 'react'
-import { ExternalLink, Edit, Trash2, Copy, BarChart3, Link as LinkIcon, CheckSquare, Square, Download, X, QrCode, Upload, Archive, ArchiveRestore } from 'lucide-react'
+import {
+  ExternalLink,
+  Edit,
+  Trash2,
+  Copy,
+  BarChart3,
+  Link as LinkIcon,
+  CheckSquare,
+  Square,
+  Download,
+  X,
+  QrCode,
+  Upload,
+  Archive,
+  ArchiveRestore,
+  Lock,
+} from 'lucide-react'
 import { EditLinkModal } from './EditLinkModal'
 import { QRCodeModal } from './QRCodeModal'
 import { ConfirmationModal } from './ui'
 import { BulkImportModal } from './BulkImportModal'
 import { shortUrl, workerHost } from '../services/links'
-
 
 const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelete }) {
   const [editingLink, setEditingLink] = useState(null)
@@ -18,10 +33,9 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
   const [qrLink, setQrLink] = useState(null)
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
 
-  const linkEntries = useMemo(() => 
-    Object.entries(links).sort(([,a], [,b]) => 
-      new Date(b.created) - new Date(a.created)
-    ), [links]
+  const linkEntries = useMemo(
+    () => Object.entries(links).sort(([, a], [, b]) => new Date(b.created) - new Date(a.created)),
+    [links]
   )
 
   const copyToClipboard = useCallback(async (shortcode) => {
@@ -52,7 +66,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
   }, [bulkMode])
 
   const toggleLinkSelection = useCallback((shortcode) => {
-    setSelectedLinks(prev => {
+    setSelectedLinks((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(shortcode)) {
         newSet.delete(shortcode)
@@ -89,14 +103,12 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
         link.description || '',
         link.clicks || 0,
         link.created,
-        link.updated
-      ])
+        link.updated,
+      ]),
     ]
-    
-    const csvContent = csvData.map(row => 
-      row.map(cell => `"${cell}"`).join(',')
-    ).join('\n')
-    
+
+    const csvContent = csvData.map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n')
+
     const blob = new Blob([csvContent], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -124,16 +136,25 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     })
   }
 
   if (linkEntries.length === 0) {
     return (
-      <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors" role="status" aria-live="polite">
-        <LinkIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" aria-hidden="true" />
+      <div
+        className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors"
+        role="status"
+        aria-live="polite"
+      >
+        <LinkIcon
+          className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4"
+          aria-hidden="true"
+        />
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No links yet</h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">Get started by creating your first short link</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          Get started by creating your first short link
+        </p>
       </div>
     )
   }
@@ -147,15 +168,15 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
             <button
               onClick={toggleBulkMode}
               className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                bulkMode 
-                  ? 'bg-blue-600 text-white dark:bg-blue-500' 
+                bulkMode
+                  ? 'bg-blue-600 text-white dark:bg-blue-500'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
               aria-pressed={bulkMode}
             >
               {bulkMode ? 'Exit Bulk Mode' : 'Bulk Mode'}
             </button>
-            
+
             {bulkMode && (
               <>
                 <span className="text-sm text-gray-600 dark:text-gray-300">
@@ -178,7 +199,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
               </>
             )}
           </div>
-          
+
           {bulkMode && (
             <div className="flex items-center space-x-2">
               <button
@@ -201,7 +222,11 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
               <button
                 onClick={handleBulkDelete}
                 className="inline-flex items-center px-3 py-1 border border-red-300 dark:border-red-500 rounded-md text-sm font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
-                title={selectedLinks.size > 0 ? `Delete ${selectedLinks.size} selected links` : 'Delete selected links'}
+                title={
+                  selectedLinks.size > 0
+                    ? `Delete ${selectedLinks.size} selected links`
+                    : 'Delete selected links'
+                }
                 disabled={selectedLinks.size === 0}
               >
                 <Trash2 className="w-4 h-4 mr-1" />
@@ -212,14 +237,25 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
         </div>
       )}
 
-      <section className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 overflow-hidden sm:rounded-lg transition-colors" aria-labelledby="links-heading">
+      <section
+        className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 overflow-hidden sm:rounded-lg transition-colors"
+        aria-labelledby="links-heading"
+      >
         <div className="px-4 py-5 sm:p-6">
-          <h2 id="links-heading" className="sr-only">Your short links</h2>
+          <h2 id="links-heading" className="sr-only">
+            Your short links
+          </h2>
           <div className="grid gap-4" role="list" aria-label="List of short links">
             {linkEntries.map(([shortcode, link]) => (
-              <article key={shortcode} className={`border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md dark:hover:shadow-gray-700/50 transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800 bg-white dark:bg-gray-800 ${
-                bulkMode && selectedLinks.has(shortcode) ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
-              }`} role="listitem">
+              <article
+                key={shortcode}
+                className={`border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md dark:hover:shadow-gray-700/50 transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800 bg-white dark:bg-gray-800 ${
+                  bulkMode && selectedLinks.has(shortcode)
+                    ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                    : ''
+                }`}
+                role="listitem"
+              >
                 <div className="flex items-start justify-between">
                   {bulkMode && (
                     <div className="flex items-center mr-4 mt-1">
@@ -238,7 +274,10 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2 mb-2">
-                      <code className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-mono rounded" aria-label={`Short URL: ${workerHost()}/${shortcode}`}>
+                      <code
+                        className="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-mono rounded"
+                        aria-label={`Short URL: ${workerHost()}/${shortcode}`}
+                      >
                         {workerHost()}/{shortcode}
                       </code>
                       <button
@@ -249,15 +288,17 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                         <Copy className="w-4 h-4" aria-hidden="true" />
                       </button>
                       {copiedShortcode === shortcode && (
-                        <span className="text-xs text-green-600" role="status" aria-live="polite">Copied!</span>
+                        <span className="text-xs text-green-600" role="status" aria-live="polite">
+                          Copied!
+                        </span>
                       )}
                     </div>
-                    
+
                     <div className="flex items-center space-x-2 mb-2">
                       <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <a 
-                        href={link.url} 
-                        target="_blank" 
+                      <a
+                        href={link.url}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 truncate transition-colors"
                       >
@@ -271,11 +312,25 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
 
                     {/* Tags and archived badge */}
                     <div className="flex items-center flex-wrap gap-2 mb-2">
-                      {Array.isArray(link.tags) && link.tags.map(tag => (
-                        <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">{tag}</span>
-                      ))}
+                      {Array.isArray(link.tags) &&
+                        link.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                          >
+                            {tag}
+                          </span>
+                        ))}
                       {link.archived && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Archived</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Archived
+                        </span>
+                      )}
+                      {link.passwordEnabled && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                          <Lock className="w-3 h-3 mr-1" />
+                          Protected
+                        </span>
                       )}
                     </div>
 
@@ -292,22 +347,40 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                         {link.redirectType || 301}
                       </span>
                       {link.activatesAt && (
-                        <span title="Activates" className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs">Starts {formatDate(link.activatesAt)}</span>
+                        <span
+                          title="Activates"
+                          className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs"
+                        >
+                          Starts {formatDate(link.activatesAt)}
+                        </span>
                       )}
                       {link.expiresAt && (
-                        <span title="Expires" className="px-2 py-1 bg-red-50 text-red-700 rounded text-xs">Ends {formatDate(link.expiresAt)}</span>
+                        <span
+                          title="Expires"
+                          className="px-2 py-1 bg-red-50 text-red-700 rounded text-xs"
+                        >
+                          Ends {formatDate(link.expiresAt)}
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 ml-4" role="group" aria-label={`Actions for ${shortcode}`}>
+                  <div
+                    className="flex items-center space-x-2 ml-4"
+                    role="group"
+                    aria-label={`Actions for ${shortcode}`}
+                  >
                     <button
                       onClick={() => onUpdate(shortcode, { archived: !link.archived })}
                       className={`p-2 ${link.archived ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-500'} hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 rounded`}
                       aria-label={`${link.archived ? 'Unarchive' : 'Archive'} link ${shortcode}`}
                       title={link.archived ? 'Unarchive' : 'Archive'}
                     >
-                      {link.archived ? <ArchiveRestore className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+                      {link.archived ? (
+                        <ArchiveRestore className="w-4 h-4" />
+                      ) : (
+                        <Archive className="w-4 h-4" />
+                      )}
                     </button>
                     <button
                       onClick={() => handleShowQRCode(shortcode, link)}
@@ -373,10 +446,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
       )}
 
       {bulkImportOpen && (
-        <BulkImportModal
-          isOpen={bulkImportOpen}
-          onClose={() => setBulkImportOpen(false)}
-        />
+        <BulkImportModal isOpen={bulkImportOpen} onClose={() => setBulkImportOpen(false)} />
       )}
     </>
   )

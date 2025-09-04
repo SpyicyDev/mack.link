@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS links (
   archived INTEGER DEFAULT 0,
   activates_at TEXT,
   expires_at TEXT,
+  password_hash TEXT,
+  password_enabled INTEGER DEFAULT 0,
   created TEXT NOT NULL,
   updated TEXT NOT NULL,
   clicks INTEGER DEFAULT 0,
@@ -49,4 +51,9 @@ CREATE TABLE IF NOT EXISTS counters (
   value INTEGER DEFAULT 0
 );
 
-
+-- Indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_analytics_day_scope_day ON analytics_day(scope, day);
+CREATE INDEX IF NOT EXISTS idx_analytics_agg_scope_dimension ON analytics_agg(scope, dimension);
+CREATE INDEX IF NOT EXISTS idx_analytics_day_agg_scope_day_dimension ON analytics_day_agg(scope, day, dimension);
+CREATE INDEX IF NOT EXISTS idx_links_archived_created ON links(archived, created);
+CREATE INDEX IF NOT EXISTS idx_links_clicks ON links(clicks DESC);
