@@ -36,9 +36,7 @@ function App() {
     return <LoginScreen />;
   }
 
-  useEffect(() => {
-    setFilteredLinks(links)
-  }, [links])
+  // Filter results are managed by LinkSearch via onFilteredResults
 
   // Listen for authentication state changes (no polling)
   useEffect(() => {
