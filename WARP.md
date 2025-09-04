@@ -12,6 +12,9 @@ cd worker && npm run dev
 # Run tests
 cd worker && npm test
 
+# Run a single test by name
+cd worker && npx vitest -t "pattern"
+
 # Deploy to production
 cd worker && npm run deploy
 
@@ -21,8 +24,11 @@ echo "secret_value" | npx wrangler secret put SECRET_NAME
 # Tail worker logs
 npx wrangler tail
 
-# Create KV namespace
-npx wrangler kv namespace create LINKS
+# Apply D1 schema locally (once or after schema changes)
+cd worker && npm run db:apply:local
+
+# Apply D1 schema to production
+cd worker && npm run db:apply
 ```
 
 ### Management Panel Development
@@ -133,6 +139,7 @@ This is a two-part URL shortener system built on Cloudflare's edge platform:
 ### Required Environment Variables (Worker)
 - `GITHUB_CLIENT_ID`: OAuth application ID
 - `GITHUB_CLIENT_SECRET`: OAuth application secret (via `wrangler secret put`)
+- `JWT_SECRET`: Secret used to sign session JWT cookies (via `wrangler secret put`)
 - `AUTHORIZED_USER`: GitHub username allowed to access the system
 - `MANAGEMENT_ORIGIN`: CORS allowlist for management UI origins
 

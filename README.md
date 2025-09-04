@@ -31,11 +31,12 @@ A personal URL shortener built with Cloudflare Workers and React, featuring GitH
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────┐
-│             Cloudflare KV                               │
+│             Cloudflare D1 (SQLite)                      │
 │                                                         │
-│  • Stores link mappings                                 │
-│  • Click counts & timestamps                            │
-│  • Link metadata                                        │
+│  • Links table (shortcode, url, metadata, status)       │
+│  • Analytics tables (timeseries and breakdowns)         │
+│    - analytics_day, analytics_agg, analytics_day_agg    │
+│  • Global counters                                      │
 └─────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────┐
@@ -73,7 +74,7 @@ A personal URL shortener built with Cloudflare Workers and React, featuring GitH
 
 **Backend (Cloudflare Worker):**
 - Cloudflare Workers (Serverless)
-- Cloudflare KV (Storage)
+- Cloudflare D1 (SQLite)
 - GitHub OAuth API
 - JavaScript/ES Modules
 

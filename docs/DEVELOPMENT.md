@@ -20,6 +20,9 @@ cd mack.link
 cd worker
 npm install
 
+# Apply D1 schema locally (required once or when schema changes)
+npm run db:apply:local
+
 # Install management panel dependencies
 cd ../management
 npm install
@@ -55,7 +58,7 @@ npm run dev
 
 This starts the worker on `http://localhost:8787` with:
 - Hot reload on file changes
-- Local KV storage simulation
+- Local D1 database (Wrangler test environment)
 - Full API endpoints available
 
 ### 2. Start the Management Panel

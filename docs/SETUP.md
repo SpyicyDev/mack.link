@@ -46,25 +46,32 @@ Edit `wrangler.jsonc`:
 }
 ```
 
-Create KV namespace:
+Apply the D1 database schema:
 ```bash
-npx wrangler kv namespace create LINKS
-```
+# Local (uses in-memory D1)
+cd worker && npm run db:apply:local
 
-Update `wrangler.jsonc` with the returned namespace ID.
+# Production (executes against bound D1 database)
+cd worker && npm run db:apply
+```
 
 Add the GitHub client secret:
 ```bash
 echo "your_github_client_secret" | npx wrangler secret put GITHUB_CLIENT_SECRET
 ```
 
-Add CORS allowlist for the management app (single or multiple origins, comma-separated):
+Add a JWT secret for session cookies:
 ```bash
-# Local dev only
-echo "http://localhost:5173" | npx wrangler secret put MANAGEMENT_ORIGIN
+echo "your_random_jwt_secret" | npx wrangler secret put JWT_SECRET
+```
 
-# Local + Production
-echo "https://your-management-domain.com,http://localhost:5173" | npx wrangler secret put MANAGEMENT_ORIGIN
+Ensure CORS allowlist is set in wrangler.jsonc vars (single or comma-separated origins):
+```json
+{
+  "vars": {
+    "MANAGEMENT_ORIGIN": "https://your-management-domain.com,http://localhost:5173"
+  }
+}
 ```
 
 ## 4. Deploy Worker
