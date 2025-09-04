@@ -132,8 +132,8 @@ export function Analytics({ links }) {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-6">
-          <div className="flex flex-wrap items-center gap-6">
+        <div className="grid gap-4 lg:grid-cols-[1fr_auto] items-center">
+          <div className="flex flex-wrap items-center gap-4">
             {/* Scope segmented control */}
             <div
               className="inline-flex rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
@@ -266,7 +266,7 @@ export function Analytics({ links }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 justify-start lg:justify-end">
             {/* Export Button */}
             <button
           onClick={async () => {
@@ -315,7 +315,7 @@ export function Analytics({ links }) {
         </button>
 
             {/* Summary badges */}
-            <div className="flex items-center gap-3 text-sm">
+            <div className="hidden sm:flex items-center gap-3 text-sm">
           {overview && (
             <>
               <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
