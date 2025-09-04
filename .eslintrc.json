@@ -15,7 +15,7 @@
 			"env": { "worker": true, "browser": false }
 		},
 		{
-			"files": ["management/**/*.jsx", "management/**/*.js"],
+			"files": ["admin/**/*.jsx", "admin/**/*.js"],
 			"env": { "browser": true }
 		}
 	],

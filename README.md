@@ -81,7 +81,7 @@ A personal URL shortener built with Cloudflare Workers and React, featuring GitH
 - GitHub OAuth API
 - JavaScript/ES Modules
 
-**Frontend (Management Panel):**
+**Frontend (Admin Panel):**
 - React 18
 - Vite (Build tool)
 - Tailwind CSS
@@ -101,12 +101,12 @@ mack.link/
 │   │   └── build-admin.js # Embeds React build into worker
 │   ├── wrangler.jsonc     # Worker configuration
 │   └── package.json
-├── management/            # React management panel (builds to worker)
+├── admin/                 # React admin panel (builds to worker)
 │   ├── src/
 │   │   ├── components/    # React components
 │   │   ├── services/      # API & auth services
 │   │   └── App.jsx        # Main application
-│   ├── dist/             # Build output (embedded in worker)
+│   ├── dist/              # Build output (embedded in worker)
 │   └── package.json
 ├── docs/                  # Documentation
 └── package.json          # Root build scripts

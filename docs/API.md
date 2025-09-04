@@ -285,7 +285,7 @@ Cloudflare Free Tier limits:
 
 All API endpoints include CORS headers. In production, the worker echoes the request Origin if it matches the allowlist configured via `MANAGEMENT_ORIGIN` (single origin or comma‑separated list). `Vary: Origin` and `Access-Control-Allow-Credentials: true` are included to support cookie-based auth. Example headers:
 ```
-Access-Control-Allow-Origin: https://link-management.example.com
+Access-Control-Allow-Origin: https://link-admin.example.com
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 Access-Control-Allow-Headers: Content-Type, Authorization
 Access-Control-Allow-Credentials: true
@@ -294,4 +294,4 @@ Vary: Origin
 
 ---
 
-*For implementation examples, see the management panel source code.*
+*For implementation examples, see the admin panel source code.*

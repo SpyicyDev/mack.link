@@ -19,7 +19,7 @@ paths-ignore:
 
 paths:
   - worker/src
-  - management/src
+  - admin/src
   - scripts
 
 query-filters:

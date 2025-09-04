@@ -118,7 +118,7 @@ mack.link/
 │   ├── scripts/
 │   │   └── build-admin.js  # 🆕 Asset embedding script
 │   └── package.json
-├── management/             # React app (builds to worker)
+├── admin/                  # React app (builds to worker)
 │   ├── src/
 │   └── package.json
 ├── scripts/

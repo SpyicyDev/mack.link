@@ -36,9 +36,9 @@ AUTHORIZED_USER=your_github_username
 
 Optional: set SESSION_COOKIE_NAME=__Host-link_session for best security.
 
-### Management Panel Environment
+### Admin Panel Environment
 
-Create `management/.env`:
+Create `admin/.env`:
 ```env
 VITE_API_BASE=http://localhost:8787
 VITE_WORKER_DOMAIN=localhost:8787
@@ -57,10 +57,10 @@ This starts the worker on `http://localhost:8787` with:
 - Local D1 database (Wrangler test environment)
 - Full API endpoints available
 
-### 2. Start the Management Panel
+### 2. Start the Admin Panel
 
 ```bash
-npm -w management run dev
+npm -w admin run dev
 ```
 
 This starts the React app on `http://localhost:5173` with:
@@ -88,7 +88,7 @@ mack.link/
 │   ├── wrangler.jsonc         # Worker config
 │   ├── package.json
 │   └── vitest.config.js       # Test config
-├── management/                # React management panel
+├── admin/                     # React admin panel
 │   ├── src/
 │   │   ├── components/        # React components
 │   │   │   ├── AuthCallback.jsx
@@ -204,7 +204,7 @@ npx wrangler tail
 console.log('Debug info:', data);
 ```
 
-### Management Panel Debugging
+### Admin Panel Debugging
 
 - Use browser developer tools
 - Check Network tab for API calls
@@ -217,12 +217,12 @@ console.log('Debug info:', data);
 
 1. Add handler function in `worker/src/index.js`
 2. Update route handling in `handleAPI`
-3. Add client method in `management/src/services/api.js`
+3. Add client method in `admin/src/services/api.js`
 4. Update TypeScript interfaces if needed
 
 ### Adding New UI Component
 
-1. Create component in `management/src/components/`
+1. Create component in `admin/src/components/`
 2. Import and use in parent component
 3. Add appropriate props and styling
 4. Handle loading/error states
@@ -230,7 +230,7 @@ console.log('Debug info:', data);
 ### Updating Styles
 
 - Modify Tailwind classes in components
-- Add custom CSS to `management/src/index.css`
+- Add custom CSS to `admin/src/index.css`
 - Use Tailwind's utility classes when possible
 
 ## Deployment Testing

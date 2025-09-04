@@ -7,16 +7,16 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 ### Worker Development
 ```bash
 # Start local development server
-cd worker && npm run dev
+npm -w worker run dev
 
 # Run tests
-cd worker && npm test
+npm -w worker run test
 
 # Run a single test by name
-cd worker && npx vitest -t "pattern"
+npm -w worker exec npx vitest -t "pattern"
 
 # Deploy to production
-cd worker && npm run deploy
+npm -w worker run deploy
 
 # Manage secrets
 echo "secret_value" | npx wrangler secret put SECRET_NAME
@@ -25,10 +25,10 @@ echo "secret_value" | npx wrangler secret put SECRET_NAME
 npx wrangler tail
 
 # Apply D1 schema locally (once or after schema changes)
-cd worker && npm run db:apply:local
+npm -w worker run db:apply:local
 
 # Apply D1 schema to production
-cd worker && npm run db:apply
+npm -w worker run db:apply
 ```
 
 ### Admin Panel Development
@@ -37,13 +37,13 @@ cd worker && npm run db:apply
 npm -w admin run dev
 
 # Build for production
-cd management && npm run build
+npm -w admin run build
 
 # Lint code
-cd management && npm run lint
+npm -w admin run lint
 
 # Preview production build
-cd management && npm run preview
+npm -w admin run preview
 ```
 
 ### Full Stack Development
@@ -53,7 +53,7 @@ With npm workspaces, you can start both from the repo root:
 npm -w worker run dev
 
 # Terminal 2: Start admin (Vite)
-npm -w management run dev
+npm -w admin run dev
 ```
 Or start both in one terminal using:
 ```bash
@@ -62,7 +62,7 @@ npm run dev
 
 Access:
 - Worker API: http://localhost:8787
-- Management UI: http://localhost:5173
+- Admin UI: http://localhost:5173
 - Test redirects: http://localhost:8787/{shortcode}
 
 ## Architecture Overview
@@ -80,7 +80,7 @@ This is a two-part URL shortener system built on Cloudflare's edge platform:
 - **Redirect Handler**: `src/routes/redirect.js` processes shortcode redirects
 - **Session Management**: `src/session.js` handles JWT-based session cookies
 
-**React Management Panel** (`/management/`)
+**React Admin Panel** (`/admin/`)
 - **Main App**: `src/App.jsx` with tabbed interface (Links/Analytics)
 - **Authentication Flow**: `src/components/AuthCallback.jsx` handles GitHub OAuth callback
 - **Link Management**: `src/components/LinkList.jsx`, `src/components/CreateLinkForm.jsx`
@@ -104,8 +104,8 @@ This is a two-part URL shortener system built on Cloudflare's edge platform:
 ### Key Configuration Files
 
 - `worker/wrangler.jsonc`: Worker deployment config, environment variables, D1 binding
-- `management/vite.config.js`: Frontend build configuration
-- `management/tailwind.config.js`: Tailwind CSS customization
+- `admin/vite.config.js`: Frontend build configuration
+- `admin/tailwind.config.js`: Tailwind CSS customization
 
 ## Development Patterns
 
@@ -147,7 +147,7 @@ This is a two-part URL shortener system built on Cloudflare's edge platform:
 - `AUTHORIZED_USER`: GitHub username allowed to access the system
 - `MANAGEMENT_ORIGIN`: CORS allowlist for management UI origins
 
-### Required Environment Variables (Management)
+### Required Environment Variables (Admin)
 - `VITE_API_BASE`: Worker API base URL
 - `VITE_WORKER_DOMAIN`: Domain for shortcode redirects
 

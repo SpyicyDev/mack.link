@@ -109,7 +109,7 @@ VITE_WORKER_DOMAIN=your-worker-domain.com
    - **Framework**: React
    - **Build command**: `npm run build`
    - **Build directory**: `dist`
-   - **Root directory**: `management`
+- **Root directory**: `admin`
 5. Add environment variables:
    - `VITE_API_BASE=https://your-worker-domain.com`
 6. Deploy!
@@ -125,11 +125,11 @@ npx wrangler pages deploy dist
 
 If using custom domains:
 1. Point your short domain to Cloudflare Workers
-2. Point your management domain to Cloudflare Pages
+2. Point your admin domain to Cloudflare Pages
 
 ## 8. Test Everything
 
-1. Visit your management panel
+1. Visit your admin panel
 2. Sign in with GitHub
 3. Create a test link
 4. Test the redirect
@@ -151,11 +151,11 @@ Redeploy worker: `npx wrangler deploy`
 
 ### Custom Favicon
 
-Replace `management/public/favicon.jpg` with your image and redeploy.
+Replace `admin/public/favicon.jpg` with your image and redeploy.
 
 ### Styling
 
-Edit Tailwind classes in React components or modify `management/src/index.css`.
+Edit Tailwind classes in React components or modify `admin/src/index.css`.
 
 ## 🚨 Security Notes
 
