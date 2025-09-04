@@ -39,15 +39,13 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            worker/package-lock.json
+            management/package-lock.json
 
-      - name: Install root dependencies
-        run: npm ci
-
-      - name: Install worker dependencies
-        run: cd worker && npm ci
-
-      - name: Install management dependencies
-        run: cd management && npm ci
+      - name: Install all dependencies
+        run: npm run install:all
 
       - name: Lint management code
         run: cd management && npm run lint
@@ -84,6 +82,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            worker/package-lock.json
+            management/package-lock.json
 
       - name: Install dependencies
         run: npm run install:all
@@ -180,6 +182,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -217,9 +220,5 @@ jobs:
     if: always()
     steps:
       - name: Clean up artifacts
-        uses: actions/upload-artifact/merge@v4
-        with:
-          name: deployment-logs
-          pattern: built-*
-          delete-merged: true
+        run: echo "Artifacts cleaned up automatically after retention period"
         continue-on-error: true
