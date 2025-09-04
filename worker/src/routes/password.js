@@ -1,7 +1,6 @@
 import { withCors } from '../cors.js';
 import { verifyPasswordHash, generateSessionToken } from '../password.js';
 import { dbGet, dbRun } from '../db.js';
-import { json } from '../utils.js';
 
 /**
  * Handle password verification for protected links
@@ -15,7 +14,14 @@ export async function handlePasswordVerification(request, env) {
 		const { shortcode, password } = await request.json();
 
 		if (!shortcode || !password) {
-			return withCors(env, json({ error: 'Shortcode and password are required' }, 400), request);
+			return withCors(
+				env,
+				new Response(JSON.stringify({ error: 'Shortcode and password are required' }), {
+					status: 400,
+					headers: { 'Content-Type': 'application/json' },
+				}),
+				request,
+			);
 		}
 
 		// Get link data including password hash
@@ -26,19 +32,40 @@ export async function handlePasswordVerification(request, env) {
 		);
 
 		if (!link) {
-			return withCors(env, json({ error: 'Link not found' }, 404), request);
+			return withCors(
+				env,
+				new Response(JSON.stringify({ error: 'Link not found' }), {
+					status: 404,
+					headers: { 'Content-Type': 'application/json' },
+				}),
+				request,
+			);
 		}
 
 		// Check if link is accessible
 		if (link.archived) {
-			return withCors(env, json({ error: 'Link is archived' }, 410), request);
+			return withCors(
+				env,
+				new Response(JSON.stringify({ error: 'Link is archived' }), {
+					status: 410,
+					headers: { 'Content-Type': 'application/json' },
+				}),
+				request,
+			);
 		}
 
 		// Check activation time
 		if (link.activates_at) {
 			const activateTime = new Date(link.activates_at).getTime();
 			if (!isNaN(activateTime) && Date.now() < activateTime) {
-				return withCors(env, json({ error: 'Link is not yet active' }, 403), request);
+				return withCors(
+					env,
+					new Response(JSON.stringify({ error: 'Link is not yet active' }), {
+						status: 403,
+						headers: { 'Content-Type': 'application/json' },
+					}),
+					request,
+				);
 			}
 		}
 
@@ -46,20 +73,43 @@ export async function handlePasswordVerification(request, env) {
 		if (link.expires_at) {
 			const expireTime = new Date(link.expires_at).getTime();
 			if (!isNaN(expireTime) && Date.now() > expireTime) {
-				return withCors(env, json({ error: 'Link has expired' }, 410), request);
+				return withCors(
+					env,
+					new Response(JSON.stringify({ error: 'Link has expired' }), {
+						status: 410,
+						headers: { 'Content-Type': 'application/json' },
+					}),
+					request,
+				);
 			}
 		}
 
 		// Check if password protection is enabled
 		if (!link.password_enabled || !link.password_hash) {
-			return withCors(env, json({ error: 'This link is not password protected' }, 400), request);
+			return withCors(
+				env,
+				new Response(JSON.stringify({ error: 'This link is not password protected' }), {
+					status: 400,
+					headers: { 'Content-Type': 'application/json' },
+				}),
+				request,
+			);
 		}
 
 		// Verify password
+		console.log('Verifying password for shortcode:', shortcode);
 		const isValidPassword = await verifyPasswordHash(password, link.password_hash);
 
 		if (!isValidPassword) {
-			return withCors(env, json({ error: 'Invalid password' }, 401), request);
+			console.log('Password verification failed for shortcode:', shortcode);
+			return withCors(
+				env,
+				new Response(JSON.stringify({ error: 'Invalid password' }), {
+					status: 401,
+					headers: { 'Content-Type': 'application/json' },
+				}),
+				request,
+			);
 		}
 
 		// Generate session token for this link
@@ -70,19 +120,33 @@ export async function handlePasswordVerification(request, env) {
 		const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString(); // 1 hour from now
 		await dbRun(env, `INSERT OR REPLACE INTO counters (name, value) VALUES (?, ?)`, [sessionKey, expiresAt]);
 
+		console.log('Password verification successful', { shortcode, sessionToken, url: link.url });
+
 		return withCors(
 			env,
-			json({
-				success: true,
-				sessionToken,
-				url: link.url,
-				message: 'Password verified successfully',
-			}),
+			new Response(
+				JSON.stringify({
+					success: true,
+					sessionToken,
+					url: link.url,
+					message: 'Password verified successfully',
+				}),
+				{
+					headers: { 'Content-Type': 'application/json' },
+				},
+			),
 			request,
 		);
 	} catch (error) {
 		console.error('Password verification error:', error);
-		return withCors(env, json({ error: 'Invalid request format' }, 400), request);
+		return withCors(
+			env,
+			new Response(JSON.stringify({ error: 'Invalid request format' }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' },
+			}),
+			request,
+		);
 	}
 }
 
@@ -207,8 +271,10 @@ export function renderPasswordPrompt(shortcode, error = null) {
         if (result.success) {
           // Store session token in sessionStorage
           sessionStorage.setItem('pwd_session_${escapeHtml(shortcode)}', result.sessionToken);
-          // Redirect to the actual URL
-          window.location.href = result.url;
+          // Redirect back to the short link with session token
+          const redirectUrl = new URL('/${escapeHtml(shortcode)}', window.location.origin);
+          redirectUrl.searchParams.set('session', result.sessionToken);
+          window.location.href = redirectUrl.toString();
         } else {
           // Show error and reload page
           alert(result.error || 'Invalid password');

@@ -46,7 +46,7 @@ export function useCreateLink() {
 
   return useMutation({
     mutationFn: (data) => linkAPI.createLink(data),
-    
+
     onMutate: async (newLink) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: linkKeys.lists() })
@@ -64,6 +64,7 @@ export function useCreateLink() {
             archived: !!newLink.archived,
             activatesAt: newLink.activatesAt || '',
             expiresAt: newLink.expiresAt || '',
+            passwordEnabled: !!(newLink.password && newLink.password.trim()),
             created: new Date().toISOString(),
             updated: new Date().toISOString(),
             clicks: 0,
@@ -102,7 +103,7 @@ export function useUpdateLink() {
 
   return useMutation({
     mutationFn: ({ shortcode, updates }) => linkAPI.updateLink(shortcode, updates),
-    
+
     onMutate: async ({ shortcode, updates }) => {
       await queryClient.cancelQueries({ queryKey: linkKeys.lists() })
       await queryClient.cancelQueries({ queryKey: linkKeys.detail(shortcode) })
@@ -117,6 +118,12 @@ export function useUpdateLink() {
           [shortcode]: {
             ...old[shortcode],
             ...updates,
+            passwordEnabled:
+              updates.password === null
+                ? false
+                : updates.password
+                  ? true
+                  : old[shortcode].passwordEnabled,
             updated: new Date().toISOString(),
           },
         }))
@@ -163,7 +170,7 @@ export function useDeleteLink() {
 
   return useMutation({
     mutationFn: linkAPI.deleteLink,
-    
+
     onMutate: async (shortcode) => {
       await queryClient.cancelQueries({ queryKey: linkKeys.lists() })
 
@@ -199,7 +206,7 @@ export function useBulkDeleteLinks() {
 
   return useMutation({
     mutationFn: linkAPI.bulkDeleteLinks,
-    
+
     onMutate: async (shortcodes) => {
       await queryClient.cancelQueries({ queryKey: linkKeys.lists() })
 
@@ -209,7 +216,7 @@ export function useBulkDeleteLinks() {
       if (previousLinks) {
         queryClient.setQueryData(linkKeys.lists(), (old) => {
           const newLinks = { ...old }
-          shortcodes.forEach(shortcode => {
+          shortcodes.forEach((shortcode) => {
             delete newLinks[shortcode]
           })
           return newLinks
@@ -228,7 +235,7 @@ export function useBulkDeleteLinks() {
     onSettled: (data, error, shortcodes) => {
       queryClient.invalidateQueries({ queryKey: linkKeys.lists() })
       // Remove individual link queries for all deleted links
-      shortcodes.forEach(shortcode => {
+      shortcodes.forEach((shortcode) => {
         queryClient.removeQueries({ queryKey: linkKeys.detail(shortcode) })
       })
     },
