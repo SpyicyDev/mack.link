@@ -131,7 +131,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
       aria-labelledby="edit-link-title"
     >
       <div
-        className="relative top-20 mx-auto p-5 border border-gray-200 dark:border-gray-700 w-full max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors"
+        className="relative top-20 mx-auto p-6 border border-gray-200 dark:border-gray-700 w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
@@ -152,8 +152,8 @@ export function EditLinkModal({ link, onSave, onClose }) {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
             <label
               htmlFor="url"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -238,7 +238,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="activatesAt"
@@ -273,7 +273,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="md:col-span-1 flex items-center space-x-2">
             <input
               id="archived"
               name="archived"
@@ -287,7 +287,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
             </label>
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+          <div className="md:col-span-2 border-t border-gray-200 dark:border-gray-700 pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -401,12 +401,12 @@ export function EditLinkModal({ link, onSave, onClose }) {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md transition-colors">
+            <div className="md:col-span-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md transition-colors">
               <p className="text-red-800 dark:text-red-400 text-sm">{error}</p>
             </div>
           )}
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="md:col-span-2 flex justify-end space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}
