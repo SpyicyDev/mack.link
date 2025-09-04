@@ -1,17 +1,26 @@
 import { logger } from '../logger.js';
 import { withCors } from '../cors.js';
 import { recordClick } from '../analytics.js';
+import { dbGet, dbRun } from '../db.js';
 
 export async function handleRedirect(request, env, requestLogger = logger, ctx) {
 	const url = new URL(request.url);
 	const shortcode = url.pathname.slice(1);
 	if (!shortcode || shortcode.startsWith('api/')) return null;
-	const linkData = await env.LINKS.get(shortcode);
-	if (!linkData) {
+	const row = await dbGet(env, `SELECT url, description, redirect_type, archived, activates_at, expires_at, clicks FROM links WHERE shortcode = ?`, [shortcode]);
+	if (!row) {
 		requestLogger.info('Link not found', { shortcode });
 		return htmlError(env, request, 404, 'Link not found', 'The short link you requested does not exist.');
 	}
-	const link = JSON.parse(linkData);
+	const link = {
+		url: row.url,
+		description: row.description,
+		redirectType: row.redirect_type || 301,
+		archived: !!row.archived,
+		activatesAt: row.activates_at,
+		expiresAt: row.expires_at,
+		clicks: row.clicks || 0
+	};
 	// Enforce activation/expiration and archive
 	if (link.archived) {
 		return htmlError(env, request, 404, 'Link archived', 'This link has been archived and is no longer available.');
@@ -34,11 +43,8 @@ export async function handleRedirect(request, env, requestLogger = logger, ctx) 
 	const isBot = /(bot|spider|crawler|preview|facebookexternalhit|slackbot|discordbot|twitterbot|linkedinbot|embedly|quora link|whatsapp|skypeuripreview)/i.test(ua);
 	const isHead = method === 'HEAD';
 	if (!isBot && !isHead) {
-		await env.LINKS.put(shortcode, JSON.stringify({
-			...link,
-			clicks: (link.clicks || 0) + 1,
-			lastClicked: new Date().toISOString()
-		}));
+		const now = new Date().toISOString();
+		await dbRun(env, `UPDATE links SET clicks = COALESCE(clicks,0) + 1, last_clicked = ? WHERE shortcode = ?`, [now, shortcode]);
 		// Record analytics breakdowns
 		const recordPromise = recordClick(env, request, shortcode);
 		// If runtime context available, run in background

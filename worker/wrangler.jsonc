@@ -23,6 +23,12 @@
 			"database_id": "ca5c3b4a-0a9e-4b49-bb14-4435eed0ecb3"
 		}
 	],
+	"analytics_engine_datasets": [
+		{
+			"binding": "ANALYTICS",
+			"dataset": "clicks"
+		}
+	],
 	"vars": {
 		"GITHUB_CLIENT_ID": "Ov23liS0CpATewxLcycF",
 		"AUTHORIZED_USER": "SpyicyDev",

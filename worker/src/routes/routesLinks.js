@@ -1,24 +1,32 @@
 import { withCors } from '../cors.js';
 import { sanitizeInput, isRateLimited } from '../utils.js';
 import { validateShortcode, validateUrl, validateDescription, validateRedirectType, validateTags, validateISODate } from '../validation.js';
+import { dbAll, dbGet, dbRun } from '../db.js';
 
 export async function getAllLinks(env, request) {
+	const rows = await dbAll(env, `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked FROM links`);
 	const links = {};
-	const list = await env.LINKS.list();
-	for (const key of list.keys) {
-		// Skip analytics and any non-link keys (they use colon-delimited prefixes)
-		if (key.name.includes(':')) continue;
-		const linkData = await env.LINKS.get(key.name);
-		if (!linkData) continue;
-		try {
-			const parsed = JSON.parse(linkData);
-			// Ensure parsed object looks like a link (has url)
-			if (parsed && typeof parsed === 'object' && 'url' in parsed) {
-				links[key.name] = parsed;
-			}
-		} catch {}
+	for (const r of rows) {
+		links[r.shortcode] = {
+			url: r.url,
+			description: r.description || '',
+			redirectType: r.redirect_type || 301,
+			tags: safeParseJsonArray(r.tags),
+			archived: !!r.archived,
+			activatesAt: r.activates_at || null,
+			expiresAt: r.expires_at || null,
+			created: r.created,
+			updated: r.updated,
+			clicks: r.clicks || 0,
+			lastClicked: r.last_clicked || null
+		};
 	}
 	return withCors(env, new Response(JSON.stringify(links), { headers: { 'Content-Type': 'application/json' } }), request);
+}
+
+function safeParseJsonArray(text) {
+	if (!text) return [];
+	try { const v = JSON.parse(text); return Array.isArray(v) ? v : []; } catch { return []; }
 }
 
 export async function createLink(request, env) {
@@ -47,7 +55,7 @@ export async function createLink(request, env) {
 		if (activatesAtError) return withCors(env, new Response(JSON.stringify({ error: activatesAtError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
 		const expiresAtError = validateISODate(expiresAt);
 		if (expiresAtError) return withCors(env, new Response(JSON.stringify({ error: expiresAtError }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
-		const existing = await env.LINKS.get(shortcode);
+		const existing = await dbGet(env, `SELECT shortcode FROM links WHERE shortcode = ?`, [shortcode]);
 		if (existing) return withCors(env, new Response(JSON.stringify({ error: 'Shortcode already exists' }), { status: 409, headers: { 'Content-Type': 'application/json' } }), request);
 		const linkData = {
 			url: url.trim(),
@@ -61,7 +69,19 @@ export async function createLink(request, env) {
 			activatesAt: activatesAt || null,
 			expiresAt: expiresAt || null
 		};
-		await env.LINKS.put(shortcode, JSON.stringify(linkData));
+		await dbRun(env, `INSERT INTO links (shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`, [
+			shortcode,
+			linkData.url,
+			linkData.description,
+			linkData.redirectType,
+			JSON.stringify(linkData.tags),
+			linkData.archived ? 1 : 0,
+			linkData.activatesAt,
+			linkData.expiresAt,
+			linkData.created,
+			linkData.updated,
+			0
+		]);
 		return withCors(env, new Response(JSON.stringify({ shortcode, ...linkData }), { status: 201, headers: { 'Content-Type': 'application/json' } }), request);
 	} catch (error) {
 		return withCors(env, new Response(JSON.stringify({ error: 'Invalid request data' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
@@ -70,9 +90,21 @@ export async function createLink(request, env) {
 
 export async function updateLink(request, env, shortcode) {
 	try {
-		const existing = await env.LINKS.get(shortcode);
-		if (!existing) return withCors(env, new Response('Link not found', { status: 404 }), request);
-		const currentData = JSON.parse(existing);
+		const row = await dbGet(env, `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked FROM links WHERE shortcode = ?`, [shortcode]);
+		if (!row) return withCors(env, new Response('Link not found', { status: 404 }), request);
+		const currentData = {
+			url: row.url,
+			description: row.description || '',
+			redirectType: row.redirect_type || 301,
+			tags: safeParseJsonArray(row.tags),
+			archived: !!row.archived,
+			activatesAt: row.activates_at || null,
+			expiresAt: row.expires_at || null,
+			created: row.created,
+			updated: row.updated,
+			clicks: row.clicks || 0,
+			lastClicked: row.last_clicked || null
+		};
 		const updates = await request.json();
 		let { url, description, redirectType, tags, archived, activatesAt, expiresAt } = updates;
 		if (url !== undefined) url = sanitizeInput(url);
@@ -101,7 +133,17 @@ export async function updateLink(request, env, shortcode) {
 			...(expiresAt !== undefined ? { expiresAt: expiresAt || null } : {}),
 			updated: new Date().toISOString()
 		};
-		await env.LINKS.put(shortcode, JSON.stringify(linkData));
+		await dbRun(env, `UPDATE links SET url = ?, description = ?, redirect_type = ?, tags = ?, archived = ?, activates_at = ?, expires_at = ?, updated = ? WHERE shortcode = ?`, [
+			linkData.url,
+			linkData.description,
+			linkData.redirectType,
+			JSON.stringify(linkData.tags),
+			linkData.archived ? 1 : 0,
+			linkData.activatesAt,
+			linkData.expiresAt,
+			linkData.updated,
+			shortcode
+		]);
 		return withCors(env, new Response(JSON.stringify({ shortcode, ...linkData }), { headers: { 'Content-Type': 'application/json' } }), request);
 	} catch (error) {
 		return withCors(env, new Response('Invalid JSON', { status: 400 }), request);
@@ -109,9 +151,9 @@ export async function updateLink(request, env, shortcode) {
 }
 
 export async function deleteLink(env, shortcode, request) {
-	const existing = await env.LINKS.get(shortcode);
+	const existing = await dbGet(env, `SELECT shortcode FROM links WHERE shortcode = ?`, [shortcode]);
 	if (!existing) return withCors(env, new Response('Link not found', { status: 404 }), request);
-	await env.LINKS.delete(shortcode);
+	await dbRun(env, `DELETE FROM links WHERE shortcode = ?`, [shortcode]);
 	return withCors(env, new Response(null, { status: 204 }), request);
 }
 
@@ -133,9 +175,9 @@ export async function bulkDeleteLinks(request, env) {
 		const results = { deleted: [], notFound: [], errors: [] };
 		for (const sc of shortcodes) {
 			try {
-				const existing = await env.LINKS.get(sc);
+				const existing = await dbGet(env, `SELECT shortcode FROM links WHERE shortcode = ?`, [sc]);
 				if (!existing) { results.notFound.push(sc); continue; }
-				await env.LINKS.delete(sc);
+				await dbRun(env, `DELETE FROM links WHERE shortcode = ?`, [sc]);
 				results.deleted.push(sc);
 			} catch (error) {
 				results.errors.push({ shortcode: sc, error: error.message });
@@ -148,9 +190,22 @@ export async function bulkDeleteLinks(request, env) {
 }
 
 export async function getLink(env, shortcode, request) {
-	const linkData = await env.LINKS.get(shortcode);
-	if (!linkData) return withCors(env, new Response('Link not found', { status: 404 }), request);
-	return withCors(env, new Response(linkData, { headers: { 'Content-Type': 'application/json' } }), request);
+	const r = await dbGet(env, `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked FROM links WHERE shortcode = ?`, [shortcode]);
+	if (!r) return withCors(env, new Response('Link not found', { status: 404 }), request);
+	const linkData = {
+		url: r.url,
+		description: r.description || '',
+		redirectType: r.redirect_type || 301,
+		tags: safeParseJsonArray(r.tags),
+		archived: !!r.archived,
+		activatesAt: r.activates_at || null,
+		expiresAt: r.expires_at || null,
+		created: r.created,
+		updated: r.updated,
+		clicks: r.clicks || 0,
+		lastClicked: r.last_clicked || null
+	};
+	return withCors(env, new Response(JSON.stringify(linkData), { headers: { 'Content-Type': 'application/json' } }), request);
 }
 
 export async function bulkCreateLinks(request, env) {
@@ -177,10 +232,12 @@ export async function bulkCreateLinks(request, env) {
 				if (descriptionError) { results.errors.push({ shortcode, error: descriptionError }); continue; }
 				const redirectTypeError = validateRedirectType(redirectType);
 				if (redirectTypeError) { results.errors.push({ shortcode, error: redirectTypeError }); continue; }
-				const existing = await env.LINKS.get(shortcode);
+				const existing = await dbGet(env, `SELECT shortcode FROM links WHERE shortcode = ?`, [shortcode]);
 				if (existing) { results.conflicts.push(shortcode); continue; }
 				const linkData = { url: url.trim(), description: description ? description.trim() : '', redirectType: redirectType || 301, created: new Date().toISOString(), updated: new Date().toISOString(), clicks: 0 };
-				await env.LINKS.put(shortcode, JSON.stringify(linkData));
+				await dbRun(env, `INSERT INTO links (shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked) VALUES (?, ?, ?, ?, '[]', 0, NULL, NULL, ?, ?, 0, NULL)`, [
+					shortcode, linkData.url, linkData.description, linkData.redirectType, linkData.created, linkData.updated
+				]);
 				results.created.push({ shortcode, ...linkData });
 			} catch (err) {
 				results.errors.push({ shortcode: item?.shortcode, error: err.message });
@@ -195,22 +252,33 @@ export async function bulkCreateLinks(request, env) {
 export async function listLinks(env, request) {
 	const url = new URL(request.url);
 	const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '100', 10), 1), 1000);
-	const cursor = url.searchParams.get('cursor') || undefined;
-	const list = await env.LINKS.list({ limit, cursor });
+	const cursor = url.searchParams.get('cursor') || null; // cursor is last shortcode
+	const rows = await dbAll(env,
+		cursor
+			? `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked FROM links WHERE shortcode > ? ORDER BY shortcode ASC LIMIT ?`
+			: `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked FROM links ORDER BY shortcode ASC LIMIT ?`,
+		cursor ? [cursor, limit + 1] : [limit + 1]
+	);
+	const hasMore = rows.length > limit;
+	const pageRows = hasMore ? rows.slice(0, limit) : rows;
 	const links = {};
-	for (const key of list.keys) {
-		// Skip analytics and any non-link keys (they use colon-delimited prefixes)
-		if (key.name.includes(':')) continue;
-		const linkData = await env.LINKS.get(key.name);
-		if (!linkData) continue;
-		try {
-			const parsed = JSON.parse(linkData);
-			if (parsed && typeof parsed === 'object' && 'url' in parsed) {
-				links[key.name] = parsed;
-			}
-		} catch {}
+	for (const r of pageRows) {
+		links[r.shortcode] = {
+			url: r.url,
+			description: r.description || '',
+			redirectType: r.redirect_type || 301,
+			tags: safeParseJsonArray(r.tags),
+			archived: !!r.archived,
+			activatesAt: r.activates_at || null,
+			expiresAt: r.expires_at || null,
+			created: r.created,
+			updated: r.updated,
+			clicks: r.clicks || 0,
+			lastClicked: r.last_clicked || null
+		};
 	}
-	const body = { links, cursor: list.list_complete ? null : list.cursor };
+	const nextCursor = hasMore ? pageRows[pageRows.length - 1].shortcode : null;
+	const body = { links, cursor: nextCursor };
 	return withCors(env, new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }), request);
 }
 

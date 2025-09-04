@@ -1,4 +1,5 @@
-// Lightweight analytics aggregation stored in KV alongside links
+// Analytics using Cloudflare D1 (replaces KV)
+import { dbAll, dbGet, dbRun } from './db.js';
 
 function formatDay(ts = Date.now()) {
 	const d = new Date(ts);
@@ -15,30 +16,40 @@ function parseDevice(userAgent = '') {
 	return 'desktop';
 }
 
-async function incrementCounter(env, key, amount = 1) {
-	try {
-		const current = await env.LINKS.get(key);
-		const next = (parseInt(current || '0', 10) || 0) + amount;
-		await env.LINKS.put(key, String(next));
-	} catch {}
+async function upsertDayClicks(env, scope, day, amount = 1) {
+	await dbRun(env,
+		`INSERT INTO analytics_day (scope, day, clicks) VALUES (?, ?, ?)
+		 ON CONFLICT(scope, day) DO UPDATE SET clicks = analytics_day.clicks + excluded.clicks`,
+		[scope, day, amount]
+	);
 }
 
-async function incrementJsonMap(env, key, field, amount = 1) {
-    try {
-        const current = await env.LINKS.get(key);
-        let map = {};
-        if (current) {
-            try { map = JSON.parse(current); } catch { map = {}; }
-        }
-        const prev = parseInt(map[field] || 0, 10) || 0;
-        map[field] = prev + amount;
-        await env.LINKS.put(key, JSON.stringify(map));
-    } catch {}
+async function upsertAgg(env, scope, dimension, key, amount = 1) {
+	await dbRun(env,
+		`INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?)
+		 ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
+		[scope, dimension, key, amount]
+	);
+}
+
+async function upsertDayAgg(env, scope, day, dimension, key, amount = 1) {
+	await dbRun(env,
+		`INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?)
+		 ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
+		[scope, day, dimension, key, amount]
+	);
+}
+
+async function incrementCounter(env, name, amount = 1) {
+	await dbRun(env,
+		`INSERT INTO counters (name, value) VALUES (?, ?)
+		 ON CONFLICT(name) DO UPDATE SET value = counters.value + excluded.value`,
+		[name, amount]
+	);
 }
 
 export async function recordClick(env, request, shortcode) {
 	try {
-		const url = new URL(request.url);
 		const ref = request.headers.get('Referer') || '';
 		let refHost = '';
 		try { if (ref) refHost = new URL(ref).host; } catch {}
@@ -47,41 +58,24 @@ export async function recordClick(env, request, shortcode) {
 		const day = formatDay();
 		const allKey = '_all';
 		await Promise.all([
-			// Per-shortcode counters
-			incrementCounter(env, `analytics:${shortcode}:day:${day}`, 1),
-			refHost ? incrementCounter(env, `analytics:${shortcode}:ref:${refHost}`, 1) : Promise.resolve(),
-			incrementCounter(env, `analytics:${shortcode}:country:${country}`, 1),
-			incrementCounter(env, `analytics:${shortcode}:device:${device}`, 1),
-			// Per-shortcode day-scoped breakdowns for range queries
-			refHost ? incrementCounter(env, `analytics:${shortcode}:refd:${day}:${refHost}`, 1) : Promise.resolve(),
-			incrementCounter(env, `analytics:${shortcode}:countryd:${day}:${country}`, 1),
-			incrementCounter(env, `analytics:${shortcode}:deviced:${day}:${device}`, 1),
-			// Global counters (all links)
-			incrementCounter(env, `analytics:${allKey}:day:${day}`, 1),
-			refHost ? incrementCounter(env, `analytics:${allKey}:ref:${refHost}`, 1) : Promise.resolve(),
-			incrementCounter(env, `analytics:${allKey}:country:${country}`, 1),
-			incrementCounter(env, `analytics:${allKey}:device:${device}`, 1),
-			// Global day-scoped breakdowns
-			refHost ? incrementCounter(env, `analytics:${allKey}:refd:${day}:${refHost}`, 1) : Promise.resolve(),
-			incrementCounter(env, `analytics:${allKey}:countryd:${day}:${country}`, 1),
-			incrementCounter(env, `analytics:${allKey}:deviced:${day}:${device}`, 1),
-			// Aggregated JSON maps to avoid list operations later
-			// Global totals (for overview)
-			incrementCounter(env, `analytics:${allKey}:totalClicks`, 1),
-			// Overall breakdown aggregations
-			refHost ? incrementJsonMap(env, `analytics:${shortcode}:ref:_agg`, refHost, 1) : Promise.resolve(),
-			incrementJsonMap(env, `analytics:${shortcode}:country:_agg`, country, 1),
-			incrementJsonMap(env, `analytics:${shortcode}:device:_agg`, device, 1),
-			refHost ? incrementJsonMap(env, `analytics:${allKey}:ref:_agg`, refHost, 1) : Promise.resolve(),
-			incrementJsonMap(env, `analytics:${allKey}:country:_agg`, country, 1),
-			incrementJsonMap(env, `analytics:${allKey}:device:_agg`, device, 1),
-			// Day-scoped breakdown aggregations
-			refHost ? incrementJsonMap(env, `analytics:${shortcode}:refd:${day}:_agg`, refHost, 1) : Promise.resolve(),
-			incrementJsonMap(env, `analytics:${shortcode}:countryd:${day}:_agg`, country, 1),
-			incrementJsonMap(env, `analytics:${shortcode}:deviced:${day}:_agg`, device, 1),
-			refHost ? incrementJsonMap(env, `analytics:${allKey}:refd:${day}:_agg`, refHost, 1) : Promise.resolve(),
-			incrementJsonMap(env, `analytics:${allKey}:countryd:${day}:_agg`, country, 1),
-			incrementJsonMap(env, `analytics:${allKey}:deviced:${day}:_agg`, device, 1)
+			// Per-shortcode counters and breakdowns
+			upsertDayClicks(env, shortcode, day, 1),
+			refHost ? upsertAgg(env, shortcode, 'ref', refHost, 1) : Promise.resolve(),
+			upsertAgg(env, shortcode, 'country', country, 1),
+			upsertAgg(env, shortcode, 'device', device, 1),
+			refHost ? upsertDayAgg(env, shortcode, day, 'ref', refHost, 1) : Promise.resolve(),
+			upsertDayAgg(env, shortcode, day, 'country', country, 1),
+			upsertDayAgg(env, shortcode, day, 'device', device, 1),
+			// Global counters and breakdowns
+			upsertDayClicks(env, allKey, day, 1),
+			refHost ? upsertAgg(env, allKey, 'ref', refHost, 1) : Promise.resolve(),
+			upsertAgg(env, allKey, 'country', country, 1),
+			upsertAgg(env, allKey, 'device', device, 1),
+			refHost ? upsertDayAgg(env, allKey, day, 'ref', refHost, 1) : Promise.resolve(),
+			upsertDayAgg(env, allKey, day, 'country', country, 1),
+			upsertDayAgg(env, allKey, day, 'device', device, 1),
+			// Global total counter
+			incrementCounter(env, 'analytics:_all:totalClicks', 1)
 		]);
 	} catch {}
 }
@@ -90,69 +84,62 @@ export async function getTimeseries(env, shortcode, fromISO, toISO) {
 	const from = new Date(fromISO);
 	const to = new Date(toISO);
 	if (isNaN(from) || isNaN(to) || from > to) return { points: [] };
-	const points = [];
 	const scKey = shortcode || '_all';
+	const start = formatDay(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
+	const end = formatDay(Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate()));
+	const rows = await dbAll(env,
+		`SELECT day, clicks FROM analytics_day WHERE scope = ? AND day >= ? AND day <= ? ORDER BY day ASC`,
+		[scKey, start, end]
+	);
+	const map = new Map(rows.map(r => [r.day, r.clicks]));
+	const points = [];
 	for (let d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate())); d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
-		const key = `analytics:${scKey}:day:${formatDay(d.getTime())}`;
-		const val = await env.LINKS.get(key);
-		points.push({ date: d.toISOString().slice(0, 10), clicks: parseInt(val || '0', 10) || 0 });
+		const k = formatDay(d.getTime());
+		points.push({ date: d.toISOString().slice(0, 10), clicks: map.get(k) || 0 });
 	}
 	return { points };
 }
 
 export async function getBreakdown(env, shortcode, dimension, limit = 10, fromISO, toISO) {
 	const scKey = shortcode || '_all';
-	const out = [];
-	// If date range provided, aggregate per-day JSON maps
 	if (fromISO && toISO) {
 		const from = new Date(fromISO);
 		const to = new Date(toISO);
 		if (!isNaN(from) && !isNaN(to) && from <= to) {
-			const map = new Map();
-			for (let d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate())); d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
-				const dayAggKey = `analytics:${scKey}:${dimension}d:${formatDay(d.getTime())}:_agg`;
-				try {
-					const json = await env.LINKS.get(dayAggKey);
-					if (!json) continue;
-					const obj = JSON.parse(json);
-					for (const [k, v] of Object.entries(obj)) {
-						const prev = map.get(k) || 0;
-						map.set(k, prev + (parseInt(v, 10) || 0));
-					}
-				} catch {}
-			}
-			for (const [k, v] of map.entries()) out.push({ key: k, clicks: v });
+			const start = formatDay(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
+			const end = formatDay(Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate()));
+			const rows = await dbAll(env,
+				`SELECT key, SUM(clicks) AS clicks
+				 FROM analytics_day_agg
+				 WHERE scope = ? AND dimension = ? AND day >= ? AND day <= ?
+				 GROUP BY key
+				 ORDER BY clicks DESC
+				 LIMIT ?`,
+				[scKey, dimension, start, end, limit]
+			);
+			return { items: rows.map(r => ({ key: r.key, clicks: r.clicks || 0 })) };
 		}
-	} else {
-		// Use overall aggregation map
-		const aggKey = `analytics:${scKey}:${dimension}:_agg`;
-		try {
-			const json = await env.LINKS.get(aggKey);
-			if (json) {
-				const obj = JSON.parse(json);
-				for (const [k, v] of Object.entries(obj)) {
-					out.push({ key: k, clicks: parseInt(v, 10) || 0 });
-				}
-			}
-		} catch {}
 	}
-	out.sort((a, b) => b.clicks - a.clicks);
-	return { items: out.slice(0, limit) };
+	const rows = await dbAll(env,
+		`SELECT key, clicks FROM analytics_agg WHERE scope = ? AND dimension = ? ORDER BY clicks DESC LIMIT ?`,
+		[scKey, dimension, limit]
+	);
+	return { items: rows.map(r => ({ key: r.key, clicks: r.clicks || 0 })) };
 }
 
 export async function getOverview(env, shortcode) {
 	// Per-shortcode: use stored clicks as total. Global: use running counter.
 	let total = 0;
 	if (shortcode) {
-		const link = await env.LINKS.get(shortcode);
-		try { total = JSON.parse(link || '{}').clicks || 0; } catch {}
+		const row = await dbGet(env, `SELECT clicks FROM links WHERE shortcode = ?`, [shortcode]);
+		total = (row?.clicks || 0);
 	} else {
-		const globalTotal = await env.LINKS.get('analytics:_all:totalClicks');
-		total = parseInt(globalTotal || '0', 10) || 0;
+		const row = await dbGet(env, `SELECT value FROM counters WHERE name = ?`, ['analytics:_all:totalClicks']);
+		total = parseInt(row?.value || '0', 10) || 0;
 	}
 	const scKey = shortcode || '_all';
-	const todayKey = `analytics:${scKey}:day:${formatDay()}`;
-	const today = parseInt((await env.LINKS.get(todayKey)) || '0', 10) || 0;
+	const todayRow = await dbGet(env, `SELECT clicks FROM analytics_day WHERE scope = ? AND day = ?`, [scKey, formatDay()]);
+	const today = todayRow?.clicks || 0;
 	return { totalClicks: total, clicksToday: today };
 }
 
