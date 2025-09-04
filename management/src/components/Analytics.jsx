@@ -1,5 +1,18 @@
 import { useMemo, useEffect, useState } from 'react'
 import { http } from '../services/http'
+import { Line, Bar } from 'react-chartjs-2'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Tooltip,
+  Legend,
+} from 'chart.js'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend)
 import { BarChart3, TrendingUp, Clock, Globe } from 'lucide-react'
 
 export function Analytics({ links }) {
@@ -269,19 +282,27 @@ export function Analytics({ links }) {
           </div>
           <div className="p-6">
             {ts?.points?.length ? (
-              <div className="space-y-2">
-                {ts.points.map(p => (
-                  <div key={p.date} className="flex items-center">
-                    <div className="w-24 text-xs text-gray-600 dark:text-gray-300">{p.date}</div>
-                    <div className="flex-1 mx-3">
-                      <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${Math.min(100, Math.max(2, p.clicks))}%` }} />
-                      </div>
-                    </div>
-                    <div className="w-10 text-xs text-gray-900 dark:text-white text-right">{p.clicks}</div>
-                  </div>
-                ))}
-              </div>
+              <Line
+                data={{
+                  labels: ts.points.map(p => p.date),
+                  datasets: [{
+                    label: 'Clicks',
+                    data: ts.points.map(p => p.clicks),
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37,99,235,0.25)',
+                    tension: 0.25,
+                    fill: true,
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.2)' } }
+                  }
+                }}
+              />
             ) : (
               <p className="text-gray-500 dark:text-gray-400 text-center py-4">No data for selected range</p>
             )}
@@ -294,14 +315,24 @@ export function Analytics({ links }) {
           </div>
           <div className="p-6">
             {refTop?.items?.length ? (
-              <div className="space-y-2">
-                {refTop.items.map(i => (
-                  <div key={i.key} className="flex items-center justify-between text-sm">
-                    <span className="truncate max-w-[60%]" title={i.key}>{i.key || 'direct'}</span>
-                    <span className="text-gray-700 dark:text-gray-300">{i.clicks}</span>
-                  </div>
-                ))}
-              </div>
+              <Bar
+                data={{
+                  labels: refTop.items.map(i => i.key || 'direct'),
+                  datasets: [{
+                    label: 'Clicks',
+                    data: refTop.items.map(i => i.clicks),
+                    backgroundColor: 'rgba(37,99,235,0.6)'
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true }
+                  }
+                }}
+              />
             ) : (
               <p className="text-gray-500 dark:text-gray-400 text-center py-4">No data for selected range</p>
             )}
