@@ -23,7 +23,8 @@ function App() {
   // Make UI more realtime: periodic refetch tuned by current view
   const { data: links = {}, isLoading, error, refetch } = useLinks({ 
     enabled: isAuthenticated,
-    refetchInterval: currentView === 'analytics' ? 2000 : 5000,
+    // Reduce polling to cut KV list usage on the server
+    refetchInterval: currentView === 'analytics' ? 15000 : 10000,
     refetchIntervalInBackground: currentView === 'analytics'
   })
   const createLinkMutation = useCreateLink()

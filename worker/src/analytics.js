@@ -23,6 +23,19 @@ async function incrementCounter(env, key, amount = 1) {
 	} catch {}
 }
 
+async function incrementJsonMap(env, key, field, amount = 1) {
+    try {
+        const current = await env.LINKS.get(key);
+        let map = {};
+        if (current) {
+            try { map = JSON.parse(current); } catch { map = {}; }
+        }
+        const prev = parseInt(map[field] || 0, 10) || 0;
+        map[field] = prev + amount;
+        await env.LINKS.put(key, JSON.stringify(map));
+    } catch {}
+}
+
 export async function recordClick(env, request, shortcode) {
 	try {
 		const url = new URL(request.url);
@@ -51,7 +64,24 @@ export async function recordClick(env, request, shortcode) {
 			// Global day-scoped breakdowns
 			refHost ? incrementCounter(env, `analytics:${allKey}:refd:${day}:${refHost}`, 1) : Promise.resolve(),
 			incrementCounter(env, `analytics:${allKey}:countryd:${day}:${country}`, 1),
-			incrementCounter(env, `analytics:${allKey}:deviced:${day}:${device}`, 1)
+			incrementCounter(env, `analytics:${allKey}:deviced:${day}:${device}`, 1),
+			// Aggregated JSON maps to avoid list operations later
+			// Global totals (for overview)
+			incrementCounter(env, `analytics:${allKey}:totalClicks`, 1),
+			// Overall breakdown aggregations
+			refHost ? incrementJsonMap(env, `analytics:${shortcode}:ref:_agg`, refHost, 1) : Promise.resolve(),
+			incrementJsonMap(env, `analytics:${shortcode}:country:_agg`, country, 1),
+			incrementJsonMap(env, `analytics:${shortcode}:device:_agg`, device, 1),
+			refHost ? incrementJsonMap(env, `analytics:${allKey}:ref:_agg`, refHost, 1) : Promise.resolve(),
+			incrementJsonMap(env, `analytics:${allKey}:country:_agg`, country, 1),
+			incrementJsonMap(env, `analytics:${allKey}:device:_agg`, device, 1),
+			// Day-scoped breakdown aggregations
+			refHost ? incrementJsonMap(env, `analytics:${shortcode}:refd:${day}:_agg`, refHost, 1) : Promise.resolve(),
+			incrementJsonMap(env, `analytics:${shortcode}:countryd:${day}:_agg`, country, 1),
+			incrementJsonMap(env, `analytics:${shortcode}:deviced:${day}:_agg`, device, 1),
+			refHost ? incrementJsonMap(env, `analytics:${allKey}:refd:${day}:_agg`, refHost, 1) : Promise.resolve(),
+			incrementJsonMap(env, `analytics:${allKey}:countryd:${day}:_agg`, country, 1),
+			incrementJsonMap(env, `analytics:${allKey}:deviced:${day}:_agg`, device, 1)
 		]);
 	} catch {}
 }
@@ -72,62 +102,53 @@ export async function getTimeseries(env, shortcode, fromISO, toISO) {
 
 export async function getBreakdown(env, shortcode, dimension, limit = 10, fromISO, toISO) {
 	const scKey = shortcode || '_all';
-	const prefix = `analytics:${scKey}:${dimension}:`;
 	const out = [];
-	// If date range provided, aggregate per-day keys
+	// If date range provided, aggregate per-day JSON maps
 	if (fromISO && toISO) {
 		const from = new Date(fromISO);
 		const to = new Date(toISO);
 		if (!isNaN(from) && !isNaN(to) && from <= to) {
 			const map = new Map();
 			for (let d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate())); d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
-				const dayKey = `analytics:${scKey}:${dimension}d:${formatDay(d.getTime())}:`;
-				let cursor;
-				do {
-					const res = await env.LINKS.list({ prefix: dayKey, cursor, limit: 1000 });
-					for (const k of res.keys) {
-						const val = parseInt((await env.LINKS.get(k.name)) || '0', 10) || 0;
-						const key = k.name.slice(dayKey.length);
-						map.set(key, (map.get(key) || 0) + val);
+				const dayAggKey = `analytics:${scKey}:${dimension}d:${formatDay(d.getTime())}:_agg`;
+				try {
+					const json = await env.LINKS.get(dayAggKey);
+					if (!json) continue;
+					const obj = JSON.parse(json);
+					for (const [k, v] of Object.entries(obj)) {
+						const prev = map.get(k) || 0;
+						map.set(k, prev + (parseInt(v, 10) || 0));
 					}
-					cursor = res.list_complete ? undefined : res.cursor;
-				} while (cursor);
+				} catch {}
 			}
 			for (const [k, v] of map.entries()) out.push({ key: k, clicks: v });
 		}
 	} else {
-		let cursor;
-		do {
-			const res = await env.LINKS.list({ prefix, cursor, limit: 1000 });
-			for (const k of res.keys) {
-				const val = parseInt((await env.LINKS.get(k.name)) || '0', 10) || 0;
-				out.push({ key: k.name.slice(prefix.length), clicks: val });
+		// Use overall aggregation map
+		const aggKey = `analytics:${scKey}:${dimension}:_agg`;
+		try {
+			const json = await env.LINKS.get(aggKey);
+			if (json) {
+				const obj = JSON.parse(json);
+				for (const [k, v] of Object.entries(obj)) {
+					out.push({ key: k, clicks: parseInt(v, 10) || 0 });
+				}
 			}
-			cursor = res.list_complete ? undefined : res.cursor;
-		} while (cursor);
+		} catch {}
 	}
 	out.sort((a, b) => b.clicks - a.clicks);
 	return { items: out.slice(0, limit) };
 }
 
 export async function getOverview(env, shortcode) {
-	// Per-shortcode: use stored clicks as total. Global: sum across links.
+	// Per-shortcode: use stored clicks as total. Global: use running counter.
 	let total = 0;
 	if (shortcode) {
 		const link = await env.LINKS.get(shortcode);
 		try { total = JSON.parse(link || '{}').clicks || 0; } catch {}
 	} else {
-		let cursor;
-		do {
-			const list = await env.LINKS.list({ cursor, limit: 1000 });
-			for (const key of list.keys) {
-				if (key.name.includes(':')) continue;
-				const linkData = await env.LINKS.get(key.name);
-				if (!linkData) continue;
-				try { total += (JSON.parse(linkData).clicks || 0); } catch {}
-			}
-			cursor = list.list_complete ? undefined : list.cursor;
-		} while (cursor);
+		const globalTotal = await env.LINKS.get('analytics:_all:totalClicks');
+		total = parseInt(globalTotal || '0', 10) || 0;
 	}
 	const scKey = shortcode || '_all';
 	const todayKey = `analytics:${scKey}:day:${formatDay()}`;
