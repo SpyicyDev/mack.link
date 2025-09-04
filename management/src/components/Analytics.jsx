@@ -7,7 +7,8 @@ export function Analytics({ links }) {
   const [ts, setTs] = useState(null)
   const [overview, setOverview] = useState(null)
   const [refTop, setRefTop] = useState(null)
-  const shortcode = Object.keys(links)[0]
+  const [dimension, setDimension] = useState('ref')
+  const [shortcode, setShortcode] = useState(Object.keys(links)[0])
 
   useEffect(() => {
     let ignore = false
@@ -16,13 +17,13 @@ export function Analytics({ links }) {
       try {
         const tsData = await http.get(`/api/analytics/timeseries?shortcode=${encodeURIComponent(shortcode)}&from=${range.from}&to=${range.to}`)
         const ov = await http.get(`/api/analytics/overview?shortcode=${encodeURIComponent(shortcode)}`)
-        const ref = await http.get(`/api/analytics/breakdown?shortcode=${encodeURIComponent(shortcode)}&dimension=ref&limit=5`)
+        const ref = await http.get(`/api/analytics/breakdown?shortcode=${encodeURIComponent(shortcode)}&dimension=${dimension}&from=${range.from}&to=${range.to}&limit=5`)
         if (!ignore) { setTs(tsData); setOverview(ov); setRefTop(ref) }
       } catch (e) {}
     }
     load()
     return () => { ignore = true }
-  }, [shortcode, range.from, range.to])
+  }, [shortcode, range.from, range.to, dimension])
   const analytics = useMemo(() => {
     const linkEntries = Object.entries(links)
     
@@ -112,14 +113,32 @@ export function Analytics({ links }) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-4 flex items-center gap-3">
-        <div className="text-sm text-gray-600 dark:text-gray-300">Date range:</div>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-4 flex items-center gap-3 flex-wrap">
+        <div className="text-sm text-gray-600 dark:text-gray-300">Shortcode:</div>
+        <select value={shortcode || ''} onChange={(e)=>setShortcode(e.target.value)} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          {Object.keys(links).map(sc => (<option key={sc} value={sc}>{sc}</option>))}
+        </select>
+
+        <div className="text-sm text-gray-600 dark:text-gray-300 ml-2">Date range:</div>
         <input type="date" value={range.from} onChange={(e)=>setRange(r=>({...r, from:e.target.value}))} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
         <span className="text-gray-500">to</span>
         <input type="date" value={range.to} onChange={(e)=>setRange(r=>({...r, to:e.target.value}))} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
-        {overview && (
-          <div className="ml-auto text-sm text-gray-600 dark:text-gray-300">Clicks today: <span className="font-semibold">{overview.clicksToday}</span></div>
-        )}
+
+        <div className="text-sm text-gray-600 dark:text-gray-300 ml-2">Breakdown:</div>
+        <select value={dimension} onChange={(e)=>setDimension(e.target.value)} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          <option value="ref">Referrer</option>
+          <option value="country">Country</option>
+          <option value="device">Device</option>
+        </select>
+
+        <div className="ml-auto flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+          {overview && (
+            <>
+              <span>Total: <span className="font-semibold">{overview.totalClicks.toLocaleString()}</span></span>
+              <span>Today: <span className="font-semibold">{overview.clicksToday.toLocaleString()}</span></span>
+            </>
+          )}
+        </div>
       </div>
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -239,45 +258,54 @@ export function Analytics({ links }) {
         </div>
       </div>
 
-      {/* Performance Distribution */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
-            <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
-            Click Distribution
-          </h3>
-        </div>
-        <div className="p-6">
-          {analytics.totalClicks > 0 ? (
-            <div className="space-y-3">
-              {Object.entries(links)
-                .sort(([, a], [, b]) => (b.clicks || 0) - (a.clicks || 0))
-                .slice(0, 10)
-                .map(([shortcode, link]) => {
-                  const percentage = Math.round(((link.clicks || 0) / analytics.totalClicks) * 100)
-                  return (
-                    <div key={shortcode} className="flex items-center">
-                      <div className="w-24 text-sm text-gray-600 dark:text-gray-300 truncate">
-                        {shortcode}
-                      </div>
-                      <div className="flex-1 mx-4">
-                        <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${Math.max(percentage, 2)}%` }}
-                          />
-                        </div>
-                      </div>
-                      <div className="w-16 text-sm text-gray-900 dark:text-white text-right">
-                        {link.clicks || 0} ({percentage}%)
+      {/* Timeseries and breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center">
+              <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
+              Clicks Over Time
+            </h3>
+          </div>
+          <div className="p-6">
+            {ts?.points?.length ? (
+              <div className="space-y-2">
+                {ts.points.map(p => (
+                  <div key={p.date} className="flex items-center">
+                    <div className="w-24 text-xs text-gray-600 dark:text-gray-300">{p.date}</div>
+                    <div className="flex-1 mx-3">
+                      <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${Math.min(100, Math.max(2, p.clicks))}%` }} />
                       </div>
                     </div>
-                  )
-                })}
-            </div>
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-4">No click data available</p>
-          )}
+                    <div className="w-10 text-xs text-gray-900 dark:text-white text-right">{p.clicks}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">No data for selected range</p>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Top {dimension === 'ref' ? 'Referrers' : dimension === 'country' ? 'Countries' : 'Devices'}</h3>
+          </div>
+          <div className="p-6">
+            {refTop?.items?.length ? (
+              <div className="space-y-2">
+                {refTop.items.map(i => (
+                  <div key={i.key} className="flex items-center justify-between text-sm">
+                    <span className="truncate max-w-[60%]" title={i.key}>{i.key || 'direct'}</span>
+                    <span className="text-gray-700 dark:text-gray-300">{i.clicks}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-center py-4">No data for selected range</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

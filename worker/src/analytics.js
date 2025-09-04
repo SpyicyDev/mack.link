@@ -36,7 +36,11 @@ export async function recordClick(env, request, shortcode) {
 			incrementCounter(env, `analytics:${shortcode}:day:${day}`, 1),
 			refHost ? incrementCounter(env, `analytics:${shortcode}:ref:${refHost}`, 1) : Promise.resolve(),
 			incrementCounter(env, `analytics:${shortcode}:country:${country}`, 1),
-			incrementCounter(env, `analytics:${shortcode}:device:${device}`, 1)
+			incrementCounter(env, `analytics:${shortcode}:device:${device}`, 1),
+			// day-scoped breakdowns for range queries
+			refHost ? incrementCounter(env, `analytics:${shortcode}:refd:${day}:${refHost}`, 1) : Promise.resolve(),
+			incrementCounter(env, `analytics:${shortcode}:countryd:${day}:${country}`, 1),
+			incrementCounter(env, `analytics:${shortcode}:deviced:${day}:${device}`, 1)
 		]);
 	} catch {}
 }
@@ -54,18 +58,41 @@ export async function getTimeseries(env, shortcode, fromISO, toISO) {
 	return { points };
 }
 
-export async function getBreakdown(env, shortcode, dimension, limit = 10) {
+export async function getBreakdown(env, shortcode, dimension, limit = 10, fromISO, toISO) {
 	const prefix = `analytics:${shortcode}:${dimension}:`;
 	const out = [];
-	let cursor;
-	do {
-		const res = await env.LINKS.list({ prefix, cursor, limit: 1000 });
-		for (const k of res.keys) {
-			const val = parseInt((await env.LINKS.get(k.name)) || '0', 10) || 0;
-			out.push({ key: k.name.slice(prefix.length), clicks: val });
+	// If date range provided, aggregate per-day keys
+	if (fromISO && toISO) {
+		const from = new Date(fromISO);
+		const to = new Date(toISO);
+		if (!isNaN(from) && !isNaN(to) && from <= to) {
+			const map = new Map();
+			for (let d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate())); d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
+				const dayKey = `analytics:${shortcode}:${dimension}d:${formatDay(d.getTime())}:`;
+				let cursor;
+				do {
+					const res = await env.LINKS.list({ prefix: dayKey, cursor, limit: 1000 });
+					for (const k of res.keys) {
+						const val = parseInt((await env.LINKS.get(k.name)) || '0', 10) || 0;
+						const key = k.name.slice(dayKey.length);
+						map.set(key, (map.get(key) || 0) + val);
+					}
+					cursor = res.list_complete ? undefined : res.cursor;
+				} while (cursor);
+			}
+			for (const [k, v] of map.entries()) out.push({ key: k, clicks: v });
 		}
-		cursor = res.list_complete ? undefined : res.cursor;
-	} while (cursor);
+	} else {
+		let cursor;
+		do {
+			const res = await env.LINKS.list({ prefix, cursor, limit: 1000 });
+			for (const k of res.keys) {
+				const val = parseInt((await env.LINKS.get(k.name)) || '0', 10) || 0;
+				out.push({ key: k.name.slice(prefix.length), clicks: val });
+			}
+			cursor = res.list_complete ? undefined : res.cursor;
+		} while (cursor);
+	}
 	out.sort((a, b) => b.clicks - a.clicks);
 	return { items: out.slice(0, limit) };
 }

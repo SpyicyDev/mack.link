@@ -33,7 +33,9 @@ export async function handleAPI(request, env, requestLogger) {
 		if (path === '/api/analytics/breakdown') {
 			const dimension = urlObj.searchParams.get('dimension') || 'ref';
 			const limit = parseInt(urlObj.searchParams.get('limit') || '10', 10);
-			const data = await getBreakdown(env, shortcode, dimension, limit);
+			const from = urlObj.searchParams.get('from');
+			const to = urlObj.searchParams.get('to');
+			const data = await getBreakdown(env, shortcode, dimension, limit, from, to);
 			return withCors(env, new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }), request);
 		}
 		if (path === '/api/analytics/overview') {
