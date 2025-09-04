@@ -1,6 +1,6 @@
 // Centralized configuration access
 
-export function getConfig(env) {
+export function getConfig(env = {}) {
 	return {
 		githubClientId: env.GITHUB_CLIENT_ID,
 		githubClientSecret: env.GITHUB_CLIENT_SECRET,
