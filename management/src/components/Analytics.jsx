@@ -127,30 +127,6 @@ export function Analytics({ links }) {
     })
   }
 
-  const StatCard = ({
-    icon: Icon,
-    title,
-    value,
-    subtitle,
-    color = 'text-gray-600 dark:text-gray-400',
-  }) => (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-6 transition-colors">
-      <div className="flex items-center">
-        <div className={`flex-shrink-0 ${color}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <div className="ml-5 w-0 flex-1">
-          <dl>
-            <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-              {title}
-            </dt>
-            <dd className="text-2xl font-bold text-gray-900 dark:text-white">{value}</dd>
-            {subtitle && <dd className="text-sm text-gray-600 dark:text-gray-300">{subtitle}</dd>}
-          </dl>
-        </div>
-      </div>
-    </div>
-  )
 
   return (
     <div className="space-y-6">
