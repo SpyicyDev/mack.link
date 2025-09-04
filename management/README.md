@@ -1,12 +1,21 @@
-# React + Vite
+# Admin (React)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the React admin UI for mack.link. Most development tasks should be run from the repository root using npm workspaces.
 
-Currently, two official plugins are available:
+## Common tasks (from repo root)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Install dependencies (all workspaces):
+  - `npm ci`
+- Start Admin dev server (http://localhost:5173):
+  - `npm run dev:management`
+  - or start both Worker + Admin: `npm run dev`
+- Build Admin:
+  - `npm -w management run build`
+- Lint Admin:
+  - `npm -w management run lint`
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Environment
+- Local development uses:
+  - `VITE_API_BASE=http://localhost:8787` (default in docs)
+  - `VITE_WORKER_DOMAIN=localhost:8787`
+- Production builds are embedded and served by the Worker at `/admin`.
