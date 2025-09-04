@@ -7,7 +7,7 @@ Guide for local development and contributing to link.mackhaymond.co.
 - Node.js 20.19+
 - npm or yarn
 - Git
-- Cloudflare account (for KV namespace)
+- Cloudflare account (for D1 database)
 
 ## Initial Setup (Workspaces)
 
@@ -46,7 +46,19 @@ VITE_WORKER_DOMAIN=localhost:8787
 
 ## Local Development
 
-### 1. Start the Worker
+### Option A: One command (recommended)
+
+```bash
+# From the repo root, start both Worker (wrangler dev) and Admin (Vite) concurrently
+npm run dev
+```
+
+- Worker: http://localhost:8787 (builds admin assets first, then starts wrangler dev)
+- Admin:  http://localhost:5173
+
+### Option B: Start separately
+
+### Start the Worker
 
 ```bash
 npm -w worker run dev
@@ -57,7 +69,7 @@ This starts the worker on `http://localhost:8787` with:
 - Local D1 database (Wrangler test environment)
 - Full API endpoints available
 
-### 2. Start the Admin Panel
+### Start the Admin Panel
 
 ```bash
 npm -w admin run dev
@@ -68,7 +80,7 @@ This starts the React app on `http://localhost:5173` with:
 - Vite dev server
 - Proxy to local worker API
 
-### 3. Test the Integration
+### Test the Integration
 
 1. Open `http://localhost:5173`
 2. Click "Sign in with GitHub"
@@ -134,7 +146,7 @@ async function handleRequest(request, env) {
 }
 ```
 
-### Management Panel (React)
+### Admin Panel (React)
 
 - Functional components with hooks
 - Tailwind CSS for styling
