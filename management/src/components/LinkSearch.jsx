@@ -124,6 +124,8 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
     setSearchQuery('')
     setDateFilter('')
     setClicksFilter('')
+    setTagFilter('')
+    setShowArchived(false)
     setSortBy('created')
     setSortOrder('desc')
   }, [])
