@@ -97,11 +97,9 @@ export async function handlePasswordVerification(request, env) {
 		}
 
 		// Verify password
-		console.log('Verifying password for shortcode:', shortcode);
 		const isValidPassword = await verifyPasswordHash(password, link.password_hash);
 
 		if (!isValidPassword) {
-			console.log('Password verification failed for shortcode:', shortcode);
 			return withCors(
 				env,
 				new Response(JSON.stringify({ error: 'Invalid password' }), {
@@ -119,8 +117,6 @@ export async function handlePasswordVerification(request, env) {
 		const sessionKey = `pwd_session:${shortcode}:${sessionToken}`;
 		const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString(); // 1 hour from now
 		await dbRun(env, `INSERT OR REPLACE INTO counters (name, value) VALUES (?, ?)`, [sessionKey, expiresAt]);
-
-		console.log('Password verification successful', { shortcode, sessionToken, url: link.url });
 
 		return withCors(
 			env,

@@ -12,6 +12,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
     activatesAt: '',
     expiresAt: '',
     password: '',
+    passwordProtectionEnabled: false,
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -85,7 +86,9 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           tags: Array.isArray(formData.tags) ? formData.tags : [],
           activatesAt: toISO(formData.activatesAt),
           expiresAt: toISO(formData.expiresAt),
-          password: formData.password.trim() || undefined,
+          password: formData.passwordProtectionEnabled
+            ? formData.password.trim() || undefined
+            : undefined,
         }
         await onSubmit(payload)
       } catch (error) {
@@ -291,28 +294,106 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             </div>
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Password Protection (optional)
-            </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
-              placeholder="Leave blank for public access"
-            />
-            {fieldErrors.password && (
-              <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Password Protection
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Require a password to access this link
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    passwordProtectionEnabled: !prev.passwordProtectionEnabled,
+                    password: prev.passwordProtectionEnabled ? '' : prev.password,
+                  }))
+                }
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  formData.passwordProtectionEnabled
+                    ? 'bg-blue-600'
+                    : 'bg-gray-200 dark:bg-gray-600'
+                }`}
+                role="switch"
+                aria-checked={formData.passwordProtectionEnabled}
+                aria-labelledby="password-toggle-label"
+              >
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    formData.passwordProtectionEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {formData.passwordProtectionEnabled && (
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label htmlFor="password" className="sr-only">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                    placeholder="Enter password"
+                    autoComplete="new-password"
+                  />
+                  {fieldErrors.password && (
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+                  )}
+                  {formData.password && (
+                    <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex space-x-1">
+                          <div
+                            className={`h-1 w-4 rounded ${formData.password.length >= 8 ? 'bg-green-400' : 'bg-gray-300'}`}
+                          />
+                          <div
+                            className={`h-1 w-4 rounded ${formData.password.length >= 12 ? 'bg-green-400' : 'bg-gray-300'}`}
+                          />
+                          <div
+                            className={`h-1 w-4 rounded ${/[A-Z]/.test(formData.password) && /[0-9]/.test(formData.password) ? 'bg-green-400' : 'bg-gray-300'}`}
+                          />
+                        </div>
+                        <span
+                          className={
+                            formData.password.length >= 8
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-gray-500'
+                          }
+                        >
+                          {formData.password.length >= 8
+                            ? 'Strong password'
+                            : 'Minimum 8 characters'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                  <div className="flex">
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        🔒 Password Required
+                      </h3>
+                      <div className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                        Users will need to enter this password before they can access your link.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              If set, users will need to enter this password before accessing the link
-            </p>
           </div>
 
           {error && (

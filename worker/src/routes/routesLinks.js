@@ -27,6 +27,7 @@ export async function getAllLinks(env, request) {
 			passwordEnabled: !!r.password_enabled,
 		};
 	}
+
 	return withCors(env, new Response(JSON.stringify(links), { headers: { 'Content-Type': 'application/json' } }), request);
 }
 
@@ -573,8 +574,8 @@ export async function listLinks(env, request) {
 	const rows = await dbAll(
 		env,
 		cursor
-			? `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked FROM links WHERE shortcode > ? ORDER BY shortcode ASC LIMIT ?`
-			: `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked FROM links ORDER BY shortcode ASC LIMIT ?`,
+			? `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked, password_enabled FROM links WHERE shortcode > ? ORDER BY shortcode ASC LIMIT ?`
+			: `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked, password_enabled FROM links ORDER BY shortcode ASC LIMIT ?`,
 		cursor ? [cursor, limit + 1] : [limit + 1],
 	);
 	const hasMore = rows.length > limit;
@@ -593,6 +594,7 @@ export async function listLinks(env, request) {
 			updated: r.updated,
 			clicks: r.clicks || 0,
 			lastClicked: r.last_clicked || null,
+			passwordEnabled: !!r.password_enabled,
 		};
 	}
 	const nextCursor = hasMore ? pageRows[pageRows.length - 1].shortcode : null;
