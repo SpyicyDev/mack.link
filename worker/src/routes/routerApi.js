@@ -2,6 +2,7 @@ import { requireAuth, handleLogout } from '../auth.js';
 import { withCors } from '../cors.js';
 import { getAllLinks, createLink, updateLink, deleteLink, bulkDeleteLinks, getLink, bulkCreateLinks, listLinks } from './routesLinks.js';
 import { handleGitHubAuth, handleGitHubCallback } from './routesOAuth.js';
+import { getTimeseries, getBreakdown, getOverview } from '../analytics.js';
 
 export async function handleAPI(request, env, requestLogger) {
 	const url = new URL(request.url);
@@ -17,6 +18,29 @@ export async function handleAPI(request, env, requestLogger) {
 	}
 	if (path === '/api/auth/logout' && method === 'POST') {
 		return await handleLogout(env, request);
+	}
+
+	if (path.startsWith('/api/analytics/')) {
+		const urlObj = new URL(request.url);
+		const shortcode = urlObj.searchParams.get('shortcode');
+		if (!shortcode) return withCors(env, new Response(JSON.stringify({ error: 'shortcode required' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		if (path === '/api/analytics/timeseries') {
+			const from = urlObj.searchParams.get('from');
+			const to = urlObj.searchParams.get('to');
+			const data = await getTimeseries(env, shortcode, from, to);
+			return withCors(env, new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }), request);
+		}
+		if (path === '/api/analytics/breakdown') {
+			const dimension = urlObj.searchParams.get('dimension') || 'ref';
+			const limit = parseInt(urlObj.searchParams.get('limit') || '10', 10);
+			const data = await getBreakdown(env, shortcode, dimension, limit);
+			return withCors(env, new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }), request);
+		}
+		if (path === '/api/analytics/overview') {
+			const data = await getOverview(env, shortcode);
+			return withCors(env, new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }), request);
+		}
+		return withCors(env, new Response('API endpoint not found', { status: 404 }), request);
 	}
 
 	// Protected endpoints - auth required

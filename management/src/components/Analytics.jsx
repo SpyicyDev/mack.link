@@ -1,7 +1,28 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
+import { http } from '../services/http'
 import { BarChart3, TrendingUp, Clock, Globe } from 'lucide-react'
 
 export function Analytics({ links }) {
+  const [range, setRange] = useState({ from: new Date(Date.now()-7*86400000).toISOString().slice(0,10), to: new Date().toISOString().slice(0,10) })
+  const [ts, setTs] = useState(null)
+  const [overview, setOverview] = useState(null)
+  const [refTop, setRefTop] = useState(null)
+  const shortcode = Object.keys(links)[0]
+
+  useEffect(() => {
+    let ignore = false
+    async function load() {
+      if (!shortcode) return
+      try {
+        const tsData = await http.get(`/api/analytics/timeseries?shortcode=${encodeURIComponent(shortcode)}&from=${range.from}&to=${range.to}`)
+        const ov = await http.get(`/api/analytics/overview?shortcode=${encodeURIComponent(shortcode)}`)
+        const ref = await http.get(`/api/analytics/breakdown?shortcode=${encodeURIComponent(shortcode)}&dimension=ref&limit=5`)
+        if (!ignore) { setTs(tsData); setOverview(ov); setRefTop(ref) }
+      } catch (e) {}
+    }
+    load()
+    return () => { ignore = true }
+  }, [shortcode, range.from, range.to])
   const analytics = useMemo(() => {
     const linkEntries = Object.entries(links)
     
@@ -91,6 +112,15 @@ export function Analytics({ links }) {
 
   return (
     <div className="space-y-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-4 flex items-center gap-3">
+        <div className="text-sm text-gray-600 dark:text-gray-300">Date range:</div>
+        <input type="date" value={range.from} onChange={(e)=>setRange(r=>({...r, from:e.target.value}))} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+        <span className="text-gray-500">to</span>
+        <input type="date" value={range.to} onChange={(e)=>setRange(r=>({...r, to:e.target.value}))} className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+        {overview && (
+          <div className="ml-auto text-sm text-gray-600 dark:text-gray-300">Clicks today: <span className="font-semibold">{overview.clicksToday}</span></div>
+        )}
+      </div>
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard

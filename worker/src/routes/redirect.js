@@ -1,5 +1,6 @@
 import { logger } from '../logger.js';
 import { withCors } from '../cors.js';
+import { recordClick } from '../analytics.js';
 
 export async function handleRedirect(request, env, requestLogger = logger) {
 	const url = new URL(request.url);
@@ -38,6 +39,8 @@ export async function handleRedirect(request, env, requestLogger = logger) {
 			clicks: (link.clicks || 0) + 1,
 			lastClicked: new Date().toISOString()
 		}));
+		// Record analytics breakdowns
+		recordClick(env, request, shortcode);
 	}
 	requestLogger.info('Link redirected', { shortcode, destination: link.url, redirectType: link.redirectType || 301, previousClicks: link.clicks || 0 });
 	return Response.redirect(link.url, link.redirectType || 301);
