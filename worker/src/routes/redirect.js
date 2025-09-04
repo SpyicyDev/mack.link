@@ -1,4 +1,5 @@
 import { logger } from '../logger.js';
+import { renderNotFound, renderExpired, renderArchived, renderNotActive } from '../errorPage.js';
 
 export async function handleRedirect(request, env, requestLogger = logger) {
 	const url = new URL(request.url);
@@ -7,23 +8,23 @@ export async function handleRedirect(request, env, requestLogger = logger) {
 	const linkData = await env.LINKS.get(shortcode);
 	if (!linkData) {
 		requestLogger.info('Link not found', { shortcode });
-		return new Response('Link not found', { status: 404 });
+		return renderNotFound(env, shortcode);
 	}
 	const link = JSON.parse(linkData);
 	// Enforce activation/expiration and archive
 	if (link.archived) {
-		return new Response('Link not available', { status: 404 });
+		return renderArchived(env, shortcode);
 	}
 	if (link.activatesAt) {
 		const start = new Date(link.activatesAt).getTime();
 		if (!isNaN(start) && Date.now() < start) {
-			return new Response('Link not available', { status: 404 });
+			return renderNotActive(env, shortcode);
 		}
 	}
 	if (link.expiresAt) {
 		const end = new Date(link.expiresAt).getTime();
 		if (!isNaN(end) && Date.now() > end) {
-			return new Response('Link expired', { status: 410 });
+			return renderExpired(env, shortcode);
 		}
 	}
 	// Skip counting for bots, crawlers, and prefetch/HEAD
