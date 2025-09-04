@@ -35,6 +35,12 @@ jobs:
       - name: Lint admin
         run: npm -w admin run lint
 
+      - name: Build admin assets
+        run: |
+          echo "Building admin assets for testing..."
+          npm -w admin run build
+          npm -w worker run build:admin
+
       - name: Test worker
         run: npm -w worker run test
 
