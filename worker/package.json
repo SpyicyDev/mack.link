@@ -6,7 +6,7 @@
 	"scripts": {
 		"prebuild": "npm run build:admin",
 		"build": "echo 'Worker build complete'",
-		"build:admin": "npm -w management run build && node scripts/build-admin.js",
+		"build:admin": "npm -w admin run build && node scripts/build-admin.js",
 		"deploy": "npm run build && wrangler deploy",
 		"dev": "npm run build:admin && wrangler dev",
 		"start": "wrangler dev",

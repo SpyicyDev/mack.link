@@ -112,7 +112,7 @@ const redirectResponse = await handleRedirect(request, env, requestLogger, ctx);
 
 ```bash
 # The integrated build process
-npm run build:management  # Build React app
+npm -w admin run build   # Build React app
 npm run build:worker      # Embed assets + prepare worker
 npm run deploy           # Deploy unified application
 ```

@@ -102,7 +102,7 @@ npx wrangler deploy
 Framework preset: React
 Build command: npm run build
 Build output directory: dist
-Root directory: management
+Root directory: admin
 ```
 
 6. Environment variables:
@@ -116,7 +116,7 @@ VITE_WORKER_DOMAIN=your-worker-domain.com
 #### Option B: Wrangler CLI
 
 ```bash
-cd management
+cd admin
 
 # Build the app
 npm run build
@@ -187,7 +187,7 @@ const response = new Response(content, {
 
 ### Pages Optimization
 
-Configure build optimizations in `management/vite.config.js`:
+Configure build optimizations in `admin/vite.config.js`:
 ```javascript
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -254,7 +254,7 @@ cd worker
 npx wrangler deploy
 
 # Management panel
-cd management
+cd admin
 npm run build
 npx wrangler pages deploy dist
 ```

@@ -7,12 +7,12 @@ This is the React admin UI for mack.link. Most development tasks should be run f
 - Install dependencies (all workspaces):
   - `npm ci`
 - Start Admin dev server (http://localhost:5173):
-  - `npm run dev:management`
+  - `npm run dev:admin`
   - or start both Worker + Admin: `npm run dev`
 - Build Admin:
-  - `npm -w management run build`
+  - `npm -w admin run build`
 - Lint Admin:
-  - `npm -w management run lint`
+  - `npm -w admin run lint`
 
 ## Environment
 - Local development uses:

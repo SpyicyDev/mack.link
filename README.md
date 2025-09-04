@@ -86,7 +86,7 @@ A personal URL shortener built with Cloudflare Workers and React, featuring GitH
 - Vite (Build tool)
 - Tailwind CSS
 - Lucide React (Icons)
-- Cloudflare Pages (Hosting)
+- Served by Cloudflare Worker (/admin)
 
 ## 📁 Project Structure
 
@@ -124,7 +124,7 @@ npm run dev
 
 # Or run separately
 npm run dev:worker      # Build admin assets and start wrangler dev (http://localhost:8787)
-npm run dev:management  # Vite dev server for admin (http://localhost:5173)
+npm run dev:admin       # Vite dev server for admin (http://localhost:5173)
 ```
 
 ### Production Deployment

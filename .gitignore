@@ -7,7 +7,7 @@ node_modules/
 **/dist-ssr/
 # Workspace lockfiles (monorepo uses root lockfile)
 worker/package-lock.json
-management/package-lock.json
+admin/package-lock.json
 
 # OS files
 .DS_Store

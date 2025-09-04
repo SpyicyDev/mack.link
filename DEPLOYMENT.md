@@ -59,7 +59,7 @@ npm run validate:local  # Test local deployment
 
 ### Build Process
 ```bash
-npm run build:management  # Build React app
+npm -w admin run build   # Build React app
 npm run build:worker      # Embed assets and prepare worker
 ```
 

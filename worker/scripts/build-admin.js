@@ -7,8 +7,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const MANAGEMENT_DIR = join(__dirname, '../../management');
-const DIST_DIR = join(MANAGEMENT_DIR, 'dist');
+const ADMIN_DIR = join(__dirname, '../../admin');
+const DIST_DIR = join(ADMIN_DIR, 'dist');
 const OUTPUT_FILE = join(__dirname, '../src/admin-assets.js');
 
 // Maximum file size for embedding (1MB)
@@ -87,13 +87,13 @@ function getMimeType(filePath) {
 }
 
 function buildAdminAssets() {
-  console.log('Building admin assets...');
+console.log('Building admin assets from /admin/dist ...');
 
   // Check if dist directory exists
   try {
     statSync(DIST_DIR);
   } catch (error) {
-    console.error('Management app not built yet. Run "npm run build" in management directory first.');
+console.error('Admin app not built yet. Run "npm -w admin run build" first.');
     process.exit(1);
   }
 
