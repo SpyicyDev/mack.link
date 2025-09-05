@@ -44,7 +44,7 @@ export default function ProfileTab() {
     })
   }, [profile])
 
-  const [newLink, setNewLink] = useState({ title: '', url: '', icon: '' })
+  const [newLink, setNewLink] = useState({ title: '', url: '', icon: '', subtitle: '', image_url: '', image_alt: '', type: 'button' })
 
   const onSaveProfile = async () => {
     await updateProfile.mutateAsync(form)
@@ -52,8 +52,16 @@ export default function ProfileTab() {
 
   const onAddLink = async () => {
     if (!newLink.title || !newLink.url) return
-    await createLink.mutateAsync({ title: newLink.title, url: newLink.url, icon: newLink.icon })
-    setNewLink({ title: '', url: '', icon: '' })
+    await createLink.mutateAsync({ 
+      title: newLink.title, 
+      url: newLink.url, 
+      icon: newLink.icon,
+      subtitle: newLink.subtitle,
+      type: newLink.type || 'button',
+      image_url: newLink.image_url,
+      image_alt: newLink.image_alt,
+    })
+    setNewLink({ title: '', url: '', icon: '', subtitle: '', image_url: '', image_alt: '', type: 'button' })
   }
 
   const move = async (index, dir) => {
@@ -72,9 +80,12 @@ export default function ProfileTab() {
       <section className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-4">
         <header className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Profile</h2>
-          <button onClick={onSaveProfile} className="inline-flex items-center px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700">
-            <Save className="w-4 h-4 mr-1" /> Save
-          </button>
+          <div className="flex items-center gap-2">
+            <a href="/" target="_blank" rel="noopener" className="inline-flex items-center px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">View Public Profile</a>
+            <button onClick={onSaveProfile} className="inline-flex items-center px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+              <Save className="w-4 h-4 mr-1" /> Save
+            </button>
+          </div>
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -115,20 +126,23 @@ export default function ProfileTab() {
         </header>
 
         {/* Add new link */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-2">
           <select className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" value={newLink.type || 'button'} onChange={(e) => setNewLink({ ...newLink, type: e.target.value })}>
             <option value="button">Button</option>
             <option value="image">Image</option>
           </select>
           <input className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" placeholder="Title" value={newLink.title || ''} onChange={(e) => setNewLink({ ...newLink, title: e.target.value })} />
           <input className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" placeholder="https://url" value={newLink.url || ''} onChange={(e) => setNewLink({ ...newLink, url: e.target.value })} />
-          { (newLink.type || 'button') === 'image' ? (
-            <input className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" placeholder="Image URL" value={newLink.image_url || ''} onChange={(e) => setNewLink({ ...newLink, image_url: e.target.value })} />
-          ) : (
-            <input className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" placeholder="icon (optional)" value={newLink.icon || ''} onChange={(e) => setNewLink({ ...newLink, icon: e.target.value })} />
-          )}
+          <input className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" placeholder="Image URL (optional)" value={newLink.image_url || ''} onChange={(e) => setNewLink({ ...newLink, image_url: e.target.value })} />
+          <input className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" placeholder="Description (optional)" value={newLink.subtitle || ''} onChange={(e) => setNewLink({ ...newLink, subtitle: e.target.value })} />
           <div className="flex gap-2">
-            <button onClick={onAddLink} className="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center">
+            <input className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white w-full" placeholder="Icon (optional)" value={newLink.icon || ''} onChange={(e) => setNewLink({ ...newLink, icon: e.target.value })} />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 mb-4">
+          <input className="px-3 py-2 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white md:col-span-5" placeholder="Image Alt (optional)" value={newLink.image_alt || ''} onChange={(e) => setNewLink({ ...newLink, image_alt: e.target.value })} />
+          <div className="flex gap-2 items-stretch">
+            <button onClick={onAddLink} className="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 inline-flex items-center h-full">
               <Plus className="w-4 h-4 mr-1" /> Add
             </button>
           </div>
@@ -156,21 +170,22 @@ export default function ProfileTab() {
                 </div>
               </div>
               {/* Inline editors */}
-              <div className="mt-3 grid grid-cols-1 md:grid-cols-5 gap-2">
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-7 gap-2">
                 <select className="px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" value={l.type || 'button'} onChange={(e) => updateLink.mutate({ id: l.id, updates: { type: e.target.value } })}>
                   <option value="button">Button</option>
                   <option value="image">Image</option>
                 </select>
                 <input className="px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" defaultValue={l.title} onBlur={(e) => e.target.value !== l.title && updateLink.mutate({ id: l.id, updates: { title: e.target.value } })} />
                 <input className="px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" defaultValue={l.url} onBlur={(e) => e.target.value !== l.url && updateLink.mutate({ id: l.id, updates: { url: e.target.value } })} />
-                {(l.type === 'image') ? (
-                  <input className="px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" defaultValue={l.image_url || ''} placeholder="Image URL" onBlur={(e) => e.target.value !== (l.image_url || '') && updateLink.mutate({ id: l.id, updates: { image_url: e.target.value } })} />
-                ) : (
-                  <input className="px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" defaultValue={l.icon || ''} placeholder="icon" onBlur={(e) => e.target.value !== (l.icon || '') && updateLink.mutate({ id: l.id, updates: { icon: e.target.value } })} />
-                )}
-                <label className="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                  <input type="checkbox" defaultChecked={!!l.is_visible} onChange={(e) => updateLink.mutate({ id: l.id, updates: { is_visible: e.target.checked } })} /> Visible
-                </label>
+                <input className="px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" defaultValue={l.subtitle || ''} placeholder="Description" onBlur={(e) => e.target.value !== (l.subtitle || '') && updateLink.mutate({ id: l.id, updates: { subtitle: e.target.value } })} />
+                <input className="px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" defaultValue={l.image_url || ''} placeholder="Image URL" onBlur={(e) => e.target.value !== (l.image_url || '') && updateLink.mutate({ id: l.id, updates: { image_url: e.target.value } })} />
+                <input className="px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white" defaultValue={l.image_alt || ''} placeholder="Image Alt" onBlur={(e) => e.target.value !== (l.image_alt || '') && updateLink.mutate({ id: l.id, updates: { image_alt: e.target.value } })} />
+                <div className="flex items-center gap-2">
+                  <input className="px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white w-28" defaultValue={l.icon || ''} placeholder="icon" onBlur={(e) => e.target.value !== (l.icon || '') && updateLink.mutate({ id: l.id, updates: { icon: e.target.value } })} />
+                  <label className="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                    <input type="checkbox" defaultChecked={!!l.is_visible} onChange={(e) => updateLink.mutate({ id: l.id, updates: { is_visible: e.target.checked } })} /> Visible
+                  </label>
+                </div>
               </div>
             </li>
           ))}
