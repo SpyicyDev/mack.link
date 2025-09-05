@@ -82,8 +82,9 @@ export function Analytics({ links }) {
     }
 
     const totalLinks = linkEntries.length
-    const totalClicks = linkEntries.reduce((sum, [, link]) => sum + (link.clicks || 0), 0)
-    const averageClicks = Math.round((totalClicks / totalLinks) * 100) / 100
+    // Use overview API data for click totals instead of calculating from links to ensure consistency
+    const totalClicks = overview?.totalClicks || 0
+    const averageClicks = totalLinks > 0 ? Math.round((totalClicks / totalLinks) * 100) / 100 : 0
 
     // Get top 5 most clicked links (used in global scope only)
     const topLinks = linkEntries
