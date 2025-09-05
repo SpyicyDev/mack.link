@@ -10,9 +10,10 @@ import {
   BarElement,
   Tooltip,
   Legend,
+  Filler,
 } from 'chart.js'
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend, Filler)
 import { BarChart3, TrendingUp, Clock, Globe, Download } from 'lucide-react'
 import { StatCard } from './StatCard'
 
