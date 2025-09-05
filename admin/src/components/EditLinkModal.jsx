@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { X } from 'lucide-react'
+import { DateTimePicker } from './ui'
 import { workerHost } from '../services/links'
 
 export function EditLinkModal({ link, onSave, onClose }) {
@@ -24,8 +25,8 @@ export function EditLinkModal({ link, onSave, onClose }) {
     redirectType: link.redirectType || 301,
     tags: Array.isArray(link.tags) ? link.tags : [],
     archived: !!link.archived,
-    activatesAt: toLocalInput(link.activatesAt),
-    expiresAt: toLocalInput(link.expiresAt),
+    activatesAt: link.activatesAt || '',
+    expiresAt: link.expiresAt || '',
     password: '',
     passwordProtectionEnabled: !!link.passwordEnabled,
   }), [link])
@@ -246,14 +247,15 @@ export function EditLinkModal({ link, onSave, onClose }) {
               >
                 Activates At (optional)
               </label>
-              <input
-                type="datetime-local"
-                name="activatesAt"
-                id="activatesAt"
-                value={formData.activatesAt}
-                onChange={handleChange}
-                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-              />
+              <div className="mt-1">
+                <DateTimePicker
+                  name="activatesAt"
+                  id="activatesAt"
+                  value={formData.activatesAt}
+                  onChange={handleChange}
+                  placeholder="Select activation date and time"
+                />
+              </div>
             </div>
             <div>
               <label
@@ -262,14 +264,15 @@ export function EditLinkModal({ link, onSave, onClose }) {
               >
                 Expires At (optional)
               </label>
-              <input
-                type="datetime-local"
-                name="expiresAt"
-                id="expiresAt"
-                value={formData.expiresAt}
-                onChange={handleChange}
-                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-              />
+              <div className="mt-1">
+                <DateTimePicker
+                  name="expiresAt"
+                  id="expiresAt"
+                  value={formData.expiresAt}
+                  onChange={handleChange}
+                  placeholder="Select expiration date and time"
+                />
+              </div>
             </div>
           </div>
 
