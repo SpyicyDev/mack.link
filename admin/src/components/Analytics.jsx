@@ -1,6 +1,11 @@
-import { useMemo, useEffect, useState } from 'react'
-import { http } from '../services/http'
+import { useMemo, useState } from 'react'
 import { Line, Bar } from 'react-chartjs-2'
+import {
+  useAnalyticsOverview,
+  useAnalyticsTimeseries,
+  useAnalyticsBreakdown,
+  useIsAnalyticsActive,
+} from '../hooks/useAnalytics'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,56 +22,34 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarEleme
 import { BarChart3, TrendingUp, Clock, Globe, Download } from 'lucide-react'
 import { StatCard } from './StatCard'
 
-export function Analytics({ links }) {
+export function Analytics({ links, currentView }) {
   const [range, setRange] = useState({
     from: new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10),
     to: new Date().toISOString().slice(0, 10),
   })
-  const [ts, setTs] = useState(null)
-  const [overview, setOverview] = useState(null)
-  const [refTop, setRefTop] = useState(null)
   const [dimension, setDimension] = useState('ref')
   const [scope, setScope] = useState('all') // 'all' | 'shortcode'
   const [shortcode, setShortcode] = useState(Object.keys(links)[0])
   const [isExporting, setIsExporting] = useState(false)
 
-  useEffect(() => {
-    let ignore = false
-    async function load() {
-      // Build query parameters depending on scope
-      const paramsTs = new URLSearchParams()
-      const paramsOv = new URLSearchParams()
-      const paramsBr = new URLSearchParams()
-      if (scope === 'shortcode') {
-        if (!shortcode) return
-        paramsTs.set('shortcode', shortcode)
-        paramsOv.set('shortcode', shortcode)
-        paramsBr.set('shortcode', shortcode)
-      }
-      paramsTs.set('from', range.from)
-      paramsTs.set('to', range.to)
-      paramsBr.set('dimension', dimension)
-      paramsBr.set('from', range.from)
-      paramsBr.set('to', range.to)
-      paramsBr.set('limit', '5')
-      try {
-        const tsData = await http.get(`/api/analytics/timeseries?${paramsTs.toString()}`)
-        const ov = await http.get(`/api/analytics/overview?${paramsOv.toString()}`)
-        const ref = await http.get(`/api/analytics/breakdown?${paramsBr.toString()}`)
-        if (!ignore) {
-          setTs(tsData)
-          setOverview(ov)
-          setRefTop(ref)
-        }
-      } catch {
-        // Ignore fetch errors silently
-      }
-    }
-    load()
-    return () => {
-      ignore = true
-    }
-  }, [scope, shortcode, range.from, range.to, dimension])
+  // Check if analytics polling should be active
+  const isAnalyticsActive = useIsAnalyticsActive(currentView)
+
+  // Fetch analytics data with React Query hooks (with polling when analytics tab is active)
+  const { data: overview } = useAnalyticsOverview(
+    { scope, shortcode, range },
+    { enabled: isAnalyticsActive }
+  )
+
+  const { data: ts } = useAnalyticsTimeseries(
+    { scope, shortcode, range },
+    { enabled: isAnalyticsActive }
+  )
+
+  const { data: refTop } = useAnalyticsBreakdown(
+    { scope, shortcode, range, dimension },
+    { enabled: isAnalyticsActive }
+  )
   const analytics = useMemo(() => {
     const linkEntries = Object.entries(links)
 

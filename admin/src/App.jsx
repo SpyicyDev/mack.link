@@ -22,6 +22,7 @@ import {
   useDeleteLink,
   useBulkDeleteLinks,
 } from './hooks/useLinks'
+import { useIsAnalyticsActive } from './hooks/useAnalytics'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 
 function App() {
@@ -32,6 +33,9 @@ function App() {
   const [currentView, setCurrentView] = useState('links') // 'links' or 'analytics'
   const searchInputRef = useRef(null)
 
+  // Check if analytics polling should be active
+  const isAnalyticsActive = useIsAnalyticsActive(currentView)
+
   // React Query hooks - only run when authenticated
   // Make UI more realtime: periodic refetch tuned by current view
   const {
@@ -41,9 +45,9 @@ function App() {
     refetch,
   } = useLinks({
     enabled: isAuthenticated,
-    // Reduce polling to cut KV list usage on the server
-    refetchInterval: currentView === 'analytics' ? 15000 : 10000,
-    refetchIntervalInBackground: currentView === 'analytics',
+    // Reduce polling to cut KV list usage on the server - sync with analytics polling
+    refetchInterval: isAnalyticsActive ? 15000 : 10000,
+    refetchIntervalInBackground: isAnalyticsActive,
   })
   const createLinkMutation = useCreateLink()
   const updateLinkMutation = useUpdateLink()
@@ -240,7 +244,7 @@ function App() {
               />
             </>
           ) : (
-            <Analytics links={links} />
+            <Analytics links={links} currentView={currentView} />
           )}
 
           {showCreateForm && (
