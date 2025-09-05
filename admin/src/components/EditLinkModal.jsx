@@ -4,21 +4,6 @@ import { DateTimePicker } from './ui'
 import { workerHost } from '../services/links'
 
 export function EditLinkModal({ link, onSave, onClose }) {
-  // Helper to convert ISO -> value accepted by <input type="datetime-local">
-  const toLocalInput = (iso) => {
-    if (!iso) return ''
-    try {
-      const d = new Date(iso)
-      if (isNaN(d.getTime())) return ''
-      // Adjust to local and trim seconds
-      const tzOffset = d.getTimezoneOffset()
-      const local = new Date(d.getTime() - tzOffset * 60000)
-      return local.toISOString().slice(0, 16)
-    } catch {
-      return ''
-    }
-  }
-
   const initial = useMemo(() => ({
     url: link.url || '',
     description: link.description || '',

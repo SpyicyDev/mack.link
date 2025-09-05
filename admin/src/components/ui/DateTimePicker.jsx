@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react'
 import DatePicker from 'react-datepicker'
 import { Calendar, Clock } from 'lucide-react'
-import { format, isValid, parseISO } from 'date-fns'
+import { isValid, parseISO } from 'date-fns'
 
 const DateTimePicker = forwardRef(({ 
   value, 
@@ -9,10 +9,10 @@ const DateTimePicker = forwardRef(({
   placeholder = "Select date and time",
   className = "",
   disabled = false,
-  id,
+  _id,
   name,
   ...props 
-}, ref) => {
+}, _ref) => {
   // Convert value to Date object if it's a string
   const getDateValue = () => {
     if (!value) return null
@@ -57,6 +57,8 @@ const DateTimePicker = forwardRef(({
       </div>
     </div>
   ))
+
+  CustomInput.displayName = 'CustomInput'
 
   return (
     <DatePicker
