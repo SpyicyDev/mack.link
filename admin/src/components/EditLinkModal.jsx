@@ -246,16 +246,14 @@ export function EditLinkModal({ link, onSave, onClose }) {
               >
                 Activates At (optional)
               </label>
-              <div className="date-picker-container mt-1">
-                <input
-                  type="datetime-local"
-                  name="activatesAt"
-                  id="activatesAt"
-                  value={formData.activatesAt}
-                  onChange={handleChange}
-                  className="date-picker block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-                />
-              </div>
+              <input
+                type="datetime-local"
+                name="activatesAt"
+                id="activatesAt"
+                value={formData.activatesAt}
+                onChange={handleChange}
+                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+              />
             </div>
             <div>
               <label
@@ -264,16 +262,14 @@ export function EditLinkModal({ link, onSave, onClose }) {
               >
                 Expires At (optional)
               </label>
-              <div className="date-picker-container mt-1">
-                <input
-                  type="datetime-local"
-                  name="expiresAt"
-                  id="expiresAt"
-                  value={formData.expiresAt}
-                  onChange={handleChange}
-                  className="date-picker block w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
-                />
-              </div>
+              <input
+                type="datetime-local"
+                name="expiresAt"
+                id="expiresAt"
+                value={formData.expiresAt}
+                onChange={handleChange}
+                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+              />
             </div>
           </div>
 
