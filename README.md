@@ -145,6 +145,7 @@ See [SETUP.md](./docs/SETUP.md) for detailed setup instructions. The admin panel
 - [API Documentation](./docs/API.md) - Worker API endpoints  
 - [Development Guide](./docs/DEVELOPMENT.md) - Local development setup
 - [Deployment Guide](./docs/DEPLOYMENT.md) - Production deployment
+- [GitHub Secrets](./docs/GITHUB_SECRETS.md) - CI/CD configuration
 - [Architecture Decision](./docs/ADMIN_INTEGRATION.md) - Why we merged admin into worker
 
 ## 🤝 Contributing

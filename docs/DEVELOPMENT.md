@@ -27,21 +27,31 @@ npm -w worker run db:apply:local
 
 ### Worker Environment
 
-Create `worker/.env` (for local development):
-```env
-GITHUB_CLIENT_ID=your_oauth_client_id
-GITHUB_CLIENT_SECRET=your_oauth_client_secret
-AUTHORIZED_USER=your_github_username
+The worker uses `wrangler.jsonc` for configuration. For local development secrets:
+```bash
+# Set secrets via Wrangler (for local development)
+echo "your_oauth_client_secret" | npx wrangler secret put OAUTH_CLIENT_SECRET
+echo "your_random_jwt_secret" | npx wrangler secret put JWT_SECRET
 ```
 
-Optional: set SESSION_COOKIE_NAME=__Host-link_session for best security.
+Edit `worker/wrangler.jsonc` for public configuration:
+```json
+{
+  "vars": {
+    "GITHUB_CLIENT_ID": "your_oauth_client_id",
+    "AUTHORIZED_USER": "your_github_username",
+    "MANAGEMENT_ORIGIN": "http://localhost:5173"
+  }
+}
+```
 
 ### Admin Panel Environment
 
-Create `admin/.env`:
+Create `admin/.env.local` for local development:
 ```env
 VITE_API_BASE=http://localhost:8787
 VITE_WORKER_DOMAIN=localhost:8787
+VITE_GITHUB_CLIENT_ID=your_oauth_client_id
 ```
 
 ## Local Development
@@ -259,10 +269,11 @@ Before deploying to production:
 
 ### Worker Optimization
 
-- Minimize KV read/write operations
-- Use efficient data structures
+- Minimize D1 database queries
+- Use efficient SQL queries and indexing
 - Implement proper caching headers
 - Optimize redirect response time
+- Batch database operations when possible
 
 ### Frontend Optimization
 

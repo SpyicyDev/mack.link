@@ -14,8 +14,17 @@ This is the React admin UI for mack.link. Most development tasks should be run f
 - Lint Admin:
   - `npm -w admin run lint`
 
-## Environment
-- Local development uses:
-  - `VITE_API_BASE=http://localhost:8787` (default in docs)
-  - `VITE_WORKER_DOMAIN=localhost:8787`
-- Production builds are embedded and served by the Worker at `/admin`.
+## Environment Variables
+
+### Local Development
+Create `admin/.env.local` for local development:
+```
+VITE_API_BASE=http://localhost:8787
+VITE_WORKER_DOMAIN=localhost:8787
+VITE_GITHUB_CLIENT_ID=your_github_oauth_client_id
+```
+
+### Production Deployment
+- Environment variables are automatically injected by CI/CD during build
+- See [../docs/GITHUB_SECRETS.md](../docs/GITHUB_SECRETS.md) for required repository secrets
+- Production builds are embedded and served by the Worker at `/admin`
