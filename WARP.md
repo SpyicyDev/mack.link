@@ -35,6 +35,9 @@ npx wrangler d1 execute mack-link --file src/migrate-analytics.sql --remote
 
 # Run basic analytics tests
 node --test src/test-analytics.js
+
+# Run validation script for deployment
+npm run validate:local
 ```
 
 ### Admin Panel Development
@@ -70,49 +73,96 @@ Access:
 - Worker API: http://localhost:8787
 - Admin UI: http://localhost:5173
 - Test redirects: http://localhost:8787/{shortcode}
+- Password-protected links: http://localhost:8787/{shortcode} (enter password when prompted)
 
 ## Architecture Overview
 
-This project runs as a single Cloudflare Worker that also serves an embedded React admin panel:
+This project runs as a single Cloudflare Worker that serves an embedded React admin panel, handles API routes, and processes link redirects:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  User Request                       │
+└───────────────────────┬─────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│            Cloudflare Worker (Single Origin)        │
+│                                                     │
+│  ┌─────────────┐    ┌────────────┐    ┌──────────┐  │
+│  │  Redirect   │    │    API     │    │  Admin   │  │
+│  │   Handler   │    │  Endpoints │    │   Panel  │  │
+│  │ /{shortcode}│    │  /api/*    │    │  /admin  │  │
+│  └──────┬──────┘    └─────┬──────┘    └────┬─────┘  │
+│         │                 │                 │        │
+│         ▼                 ▼                 ▼        │
+│  ┌─────────────┐    ┌──────────────┐  ┌──────────┐  │
+│  │ Password    │    │ Auth/Session │  │ Embedded │  │
+│  │ Protection  │    │ Management   │  │ React UI │  │
+│  └─────────────┘    └──────────────┘  └──────────┘  │
+│         │                  │                │        │
+└─────────┼──────────────────┼────────────────┼────────┘
+          │                  │                │
+          ▼                  ▼                ▼
+    ┌───────────────────────────────────────────────┐
+    │               Cloudflare D1 (SQLite)          │
+    │                                               │
+    │  • Links with password protection & scheduling │
+    │  • Analytics with UTM tracking & aggregations  │
+    │  • Session management & rate limiting          │
+    └───────────────────────────────────────────────┘
+```
 
 ### Core Components
 
 **Cloudflare Worker** (`/worker/`)
 - **Entry Point**: `src/index.js` - Main worker with request lifecycle management
-- **Admin UI**: `src/routes/admin.js` serves the embedded React app at `/admin` using assets from `src/admin-assets.js`
+- **Admin UI**: `src/routes/admin.js` serves the embedded React app at `/admin` using assets from `src/admin-assets.js` (generated at build time)
 - **Routing**: `src/routes.js` handles request dispatching between admin, redirects, and API
 - **Authentication**: `src/auth.js` manages GitHub OAuth and session verification
+- **Password System**: `src/password.js` provides PBKDF2 hashing with Web Crypto API
 - **Database**: `src/db.js` abstracts Cloudflare D1 operations for link storage
 - **API Router**: `src/routes/routerApi.js` handles all `/api/*` endpoints
-- **Redirect Handler**: `src/routes/redirect.js` processes shortcode redirects
-- **Session Management**: `src/session.js` handles JWT-based session cookies
+- **Redirect Handler**: `src/routes/redirect.js` processes shortcode redirects with password protection
+- **Session Management**: `src/session.js` handles JWT-based session cookies with secure HttpOnly settings
 
 **React Admin Panel** (`/admin/`)
 - **Main App**: `src/App.jsx` with tabbed interface (Links/Analytics)
+- **Providers**: 
+  - `src/providers/QueryProvider.jsx` - React Query configuration
+  - `src/providers/ThemeProvider.jsx` - Dark/light mode support
+- **Router**: Client-side routing with React Router (basename: `/admin`)
 - **Authentication Flow**: `src/components/AuthCallback.jsx` handles GitHub OAuth callback
-- **Link Management**: `src/components/LinkList.jsx`, `src/components/CreateLinkForm.jsx`
+- **Link Management**: 
+  - `src/components/LinkList.jsx` - Display and edit links
+  - `src/components/CreateLinkForm.jsx` - Create new links with advanced options
+  - `src/components/EditLinkModal.jsx` - Edit existing links with password protection
+  - `src/components/BulkImportModal.jsx` - Bulk import links from CSV
+  - `src/components/QRCodeModal.jsx` - Generate and download QR codes
 - **Search & Filtering**: `src/components/LinkSearch.jsx` with real-time filtering
 - **Analytics Dashboard**: `src/components/Analytics.jsx` with charts and metrics
 - **API Client**: `src/services/api.js` handles all backend communication
-- **React Query Integration**: `src/hooks/useLinks.js` for data fetching and caching
+- **React Query Hooks**: `src/hooks/useLinks.js` and `src/hooks/useAnalytics.js` for data fetching, caching, and mutations
 
 ### Data Flow
 
-1. **Redirect Flow**: `/{shortcode}` → Worker → D1 lookup → HTTP redirect
+1. **Redirect Flow**: `/{shortcode}` → Worker → Password Check → D1 lookup → HTTP redirect
 2. **API Flow**: Management UI → `/api/*` → Authentication → D1 operations → Response
 3. **Auth Flow**: GitHub OAuth → Session JWT → HttpOnly cookie → API access
+4. **Password Flow**: Password form → Web Crypto PBKDF2 hash → Verification → Session token
 
 ### Storage Strategy
 
 - **Primary Storage**: Cloudflare D1 (SQLite) for link data and analytics
 - **Session Storage**: JWT tokens in HttpOnly cookies
-- **Caching**: React Query for frontend state management
+- **Password Storage**: PBKDF2 hashed passwords (format: `salt:hash`)
+- **Caching**: React Query for frontend state management with stale-time tuning
 
 ### Key Configuration Files
 
 - `worker/wrangler.jsonc`: Worker deployment config, environment variables, D1 binding
 - `admin/vite.config.js`: Frontend build configuration
 - `admin/tailwind.config.js`: Tailwind CSS customization
+- `worker/scripts/build-admin.js`: Embeds admin UI into worker assets
 
 ## Development Patterns
 
@@ -120,18 +170,35 @@ This project runs as a single Cloudflare Worker that also serves an embedded Rea
 - Worker uses structured logging via `src/logger.js`
 - Frontend has ErrorBoundary components for graceful failures
 - API responses follow consistent error format with proper HTTP status codes
+- Password verification has secure failure handling with rate limiting
 
 ### Authentication Architecture
 - GitHub OAuth for user identity
 - Server-side session management with JWT
 - HttpOnly cookies for security (no client-side token exposure)
 - Single authorized user restriction via `AUTHORIZED_USER` environment variable
+- Session expiration configurable via `SESSION_MAX_AGE`
+
+### Password Protection System
+- Links can be password-protected using the admin interface
+- Passwords are hashed using PBKDF2 with a salt (100,000 iterations, SHA-256)
+- Password verification happens server-side without leaking timing information
+- Password sessions last for 1 hour and are stored in the D1 database
+- Clean UI for password entry with custom strength validation
+
+### Link Scheduling
+- Links can be scheduled to activate at a future time (`activates_at` field)
+- Links can be configured to expire at a certain time (`expires_at` field)
+- Appropriate status codes are returned for inactive or expired links (403 and 410)
+- UI provides datetime pickers for scheduling in the local timezone
 
 ### API Design
 - RESTful endpoints under `/api/`
 - CORS configured for cross-origin requests from management UI
 - Bulk operations supported for efficiency (`/api/links/bulk`)
 - Pagination support for large datasets
+- Password verification endpoint (`/api/password/verify`)
+- Analytics endpoints with filtering options
 
 ### Frontend State Management
 - React Query for server state and caching
@@ -141,11 +208,21 @@ This project runs as a single Cloudflare Worker that also serves an embedded Rea
 - **Real-time Links**: Synchronized polling with analytics (15s when analytics active, 10s otherwise)
 - Background polling continues when tab is not focused for continuous real-time updates
 
+### Analytics System
+- UTM parameter tracking (source, medium, campaign, etc.)
+- Device, browser, OS, and location breakdown
+- Bot detection to filter out automated traffic
+- Aggregation tables for fast querying of large datasets
+- Timeseries data for historical analysis
+- Export functionality for further processing
+
 ### Performance Optimizations
 - Edge-first architecture with Cloudflare Workers
 - Efficient D1 queries with proper indexing
 - Frontend code splitting and lazy loading
 - Optimized bundle size with Vite
+- Caching headers for static assets
+- Minimized worker bundle size via optimized asset embedding
 
 ## Environment Setup
 
@@ -171,6 +248,7 @@ Note: The admin UI is served from the same origin at `/admin`, so a dedicated `M
 - Use `npx wrangler tail` for real-time log debugging
 - Analytics unit tests in `src/test-analytics.js` verify UTM parsing and bot detection
 - Migration script `src/migrate-analytics.sql` reconciles data inconsistencies
+- Deployment validation script `scripts/validate-deployment.js` tests full integration
 
 ## Deployment Notes
 
@@ -202,6 +280,9 @@ UNION ALL
 
 # Verify UTM tracking is working
 npx wrangler d1 execute mack-link --remote --command "SELECT dimension, key, clicks FROM analytics_agg WHERE dimension LIKE 'utm_%' ORDER BY clicks DESC LIMIT 10;"
+
+# Check password-protected link usage
+npx wrangler d1 execute mack-link --remote --command "SELECT shortcode, COUNT(*) as session_count FROM counters WHERE name LIKE 'pwd_session:%' GROUP BY shortcode;"
 ```
 
 ### Performance Metrics
@@ -209,3 +290,13 @@ npx wrangler d1 execute mack-link --remote --command "SELECT dimension, key, cli
 - Check `analytics_day` for daily click patterns  
 - Review `analytics_agg` for top referrers and UTM performance
 - Use Cloudflare Analytics for worker request patterns and errors
+- Check scheduled and password-protected link performance
+
+## Keyboard Shortcuts
+
+The admin interface supports the following keyboard shortcuts:
+
+- `Ctrl/Cmd + N`: Create new link
+- `Ctrl/Cmd + K` or `/`: Focus search
+- `Escape`: Close modal or clear search
+- `Ctrl/Cmd + /`: Show keyboard shortcuts help
