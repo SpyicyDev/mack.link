@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { Button, Input } from './ui'
+import { useReservedPaths, isShortcodeReserved, getReservedShortcodeError } from '../hooks/useReservedPaths'
 
 export function CreateLinkForm({ onSubmit, onClose }) {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
   const [error, setError] = useState(null)
   const [fieldErrors, setFieldErrors] = useState({})
   const shortcodeRef = useRef(null)
+  const { reservedPaths, loading: reservedPathsLoading } = useReservedPaths()
 
   useEffect(() => {
     shortcodeRef.current?.focus()
@@ -32,6 +34,12 @@ export function CreateLinkForm({ onSubmit, onClose }) {
         }
         if (value.length < 2) return 'Shortcode must be at least 2 characters'
         if (value.length > 50) return 'Shortcode must be less than 50 characters'
+        
+        // Check against reserved paths
+        if (isShortcodeReserved(value, reservedPaths)) {
+          return getReservedShortcodeError(value)
+        }
+        
         return null
       case 'url':
         if (!value.trim()) return 'URL is required'
@@ -54,7 +62,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
       default:
         return null
     }
-  }, [])
+  }, [reservedPaths])
 
   const handleSubmit = useCallback(
     async (e) => {
@@ -420,10 +428,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || reservedPathsLoading}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors"
             >
-              {loading ? 'Creating...' : 'Create Link'}
+              {loading ? 'Creating...' : reservedPathsLoading ? 'Loading...' : 'Create Link'}
             </button>
           </div>
         </form>
