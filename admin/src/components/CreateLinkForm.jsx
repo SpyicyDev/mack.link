@@ -132,7 +132,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-4">
-      <div className="mx-auto w-full max-w-md border border-gray-200 dark:border-gray-700 shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors p-4 sm:p-5">
+      <div className="mx-auto w-full max-w-lg sm:max-w-2xl border border-gray-200 dark:border-gray-700 shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors p-4 sm:p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">Create New Link</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
