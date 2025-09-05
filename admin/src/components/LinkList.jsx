@@ -256,7 +256,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                 }`}
                 role="listitem"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   {bulkMode && (
                     <div className="flex items-center mr-4 mt-1">
                       <button
@@ -300,7 +300,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 truncate transition-colors"
+                        className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 break-all sm:break-normal sm:truncate transition-colors"
                       >
                         {link.url}
                       </a>
@@ -334,7 +334,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                       )}
                     </div>
 
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500">
                       <div className="flex items-center space-x-1">
                         <BarChart3 className="w-3 h-3" />
                         <span>{link.clicks || 0} clicks</span>
@@ -366,7 +366,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                   </div>
 
                   <div
-                    className="flex items-center space-x-2 ml-4"
+                    className="flex items-center space-x-2 mt-3 sm:mt-0 sm:ml-4 self-start sm:self-auto"
                     role="group"
                     aria-label={`Actions for ${shortcode}`}
                   >

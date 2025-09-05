@@ -195,7 +195,7 @@ function App() {
 
           {/* Navigation Tabs */}
           <div className="mb-6">
-            <nav className="flex space-x-8" aria-label="Tabs">
+            <nav className="flex overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 space-x-4 sm:space-x-8 no-scrollbar ios-momentum" aria-label="Tabs">
               <button
                 onClick={() => setCurrentView('links')}
                 className={`${
@@ -246,6 +246,15 @@ function App() {
           {showCreateForm && (
             <CreateLinkForm onSubmit={handleCreateLink} onClose={() => setShowCreateForm(false)} />
           )}
+
+          {/* Mobile Floating Create Button */}
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="sm:hidden fixed bottom-5 right-5 z-40 rounded-full p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Create new short link"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
         </main>
       </div>
     </ErrorBoundary>

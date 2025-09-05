@@ -14,12 +14,12 @@ export function Header() {
   return (
     <header className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 transition-colors" role="banner">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div className="flex items-center">
+        <div className="flex flex-wrap items-center justify-between gap-4 py-4 sm:py-6">
+          <div className="flex items-center min-w-0">
             <LinkIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" aria-hidden="true" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">link.mackhaymond.co</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-300">URL Shortener Management</p>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">link.mackhaymond.co</h1>
+              <p className="hidden sm:block text-sm text-gray-600 dark:text-gray-300">URL Shortener Management</p>
             </div>
           </div>
           
@@ -40,7 +40,7 @@ export function Header() {
                     alt={`${user.login}'s profile picture`}
                     className="w-6 h-6 rounded-full"
                   />
-                  <span>Welcome, {user.login}!</span>
+                  <span className="truncate max-w-[10rem] sm:max-w-none">Welcome, {user.login}!</span>
                 </div>
                 <button
                   onClick={handleLogout}

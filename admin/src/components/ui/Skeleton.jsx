@@ -87,8 +87,8 @@ export function SearchSkeleton() {
 
 export function CreateFormSkeleton() {
   return (
-    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out">
-      <div className="relative top-20 mx-auto p-5 border border-gray-200 dark:border-gray-700 w-96 shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors">
+    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-4">
+      <div className="mx-auto p-4 sm:p-5 border border-gray-200 dark:border-gray-700 w-full max-w-md sm:max-w-lg shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors">
         <div className="mt-3">
           <div className="flex items-center justify-between mb-4">
             <Skeleton className="h-6 w-32" />

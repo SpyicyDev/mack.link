@@ -124,14 +124,14 @@ export function EditLinkModal({ link, onSave, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/30 dark:bg-black/40 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out"
+      className="fixed inset-0 bg-black/30 dark:bg-black/40 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-link-title"
     >
       <div
-        className="relative top-20 mx-auto p-6 border border-gray-200 dark:border-gray-700 w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors"
+        className="mx-auto w-full max-w-lg sm:max-w-2xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">

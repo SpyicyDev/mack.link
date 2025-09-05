@@ -12,6 +12,20 @@ html.dark {
   color-scheme: dark light;
 }
 
+/* Hide scrollbars while preserving scroll (useful for horizontal tab bars) */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Smooth momentum scrolling on iOS for overflow containers */
+.ios-momentum {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Screen reader only classes */
 .sr-only {
   position: absolute;

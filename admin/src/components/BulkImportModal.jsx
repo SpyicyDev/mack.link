@@ -41,8 +41,8 @@ export function BulkImportModal({ isOpen, onClose }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50" onClick={onClose}>
-      <div className="relative top-20 mx-auto p-5 border border-gray-200 dark:border-gray-700 w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 flex items-start sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="mx-auto w-full max-w-lg sm:max-w-2xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-lg rounded-md bg-white dark:bg-gray-800" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">Bulk Import from CSV</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
