@@ -2,7 +2,7 @@ import { requireAuth, handleLogout } from '../auth.js';
 import { withCors } from '../cors.js';
 import { getAllLinks, createLink, updateLink, deleteLink, bulkDeleteLinks, getLink, bulkCreateLinks, listLinks } from './routesLinks.js';
 import { handleGitHubAuth, handleGitHubCallback } from './routesOAuth.js';
-import { getTimeseries, getBreakdown, getOverview, exportAnalytics } from '../analytics.js';
+import { getTimeseries, getTimeseriesByLinks, getBreakdown, getOverview, exportAnalytics } from '../analytics.js';
 import { handlePasswordVerification } from './password.js';
 import { getReservedPathsList } from '../reservedPaths.js';
 
