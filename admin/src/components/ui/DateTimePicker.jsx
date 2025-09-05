@@ -19,10 +19,6 @@ function toISOOrEmpty(d) {
   return d && isValid(d) ? d.toISOString() : ''
 }
 
-function formatDateTime(date) {
-  if (!date || !isValid(date)) return ''
-  return format(date, 'MMM d, yyyy h:mm aa')
-}
 
 function timeOptions(interval = 15) {
   const opts = []
@@ -82,48 +78,50 @@ export function DateTimePicker({ name, value, onChange, placeholder = 'Select da
     applyChange(withTime)
   }
 
-  const displayText = selected ? formatDateTime(selected) : ''
+
+  // Split UI: left Date field (popover calendar), right Time field (dropdown)
+  const dateText = selected ? format(selected, 'MMM d, yyyy') : ''
 
   return (
-    <div className="relative">
-      <Popover.Root open={open} onOpenChange={setOpen}>
-        <Popover.Trigger asChild>
-          <button
-            type="button"
-            disabled={disabled}
-            className={`
-              w-full flex items-center justify-between 
-              rounded-md border border-gray-300 dark:border-gray-600
-              bg-white dark:bg-gray-700
-              px-3 py-2 text-left text-sm
-              text-gray-900 dark:text-white
-              placeholder:text-gray-500 dark:placeholder:text-gray-400
-              focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0
-              transition-all duration-200
-              ${
-                disabled
-                  ? 'cursor-not-allowed opacity-50'
-                  : 'hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'
-              }
-            `}
-            aria-label={placeholder}
+    <div className="flex gap-3">
+      {/* Date field */}
+      <div className="relative min-w-[14rem] flex-1">
+        <Popover.Root open={open} onOpenChange={setOpen}>
+          <Popover.Trigger asChild>
+            <button
+              type="button"
+              disabled={disabled}
+              className={`
+                w-full flex items-center justify-between 
+                rounded-md border border-gray-300 dark:border-gray-600
+                bg-white dark:bg-gray-700
+                px-3 py-2 text-left text-sm
+                text-gray-900 dark:text-white
+                placeholder:text-gray-500 dark:placeholder:text-gray-400
+                focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0
+                transition-all duration-200
+                ${
+                  disabled
+                    ? 'cursor-not-allowed opacity-50'
+                    : 'hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'
+                }
+              `}
+              aria-label={placeholder}
+            >
+              <span className={`flex items-center gap-2 ${dateText ? '' : 'text-gray-500 dark:text-gray-400'}`}>
+                <Calendar className="h-4 w-4 shrink-0 text-gray-400" />
+                <span className="truncate">{dateText || 'Select date'}</span>
+              </span>
+              <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" />
+            </button>
+          </Popover.Trigger>
+
+          <Popover.Content
+            className="z-[10000] w-auto overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-0 shadow-lg"
+            sideOffset={4}
+            align="start"
+            alignOffset={0}
           >
-            <span className={`flex items-center gap-2 ${displayText ? '' : 'text-gray-500 dark:text-gray-400'}`}>
-              <Calendar className="h-4 w-4 shrink-0 text-gray-400" />
-              <span className="truncate">{displayText || placeholder}</span>
-            </span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" />
-          </button>
-        </Popover.Trigger>
-        
-        <Popover.Content
-          className="z-[10000] w-auto overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-0 shadow-lg"
-          sideOffset={4}
-          align="start"
-          alignOffset={0}
-        >
-          <div className="flex">
-            {/* Calendar Section */}
             <div className="p-4">
               <DayPicker
                 mode="single"
@@ -142,77 +140,40 @@ export function DateTimePicker({ name, value, onChange, placeholder = 'Select da
                 }}
               />
             </div>
-            
-            {/* Time Section */}
-            <div className="border-l border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-              <div className="flex h-full min-w-[160px] flex-col p-4">
-                <div className="mb-3">
-                  <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Time
-                  </label>
-                  <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-                    <select
-                      value={selectedTime}
-                      onChange={handleTimeChange}
-                      className="
-                        w-full appearance-none rounded-md border border-gray-300 dark:border-gray-600
-                        bg-white dark:bg-gray-700 pl-9 pr-8 py-2 text-sm
-                        text-gray-900 dark:text-white
-                        focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
-                        transition-all duration-200
-                      "
-                    >
-                      {TIME_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="mt-auto space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const now = new Date()
-                      applyChange(now)
-                      setMonth(now)
-                    }}
-                    className="
-                      w-full rounded-md bg-blue-600 px-3 py-2 text-xs font-medium 
-                      text-white hover:bg-blue-700 focus:outline-none focus:ring-2 
-                      focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
-                      transition-all duration-200
-                    "
-                  >
-                    Now
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      applyChange(null)
-                      setOpen(false)
-                    }}
-                    className="
-                      w-full rounded-md bg-gray-100 dark:bg-gray-600 px-3 py-2 text-xs font-medium 
-                      text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-500 
-                      focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 
-                      dark:focus:ring-offset-gray-800 transition-all duration-200
-                    "
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Popover.Content>
-      </Popover.Root>
+          </Popover.Content>
+        </Popover.Root>
+      </div>
+
+      {/* Time field */}
+      <div className="relative w-[10.5rem]">
+        <div className="relative">
+          <Clock className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+          <select
+            value={selectedTime}
+            onChange={handleTimeChange}
+            disabled={disabled}
+            className="
+              w-full appearance-none rounded-md border border-gray-300 dark:border-gray-600
+              bg-white dark:bg-gray-700 pl-9 pr-8 py-2 text-sm
+              text-gray-900 dark:text-white
+              focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
+              transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed
+            "
+            aria-label="Select time"
+          >
+            {TIME_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        </div>
+        <div className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Times are local</div>
+      </div>
+
+      {/* Hidden value behaviour remains: external parent reads ISO via onChange */}
     </div>
   )
 }
-
