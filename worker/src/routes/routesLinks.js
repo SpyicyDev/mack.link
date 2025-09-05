@@ -574,8 +574,8 @@ export async function listLinks(env, request) {
 	const rows = await dbAll(
 		env,
 		cursor
-			? `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked, password_enabled FROM links WHERE shortcode > ? ORDER BY shortcode ASC LIMIT ?`
-			: `SELECT shortcode, url, description, redirect_type, tags, archived, activates_at, expires_at, created, updated, clicks, last_clicked, password_enabled FROM links ORDER BY shortcode ASC LIMIT ?`,
+			? `SELECT * FROM links WHERE shortcode > ? ORDER BY shortcode ASC LIMIT ?`
+			: `SELECT * FROM links ORDER BY shortcode ASC LIMIT ?`,
 		cursor ? [cursor, limit + 1] : [limit + 1],
 	);
 	const hasMore = rows.length > limit;
