@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { X } from 'lucide-react'
-import { Button, Input, DateTimePicker } from './ui'
+import { Button, Input } from './ui'
 
 export function CreateLinkForm({ onSubmit, onClose }) {
   const [formData, setFormData] = useState({
@@ -267,14 +267,14 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               >
                 Activates At (optional)
               </label>
-              <div className="mt-1">
-                <DateTimePicker
-                  name="activatesAt"
-                  value={formData.activatesAt}
-                  onChange={handleChange}
-                  placeholder="Select activation date and time"
-                />
-              </div>
+              <input
+                type="datetime-local"
+                name="activatesAt"
+                id="activatesAt"
+                value={formData.activatesAt}
+                onChange={handleChange}
+                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+              />
             </div>
             <div>
               <label
@@ -283,14 +283,14 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               >
                 Expires At (optional)
               </label>
-              <div className="mt-1">
-                <DateTimePicker
-                  name="expiresAt"
-                  value={formData.expiresAt}
-                  onChange={handleChange}
-                  placeholder="Select expiration date and time"
-                />
-              </div>
+              <input
+                type="datetime-local"
+                name="expiresAt"
+                id="expiresAt"
+                value={formData.expiresAt}
+                onChange={handleChange}
+                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+              />
             </div>
           </div>
 
