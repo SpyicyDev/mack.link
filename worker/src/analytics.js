@@ -509,6 +509,66 @@ export async function getTimeseries(env, shortcode, fromISO, toISO) {
 	return { points };
 }
 
+// Returns time series per shortcode for the top N links in the date range
+export async function getTimeseriesByLinks(env, fromISO, toISO, limit = 5) {
+	const from = new Date(fromISO);
+	const to = new Date(toISO);
+	if (isNaN(from) || isNaN(to) || from > to) return { labels: [], series: [] };
+	const start = formatDay(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
+	const end = formatDay(Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate()));
+
+	// Top N shortcodes by clicks in the window (exclude global scope)
+	const topRows = await dbAll(
+		env,
+		`SELECT scope AS shortcode, SUM(clicks) AS total
+		 FROM analytics_day
+		 WHERE scope != '_all' AND day >= ? AND day <= ?
+		 GROUP BY scope
+		 ORDER BY total DESC
+		 LIMIT ?`,
+		[start, end, limit],
+	);
+	if (!topRows.length) return { labels: [], series: [] };
+	const shortcodes = topRows.map((r) => r.shortcode);
+
+	// Fetch all rows for these shortcodes in a single query
+	const placeholders = shortcodes.map(() => '?').join(',');
+	const rows = await dbAll(
+		env,
+		`SELECT scope AS shortcode, day, clicks
+		 FROM analytics_day
+		 WHERE scope IN (${placeholders}) AND day >= ? AND day <= ?
+		 ORDER BY day ASC`,
+		[...shortcodes, start, end],
+	);
+
+	// Build day labels
+	const labels = [];
+	for (
+		let d = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
+		d <= to;
+		d.setUTCDate(d.getUTCDate() + 1)
+	) {
+		labels.push(d.toISOString().slice(0, 10));
+	}
+
+	// Index rows per shortcode/day
+	const byShortcode = new Map(shortcodes.map((sc) => [sc, new Map()]));
+	for (const r of rows) {
+		const m = byShortcode.get(r.shortcode);
+		if (m) m.set(r.day, r.clicks);
+	}
+
+	const series = shortcodes.map((sc) => {
+		const m = byShortcode.get(sc) || new Map();
+		const values = labels.map((iso) => m.get(iso.replace(/-/g, '')) || 0);
+		const total = values.reduce((a, b) => a + b, 0);
+		return { shortcode: sc, total, values };
+	});
+
+	return { labels, series };
+}
+
 export async function getBreakdown(env, shortcode, dimension, limit = 10, fromISO, toISO) {
 	const scKey = shortcode || '_all';
 	if (fromISO && toISO) {

@@ -42,6 +42,13 @@ export async function handleAPI(request, env, requestLogger) {
 			const data = await getTimeseries(env, shortcode, from, to);
 			return withCors(env, new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }), request);
 		}
+		if (path === '/api/analytics/timeseries-links') {
+			const from = urlObj.searchParams.get('from');
+			const to = urlObj.searchParams.get('to');
+			const limit = parseInt(urlObj.searchParams.get('limit') || '5', 10);
+			const data = await getTimeseriesByLinks(env, from, to, limit);
+			return withCors(env, new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } }), request);
+		}
 		if (path === '/api/analytics/breakdown') {
 			const dimension = urlObj.searchParams.get('dimension') || 'ref';
 			const limit = parseInt(urlObj.searchParams.get('limit') || '10', 10);

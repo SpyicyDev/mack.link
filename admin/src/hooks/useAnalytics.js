@@ -6,6 +6,7 @@ export const analyticsKeys = {
   all: ['analytics'],
   overview: (scope, shortcode, range) => [...analyticsKeys.all, 'overview', scope, shortcode, range],
   timeseries: (scope, shortcode, range) => [...analyticsKeys.all, 'timeseries', scope, shortcode, range],
+  timeseriesLinks: (range, limit) => [...analyticsKeys.all, 'timeseries-links', range, limit],
   breakdown: (scope, shortcode, range, dimension) => [...analyticsKeys.all, 'breakdown', scope, shortcode, range, dimension],
 }
 
@@ -71,6 +72,26 @@ export function useAnalyticsTimeseries(params = {}, options = {}) {
     refetchIntervalInBackground: true,
     keepPreviousData: true,
     staleTime: 10000, // Consider data fresh for 10 seconds
+    ...otherOptions,
+  })
+}
+
+// Hook to fetch analytics timeseries for top links (global scope)
+export function useAnalyticsTimeseriesLinks(params = {}, options = {}) {
+  const { range = {}, limit = 5, enabled = true } = params
+  const { refetchInterval = 15000, ...otherOptions } = options
+
+  return useQuery({
+    queryKey: analyticsKeys.timeseriesLinks(range, limit),
+    queryFn: async () => {
+      const queryParams = buildAnalyticsParams('all', undefined, range, { limit })
+      return await http.get(`/api/analytics/timeseries-links?${queryParams}`)
+    },
+    enabled,
+    refetchInterval,
+    refetchIntervalInBackground: true,
+    keepPreviousData: true,
+    staleTime: 10000,
     ...otherOptions,
   })
 }

@@ -3,6 +3,7 @@ import { Line, Bar } from 'react-chartjs-2'
 import {
   useAnalyticsOverview,
   useAnalyticsTimeseries,
+  useAnalyticsTimeseriesLinks,
   useAnalyticsBreakdown,
   useIsAnalyticsActive,
 } from '../hooks/useAnalytics'
@@ -44,6 +45,12 @@ export function Analytics({ links, currentView }) {
   const { data: ts } = useAnalyticsTimeseries(
     { scope, shortcode, range },
     { enabled: isAnalyticsActive }
+  )
+
+  // Multi-series for top links (global scope only)
+  const { data: tsLinks } = useAnalyticsTimeseriesLinks(
+    { range, limit: 5 },
+    { enabled: isAnalyticsActive && scope === 'all' }
   )
 
   const { data: refTop } = useAnalyticsBreakdown(
@@ -485,7 +492,45 @@ export function Analytics({ links, currentView }) {
             </h3>
           </div>
           <div className="p-6">
-            {ts?.points?.length ? (
+            {(scope === 'all' && tsLinks?.labels?.length && tsLinks?.series?.length) ? (
+              <Line
+                data={{
+                  labels: tsLinks.labels,
+                  datasets: tsLinks.series.map((s, idx) => {
+                    const baseColors = [
+                      [37,99,235],   // blue-600
+                      [16,185,129],  // emerald-500
+                      [234,179,8],   // yellow-500
+                      [249,115,22],  // orange-500
+                      [236,72,153],  // pink-500
+                      [168,85,247],  // purple-500
+                      [59,130,246],  // blue-500
+                    ]
+                    const [r,g,b] = baseColors[idx % baseColors.length]
+                    return {
+                      label: s.shortcode,
+                      data: s.values,
+                      borderColor: `rgb(${r}, ${g}, ${b})`,
+                      backgroundColor: `rgba(${r}, ${g}, ${b}, 0.22)`,
+                      tension: 0.25,
+                      fill: true,
+                      pointRadius: 0,
+                    }
+                  }),
+                }}
+                options={{
+                  responsive: true,
+                  plugins: { legend: { display: true, position: 'bottom' } },
+                  interaction: { mode: 'index', intersect: false },
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.2)' } },
+                  },
+                }}
+                height={260}
+              />
+            ) : ts?.points?.length ? (
               <Line
                 data={{
                   labels: ts.points.map((p) => p.date),
