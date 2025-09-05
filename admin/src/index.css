@@ -76,8 +76,8 @@ html.dark {
   z-index: 10000 !important;
 }
 
-/* Portal container for date picker */
-#date-picker-portal .react-datepicker-popper {
+/* Ensure portal popper always overlays modals */
+.react-datepicker-popper {
   z-index: 10000 !important;
 }
 
