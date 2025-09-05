@@ -14,46 +14,46 @@ env:
   WRANGLER_VERSION: '4'
 
 jobs:
-  validate:
-    name: Validate (lint + test)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: |
-            package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint admin
-        run: npm -w admin run lint
-
-      - name: Build admin assets
-        run: |
-          echo "Building admin assets for testing..."
-          # Create temporary .env file for admin build with test values
-          cat > admin/.env.local << EOL
-          VITE_API_BASE=http://localhost:8787
-          VITE_WORKER_DOMAIN=localhost:8787
-          VITE_GITHUB_CLIENT_ID=test_client_id
-          EOL
-          npm -w admin run build
-          npm -w worker run build:admin
-
-      - name: Test worker
-        run: npm -w worker run test
+  # validate:
+  #   name: Validate (lint + test)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: npm
+  #         cache-dependency-path: |
+  #           package-lock.json
+  #
+  #     - name: Install dependencies
+  #       run: npm ci
+  #
+  #     - name: Lint admin
+  #       run: npm -w admin run lint
+  #
+  #     - name: Build admin assets
+  #       run: |
+  #         echo "Building admin assets for testing..."
+  #         # Create temporary .env file for admin build with test values
+  #         cat > admin/.env.local << EOL
+  #         VITE_API_BASE=http://localhost:8787
+  #         VITE_WORKER_DOMAIN=localhost:8787
+  #         VITE_GITHUB_CLIENT_ID=test_client_id
+  #         EOL
+  #         npm -w admin run build
+  #         npm -w worker run build:admin
+  #
+  #     - name: Test worker
+  #       run: npm -w worker run test
 
   deploy:
     name: Deploy (production)
     runs-on: ubuntu-latest
-    needs: validate
+    # needs: validate  # Disabled - now using pre-commit hooks for validation
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: production
