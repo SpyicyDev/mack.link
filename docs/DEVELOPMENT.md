@@ -201,17 +201,10 @@ function MyComponent() {
 
 ## Testing
 
-### What exists
-- Basic analytics tests using Node’s test runner:
-  ```bash
-  node --test worker/src/test-analytics.js
-  ```
 - Deployment validation script:
   ```bash
   npm run validate:local
   ```
-
-Note: There is no Vitest setup in this repo. If you need full unit/integration tests, add Vitest and related config first.
 
 ### Manual Testing Checklist
 

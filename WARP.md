@@ -9,9 +9,6 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 # Start local development server
 npm -w worker run dev
 
-# Basic analytics tests (Node test runner)
-node --test worker/src/test-analytics.js
-
 # Validate local deployment endpoints
 npm run validate:local
 
@@ -32,9 +29,6 @@ npm -w worker run db:apply
 
 # Reconcile analytics data inconsistencies
 npx wrangler d1 execute mack-link --file src/migrate-analytics.sql --remote
-
-# Run basic analytics tests
-node --test src/test-analytics.js
 
 # Run validation script for deployment
 npm run validate:local
@@ -242,10 +236,8 @@ Note: The admin UI is served from the same origin at `/admin`, so a dedicated `M
 
 ### Testing Strategy
 
-- Basic analytics tests: `node --test worker/src/test-analytics.js`
 - Manual testing checklist includes OAuth flow, CRUD operations, password-protected links, and redirect functionality
 - Use `npx wrangler tail` for real-time log debugging
-- Analytics unit tests in `src/test-analytics.js` verify UTM parsing and bot detection
 - Migration script `src/migrate-analytics.sql` reconciles data inconsistencies
 - Deployment validation script `scripts/validate-deployment.js` tests full integration
 

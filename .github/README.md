@@ -68,7 +68,7 @@ Notes
 - The application supports a default cookie name of "__Host-link_session". The current config explicitly sets it to "__Host-link_session".
 - Secrets GITHUB_CLIENT_SECRET and JWT_SECRET are supplied at deploy time by the workflow.
 
-## 🧪 Local test/validation
+## 🧪 Local validation
 
 ```bash
 # Install all dependencies
@@ -77,9 +77,6 @@ npm ci
 # Build (admin + worker), then validate the running dev worker
 npm run build
 npm run validate:local
-
-# Basic analytics tests
-node --test worker/src/test-analytics.js
 ```
 
 ## 🚀 Deploys
