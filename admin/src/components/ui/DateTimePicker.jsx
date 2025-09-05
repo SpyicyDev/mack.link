@@ -72,6 +72,8 @@ const DateTimePicker = forwardRef(({
       dateFormat="MMM d, yyyy h:mm aa"
       placeholderText={placeholder}
       disabled={disabled}
+      shouldCloseOnSelect={false}
+      fixedHeight
       customInput={<CustomInput />}
       popperClassName="date-picker-popper"
       calendarClassName="date-picker-calendar"

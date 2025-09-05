@@ -81,6 +81,55 @@ html.dark {
   z-index: 10000 !important;
 }
 
+/* Reset some heavy overrides to keep layout sane in modal */
+.date-picker-calendar {
+  max-width: none !important;
+  padding: 0.5rem !important;
+}
+
+/* Base container */
+.react-datepicker {
+  border: 1px solid rgb(229 231 235);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  background-color: white;
+}
+:where(.dark *) .react-datepicker {
+  border-color: rgb(75 85 99);
+  background-color: rgb(55 65 81);
+  color: white;
+}
+
+/* Header */
+.react-datepicker__header {
+  background-color: rgb(249 250 251) !important;
+  border-bottom: 1px solid rgb(229 231 235) !important;
+}
+:where(.dark *) .react-datepicker__header {
+  background-color: rgb(75 85 99) !important;
+  border-bottom-color: rgb(107 114 128) !important;
+}
+
+/* Time column sizing and scrolling */
+.react-datepicker__time-container {
+  width: 90px !important;
+  max-height: none !important;
+  overflow: hidden !important;
+}
+.react-datepicker__time-box {
+  width: 90px !important;
+  max-height: 220px !important;
+  overflow-y: auto !important;
+}
+
+/* Keep day cells tidy */
+.react-datepicker__day,
+.react-datepicker__day-name {
+  width: 2rem !important;
+  line-height: 2rem !important;
+  margin: 0.125rem !important;
+}
+
 .date-picker-calendar {
   font-family: inherit;
   border: 1px solid rgb(209 213 219); /* gray-300 */
