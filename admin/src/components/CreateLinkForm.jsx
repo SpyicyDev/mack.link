@@ -140,8 +140,8 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
             <label
               htmlFor="shortcode"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -171,7 +171,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             )}
           </div>
 
-          <div>
+          <div className="md:col-span-2">
             <label
               htmlFor="url"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -259,7 +259,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="activatesAt"
@@ -298,7 +298,15 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             </div>
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+          {/* Hint for date format */}
+          <div className="md:col-span-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Tip: Leave date fields blank to skip. Your browser may format the datetime; both blank
+              and valid ISO strings are accepted.
+            </p>
+          </div>
+
+          <div className="md:col-span-2 border-t border-gray-200 dark:border-gray-700 pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -401,18 +409,12 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md transition-colors">
+            <div className="md:col-span-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md transition-colors">
               <p className="text-red-800 dark:text-red-400 text-sm">{error}</p>
             </div>
           )}
 
-          {/* Hint for date format */}
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Tip: Leave date fields blank to skip. Your browser may format the datetime; both blank
-            and valid ISO strings are accepted.
-          </p>
-
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="md:col-span-2 flex justify-end space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}
@@ -423,7 +425,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-blue-500 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors"
             >
               {loading ? 'Creating...' : 'Create Link'}
             </button>
