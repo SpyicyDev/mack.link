@@ -104,11 +104,21 @@ function App() {
     'mod+n': () => setShowCreateForm(true),
     'mod+k': () => searchInputRef.current?.focus(),
     '/': () => searchInputRef.current?.focus(),
+    // Focus app search instead of browser Find
+    'mod+f': () => searchInputRef.current?.focus(),
+    // Quick tab switching (note: browsers may reserve Cmd+1/2). Also support Alt+1/2 as fallback.
+    'mod+1': () => setCurrentView('links'),
+    'mod+2': () => setCurrentView('analytics'),
+    'alt+1': () => setCurrentView('links'),
+    'alt+2': () => setCurrentView('analytics'),
+    // Open shortcuts help
+    'mod+/': () => setShowKeyboardHelp(true),
+    'shift+?': () => setShowKeyboardHelp(true),
+    // Global escape closes overlays
     escape: () => {
       setShowCreateForm(false)
       setShowKeyboardHelp(false)
     },
-    'mod+/': () => setShowKeyboardHelp(true),
   })
 
   // Show login screen if not authenticated

@@ -297,5 +297,8 @@ The admin interface supports the following keyboard shortcuts:
 
 - `Ctrl/Cmd + N`: Create new link
 - `Ctrl/Cmd + K` or `/`: Focus search
-- `Escape`: Close modal or clear search
-- `Ctrl/Cmd + /`: Show keyboard shortcuts help
+- `Ctrl/Cmd + F`: Focus search (overrides browser Find within app)
+- `Escape`: Close modal; in search input: clear when non-empty, otherwise blur
+- `Ctrl/Cmd + /` or `Shift + ?`: Show keyboard shortcuts help
+- `Ctrl/Cmd + 1` (or `Alt + 1`): Go to Links
+- `Ctrl/Cmd + 2` (or `Alt + 2`): Go to Analytics

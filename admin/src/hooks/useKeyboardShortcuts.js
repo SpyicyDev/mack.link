@@ -52,9 +52,15 @@ export function useKeyboardShortcutsHelp() {
   const shortcuts = [
     { keys: 'Ctrl/Cmd + N', description: 'Create new link' },
     { keys: 'Ctrl/Cmd + K', description: 'Focus search' },
-    { keys: 'Escape', description: 'Close modal or clear search' },
+    { keys: 'Ctrl/Cmd + F', description: 'Focus search (overrides browser Find within app)' },
     { keys: '/', description: 'Focus search (when not in input)' },
+    { keys: 'Escape', description: 'Close modal; in search: clear, then blur' },
     { keys: 'Ctrl/Cmd + /', description: 'Show keyboard shortcuts' },
+    { keys: 'Shift + ?', description: 'Show keyboard shortcuts' },
+    { keys: 'Ctrl/Cmd + 1', description: 'Go to Links' },
+    { keys: 'Ctrl/Cmd + 2', description: 'Go to Analytics' },
+    { keys: 'Alt + 1', description: 'Go to Links (fallback)' },
+    { keys: 'Alt + 2', description: 'Go to Analytics (fallback)' },
   ]
 
   return shortcuts
