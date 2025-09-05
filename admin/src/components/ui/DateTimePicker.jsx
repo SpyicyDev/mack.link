@@ -4,6 +4,7 @@ import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
 import { Calendar, Clock, ChevronDown } from 'lucide-react'
 import { format, isValid, parseISO, setHours, setMinutes } from 'date-fns'
+import { Button } from './Button'
 
 function toDate(value) {
   if (!value) return null
@@ -35,7 +36,7 @@ function timeOptions(interval = 15) {
 
 const TIME_OPTIONS = timeOptions(15)
 
-export function DateTimePicker({ name, value, onChange, placeholder = 'Select date and time', disabled = false }) {
+export function DateTimePicker({ name, value, onChange, _placeholder = 'Select date and time', disabled = false }) {
   const initialDate = useMemo(() => toDate(value), [value])
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(initialDate)
@@ -88,32 +89,18 @@ export function DateTimePicker({ name, value, onChange, placeholder = 'Select da
       <div className="relative min-w-[14rem] flex-1">
         <Popover.Root open={open} onOpenChange={setOpen}>
           <Popover.Trigger asChild>
-            <button
-              type="button"
-              disabled={disabled}
-              className={`
-                w-full flex items-center justify-between 
-                rounded-md border border-gray-300 dark:border-gray-600
-                bg-white dark:bg-gray-700
-                px-3 py-2 text-left text-sm
-                text-gray-900 dark:text-white
-                placeholder:text-gray-500 dark:placeholder:text-gray-400
-                focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0
-                transition-all duration-200
-                ${
-                  disabled
-                    ? 'cursor-not-allowed opacity-50'
-                    : 'hover:border-gray-400 dark:hover:border-gray-500 cursor-pointer'
-                }
-              `}
-              aria-label={placeholder}
-            >
-              <span className={`flex items-center gap-2 ${dateText ? '' : 'text-gray-500 dark:text-gray-400'}`}>
-                <Calendar className="h-4 w-4 shrink-0 text-gray-400" />
-                <span className="truncate">{dateText || 'Select date'}</span>
-              </span>
-              <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" />
-            </button>
+            <div>
+              <Button
+                variant="outline"
+                size="md"
+                disabled={disabled}
+                data-empty={!dateText}
+                className="w-[280px] justify-start text-left font-normal data-[empty=true]:text-gray-500 data-[empty=true]:dark:text-gray-400 flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4 shrink-0" />
+                {dateText ? <span className="truncate">{dateText}</span> : <span>Select date</span>}
+              </Button>
+            </div>
           </Popover.Trigger>
 
           <Popover.Content
@@ -145,29 +132,18 @@ export function DateTimePicker({ name, value, onChange, placeholder = 'Select da
       </div>
 
       {/* Time field */}
-      <div className="relative w-[10.5rem]">
+      <div className="relative w-[180px]">
         <div className="relative">
           <Clock className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-          <select
+          <input
+            type="time"
+            step="900"
             value={selectedTime}
-            onChange={handleTimeChange}
+            onChange={(e) => handleTimeChange(e)}
             disabled={disabled}
-            className="
-              w-full appearance-none rounded-md border border-gray-300 dark:border-gray-600
-              bg-white dark:bg-gray-700 pl-9 pr-8 py-2 text-sm
-              text-gray-900 dark:text-white
-              focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500
-              transition-all duration-200
-              disabled:opacity-50 disabled:cursor-not-allowed
-            "
+            className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 pl-9 pr-8 py-2 text-sm text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
             aria-label="Select time"
-          >
-            {TIME_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          />
           <ChevronDown className="absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 pointer-events-none" />
         </div>
         <div className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">Times are local</div>
