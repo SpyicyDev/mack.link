@@ -176,7 +176,7 @@ function App() {
           Skip to main content
         </a>
 
-        <Header />
+        <Header onShowShortcuts={() => setShowKeyboardHelp(true)} />
 
         <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main">
           <div className="sm:flex sm:items-center sm:justify-between mb-8">
