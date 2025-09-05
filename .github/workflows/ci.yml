@@ -38,6 +38,12 @@ jobs:
       - name: Build admin assets
         run: |
           echo "Building admin assets for testing..."
+          # Create temporary .env file for admin build with test values
+          cat > admin/.env.local << EOL
+          VITE_API_BASE=http://localhost:8787
+          VITE_WORKER_DOMAIN=localhost:8787
+          VITE_GITHUB_CLIENT_ID=test_client_id
+          EOL
           npm -w admin run build
           npm -w worker run build:admin
 
@@ -70,6 +76,12 @@ jobs:
       - name: Build worker with embedded admin
         run: |
           echo "Building worker with embedded admin assets..."
+          # Create temporary .env file for admin build with production values
+          cat > admin/.env.production << EOL
+          VITE_API_BASE=https://link.mackhaymond.co
+          VITE_WORKER_DOMAIN=link.mackhaymond.co
+          VITE_GITHUB_CLIENT_ID=${{ secrets.OAUTH_CLIENT_ID }}
+          EOL
           npm -w worker run build:admin
 
       - name: Deploy with Wrangler

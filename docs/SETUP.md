@@ -92,10 +92,13 @@ cd ../admin
 npm install
 ```
 
-Create `.env`:
+**For CI/CD Deployment**: Environment variables are automatically handled by GitHub Actions. See [GITHUB_SECRETS.md](./GITHUB_SECRETS.md) for required repository secrets.
+
+**For Local Development**: Create `.env.local`:
 ```env
 VITE_API_BASE=https://your-worker-domain.com
 VITE_WORKER_DOMAIN=your-worker-domain.com
+VITE_GITHUB_CLIENT_ID=your_github_oauth_client_id
 ```
 
 ## 6. Deploy Management Panel
