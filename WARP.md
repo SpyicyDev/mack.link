@@ -137,7 +137,9 @@ This project runs as a single Cloudflare Worker that also serves an embedded Rea
 - React Query for server state and caching
 - Local React state for UI state
 - Keyboard shortcuts via custom hook (`useKeyboardShortcuts`)
-- Real-time updates with configurable polling intervals
+- **Real-time Analytics**: 15-second polling for overview, timeseries, and breakdown data when analytics tab is active
+- **Real-time Links**: Synchronized polling with analytics (15s when analytics active, 10s otherwise)
+- Background polling continues when tab is not focused for continuous real-time updates
 
 ### Performance Optimizations
 - Edge-first architecture with Cloudflare Workers
