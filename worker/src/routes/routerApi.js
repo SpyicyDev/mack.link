@@ -4,6 +4,7 @@ import { getAllLinks, createLink, updateLink, deleteLink, bulkDeleteLinks, getLi
 import { handleGitHubAuth, handleGitHubCallback } from './routesOAuth.js';
 import { getTimeseries, getBreakdown, getOverview, exportAnalytics } from '../analytics.js';
 import { handlePasswordVerification } from './password.js';
+import { getReservedPathsList } from '../reservedPaths.js';
 
 export async function handleAPI(request, env, requestLogger) {
 	const url = new URL(request.url);
@@ -113,5 +114,43 @@ export async function handleAPI(request, env, requestLogger) {
 		return withCors(env, new Response(JSON.stringify(authResult), { headers: { 'Content-Type': 'application/json' } }), request);
 	}
 
+	// Metadata endpoints (protected)
+	if (path === '/api/meta/reserved-paths' && method === 'GET') {
+		return await handleReservedPathsMetadata(env, request);
+	}
+
 	return withCors(env, new Response('API endpoint not found', { status: 404 }), request);
+}
+
+/**
+ * Handle requests for reserved paths metadata.
+ * Returns a list of reserved paths that cannot be used as shortcodes.
+ */
+async function handleReservedPathsMetadata(env, request) {
+	try {
+		const reservedPaths = getReservedPathsList();
+		const response = {
+			reserved: reservedPaths,
+			count: reservedPaths.length,
+			updatedAt: new Date().toISOString()
+		};
+		
+		// Add cache headers to reduce API calls
+		const headers = {
+			'Content-Type': 'application/json',
+			'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
+			'ETag': `"${reservedPaths.length}-${reservedPaths[0] || 'empty'}"` // Simple ETag based on count and first item
+		};
+		
+		return withCors(env, new Response(JSON.stringify(response), { headers }), request);
+	} catch (error) {
+		return withCors(
+			env,
+			new Response(JSON.stringify({ error: 'Failed to fetch reserved paths' }), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' }
+			}),
+			request
+		);
+	}
 }

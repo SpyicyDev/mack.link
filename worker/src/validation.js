@@ -1,3 +1,5 @@
+import { isReservedPath, getReservedPathError } from './reservedPaths.js';
+
 export function validateShortcode(shortcode) {
 	if (typeof shortcode !== 'string') return 'Shortcode must be a string';
 	if (!shortcode.trim()) return 'Shortcode is required';
@@ -6,10 +8,12 @@ export function validateShortcode(shortcode) {
 	if (!/^[a-zA-Z0-9_-]+$/.test(shortcode)) {
 		return 'Shortcode can only contain letters, numbers, hyphens, and underscores';
 	}
-	const reserved = ['api', 'admin', 'www', 'mail', 'ftp', 'localhost', 'root'];
-	if (reserved.includes(shortcode.toLowerCase())) {
-		return 'This shortcode is reserved and cannot be used';
+	
+	// Check against dynamic reserved paths system
+	if (isReservedPath(shortcode)) {
+		return getReservedPathError(shortcode);
 	}
+	
 	return null;
 }
 
