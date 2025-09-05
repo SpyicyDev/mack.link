@@ -4,7 +4,7 @@ import { dbAll, dbGet, dbRun } from '../db.js';
 export async function handleLinktree(request, env, logger) {
   try {
     const profile = await dbGet(env, `SELECT id, title, description, avatar_url, theme, background_type, background_value, is_active, custom_css FROM profile WHERE id = 1`);
-    const links = await dbAll(env, `SELECT id, title, url, icon FROM profile_links WHERE is_visible = 1 ORDER BY order_index ASC`);
+const links = await dbAll(env, `SELECT id, title, subtitle, url, icon, type, image_url, image_alt FROM profile_links WHERE is_visible = 1 ORDER BY order_index ASC`);
 
     const html = renderLinktreeHtml({ profile, links });
     return withCors(env, new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } }), request);
@@ -77,13 +77,24 @@ function renderLinktreeHtml({ profile, links }) {
       <h1>${escapeHtml(title)}</h1>
       ${desc ? `<p class="sub">${escapeHtml(desc)}</p>` : ''}
       <div class="list">
-        ${links.map(l => `<a class="link" href="/profile/c/${l.id}">${escapeHtml(l.title)}</a>`).join('')}
+        ${links.map(l => renderLink(l)).join('')}
       </div>
       <div class="foot">Built with Cloudflare Workers</div>
     </main>
   </div>
 </body>
 </html>`;
+}
+
+function renderLink(l) {
+  const href = `/profile/c/${l.id}`;
+  if ((l.type || 'button') === 'image' && l.image_url) {
+    const alt = l.image_alt ? escapeHtml(l.image_alt) : escapeHtml(l.title || '');
+    return `<a class="link" href="${href}" aria-label="${alt}"><img src="${escapeHtml(l.image_url)}" alt="${alt}" style="max-width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.14)" />${l.title ? `<div style="margin-top:6px;color:#9aa4b2;font-size:12px">${escapeHtml(l.title)}</div>` : ''}</a>`;
+  }
+  const title = escapeHtml(l.title || '');
+  const subtitle = l.subtitle ? `<div style="font-size:12px;color:#9aa4b2;">${escapeHtml(l.subtitle)}</div>` : '';
+  return `<a class="link" href="${href}">${title}${subtitle}</a>`;
 }
 
 function backgroundStyle(type, value) {

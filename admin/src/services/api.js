@@ -50,11 +50,15 @@ class ProfileAPI {
   async listLinks() {
     return await http.get('/api/profile/links');
   }
-  async createLink({ title, url, icon = '', isVisible = true }) {
+  async createLink({ title, url, icon = '', isVisible = true, type = 'button', image_url = '', image_alt = '', subtitle = '' }) {
     return await http.post('/api/profile/links', {
       title,
       url,
       icon,
+      subtitle,
+      type,
+      image_url,
+      image_alt,
       is_visible: isVisible ? 1 : 0,
     });
   }
