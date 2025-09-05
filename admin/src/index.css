@@ -73,7 +73,12 @@ html.dark {
 
 /* Custom DateTimePicker styles */
 .date-picker-popper {
-  z-index: 9999;
+  z-index: 10000 !important;
+}
+
+/* Portal container for date picker */
+#date-picker-portal .react-datepicker-popper {
+  z-index: 10000 !important;
 }
 
 .date-picker-calendar {
@@ -82,7 +87,8 @@ html.dark {
   border-radius: 0.5rem;
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   background-color: white;
-  padding: 1rem;
+  padding: 0.75rem;
+  max-width: 350px;
 }
 
 /* Dark mode calendar */
@@ -226,7 +232,9 @@ html.dark {
 /* Time selector */
 .react-datepicker__time-container {
   border-left: 1px solid rgb(229 231 235); /* gray-200 */
-  width: 80px;
+  width: 100px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 :where(.dark *) .react-datepicker__time-container {
@@ -235,6 +243,7 @@ html.dark {
 
 .react-datepicker__time {
   background-color: white;
+  position: relative;
 }
 
 :where(.dark *) .react-datepicker__time {
@@ -242,7 +251,28 @@ html.dark {
 }
 
 .react-datepicker__time-box {
-  width: 80px;
+  width: 100px;
+  max-height: 180px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(156 163 175) transparent;
+}
+
+.react-datepicker__time-box::-webkit-scrollbar {
+  width: 4px;
+}
+
+.react-datepicker__time-box::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.react-datepicker__time-box::-webkit-scrollbar-thumb {
+  background-color: rgb(156 163 175);
+  border-radius: 2px;
+}
+
+:where(.dark *) .react-datepicker__time-box::-webkit-scrollbar-thumb {
+  background-color: rgb(107 114 128);
 }
 
 .react-datepicker__time-list-item {

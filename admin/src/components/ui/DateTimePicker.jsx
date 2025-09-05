@@ -75,6 +75,24 @@ const DateTimePicker = forwardRef(({
       popperClassName="date-picker-popper"
       calendarClassName="date-picker-calendar"
       wrapperClassName="date-picker-wrapper"
+      withPortal
+      portalId="date-picker-portal"
+      popperPlacement="bottom-start"
+      popperModifiers={[
+        {
+          name: "offset",
+          options: {
+            offset: [0, 5]
+          }
+        },
+        {
+          name: "preventOverflow",
+          options: {
+            boundary: "viewport",
+            padding: 10
+          }
+        }
+      ]}
       {...props}
     />
   )
