@@ -26,14 +26,16 @@
     "db:apply:local": "npm -w worker run db:apply:local",
     "db:apply": "npm -w worker run db:apply",
     "ci:build": "npm ci && npm run lint:all && npm run build",
-    "ci:test": "npm run ci:build && npm run test:ci"
+    "ci:test": "npm run ci:build && npm run test:ci",
+    "prepare": "husky"
   },
   "workspaces": [
     "worker",
     "admin"
   ],
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "husky": "^9.1.7"
   },
   "engines": {
     "node": ">=18.0.0"
