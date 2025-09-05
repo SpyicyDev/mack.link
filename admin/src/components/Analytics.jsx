@@ -494,6 +494,8 @@ export function Analytics({ links, currentView }) {
           <div className="p-6">
             {(scope === 'all' && tsLinks?.labels?.length && tsLinks?.series?.length) ? (
               <Line
+                key={`tslinks-${tsLinks.labels?.length || 0}-${tsLinks.series?.length || 0}`}
+                style={{ width: '100%' }}
                 data={{
                   labels: tsLinks.labels,
                   datasets: tsLinks.series.map((s, idx) => {
@@ -524,10 +526,11 @@ export function Analytics({ links, currentView }) {
                 }}
                 options={{
                   responsive: true,
+                  resizeDelay: 0,
                   plugins: { legend: { display: true, position: 'bottom' } },
                   interaction: { mode: 'index', intersect: false },
                   maintainAspectRatio: false,
-                  layout: { padding: { top: 8, right: 12, bottom: 24, left: 8 } },
+                  layout: { padding: { top: 8, right: 12, bottom: 28, left: 8 } },
                   scales: {
                     x: {
                       stacked: true,
@@ -545,6 +548,8 @@ export function Analytics({ links, currentView }) {
               />
             ) : ts?.points?.length ? (
               <Line
+                key={`tssingle-${ts.points?.length || 0}`}
+                style={{ width: '100%' }}
                 data={{
                   labels: ts.points.map((p) => p.date),
                   datasets: [
@@ -560,7 +565,10 @@ export function Analytics({ links, currentView }) {
                 }}
                 options={{
                   responsive: true,
+                  resizeDelay: 0,
                   plugins: { legend: { display: false } },
+                  maintainAspectRatio: false,
+                  layout: { padding: { top: 8, right: 12, bottom: 12, left: 8 } },
                   scales: {
                     x: { grid: { display: false } },
                     y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.2)' } },
