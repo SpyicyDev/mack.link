@@ -39,6 +39,7 @@ VITE_GITHUB_CLIENT_ID=test_client_id
 ```
 VITE_API_BASE=https://link.mackhaymond.co
 VITE_WORKER_DOMAIN=link.mackhaymond.co
+# Optional at runtime; used at admin build time only
 VITE_GITHUB_CLIENT_ID=${secrets.OAUTH_CLIENT_ID}
 ```
 

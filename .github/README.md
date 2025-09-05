@@ -1,116 +1,47 @@
-# CI/CD Documentation for mack.link
+# CI/CD for mack.link
 
-This document describes the automated deployment and maintenance workflows for the mack.link URL shortener with integrated admin panel.
+This document describes the automated deployment and health-check workflows used by this repository.
 
-## 🏗️ Architecture Overview
+## 🏗️ Pipeline Overview
 
-The CI/CD pipeline supports the unified architecture where:
-- React admin panel is embedded into the Cloudflare Worker
-- Single deployment target (no separate Pages deployment)
-- Automated testing, building, and deployment
-- Continuous monitoring and maintenance
+The CI/CD setup supports the unified architecture where:
+- The React admin panel is embedded into the Cloudflare Worker
+- A single deployment target is used (no separate Pages deployment)
+- Builds happen in CI; the Worker is deployed with embedded assets
+- A scheduled health check validates the live site
 
-## 📋 Workflows
+## 📋 Workflows (current)
 
-### 1. Production Deployment (`deploy-worker.yml`)
+1) Production deploy (on push to main)
+- File: .github/workflows/ci.yml
+- Steps:
+  - Install dependencies (root)
+  - Build admin assets and embed into the worker
+  - Deploy with cloudflare/wrangler-action
+  - Smoke-test root and /admin
 
-**Triggers:**
-- Push to `main` branch
-- Manual dispatch via GitHub UI
+2) Daily health check
+- File: .github/workflows/health.yml
+- Schedule: daily at 02:00 UTC (plus manual dispatch)
+- Runs scripts/validate-deployment.js against production
 
-**Process:**
-1. **Validation** - Code linting, testing, change detection
-2. **Build** - React app → Worker embedding → Unified bundle
-3. **Deploy** - Deploy to Cloudflare Workers
-4. **Validation** - Post-deployment health checks
+Note: There is no staging workflow in this repo at present, and no CodeQL or dependency-audit workflow. Add those separately if needed.
 
-**Environment Variables Required:**
-```
-CLOUDFLARE_API_TOKEN     # Cloudflare API access
-CLOUDFLARE_ACCOUNT_ID    # Your Cloudflare account ID
-JWT_SECRET               # Session encryption key
-OAUTH_CLIENT_SECRET      # GitHub OAuth app client secret
-```
+## 🔐 Required repository secrets
 
-### 2. Staging Deployment (`deploy-staging.yml`)
+Configure in Repo → Settings → Secrets and variables → Actions → Repository secrets
 
-**Triggers:**
-- Push to `develop` or `staging` branches
-- Pull requests to `main`
+- CLOUDFLARE_API_TOKEN: Cloudflare API token (deploy)
+- CLOUDFLARE_ACCOUNT_ID: Cloudflare account ID
+- JWT_SECRET: Random secure string (session JWT)
+- OAUTH_CLIENT_SECRET: GitHub OAuth app client secret
+- OAUTH_CLIENT_ID (recommended): GitHub OAuth client ID (used at build time for admin; optional at runtime)
 
-**Features:**
-- Deploys to separate staging worker
-- Runs comprehensive integration tests
-- Comments deployment URL on PRs
-- Automatic cleanup for closed PRs
+Tip to generate a JWT secret locally: `openssl rand -base64 32`
 
-### 3. Maintenance & Health Checks (`maintenance.yml`)
+## ⚙️ Worker configuration snippet
 
-**Schedule:**
-- Daily health checks (2 AM UTC)
-- Weekly dependency audits (Monday 6 AM UTC)
-
-**Tasks:**
-- Production endpoint monitoring
-- Security vulnerability scanning
-- Performance benchmarking
-- Dependency updates
-- Artifact cleanup
-
-## 🚀 Deployment Process
-
-### Manual Production Deployment
-
-1. Go to **Actions** tab in GitHub
-2. Select **Deploy Unified URL Shortener**
-3. Click **Run workflow**
-4. Select `main` branch
-5. Click **Run workflow**
-
-### Automatic Production Deployment
-
-Simply push to the `main` branch:
-
-```bash
-git checkout main
-git pull origin main
-git merge develop
-git push origin main
-```
-
-### Staging Deployment
-
-Push to staging branch:
-
-```bash
-git checkout staging
-git merge develop
-git push origin staging
-```
-
-## 🔧 Setup Instructions
-
-### 1. Repository Secrets
-
-Configure these secrets in GitHub Settings → Secrets:
-
-| Secret Name | Description | Where to Get |
-|-------------|-------------|--------------|
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token | [Cloudflare Dashboard](https://dash.cloudflare.com/profile/api-tokens) |
-| `CLOUDFLARE_ACCOUNT_ID` | Your account ID | Cloudflare Dashboard sidebar |
-| `JWT_SECRET` | Random secure string | `openssl rand -base64 32` |
-| `OAUTH_CLIENT_SECRET` | GitHub OAuth app secret | [GitHub Developer Settings](https://github.com/settings/developers) |
-
-### 2. Staging Secrets (Optional)
-
-For staging environment, add these with `STAGING_` prefix:
-
-- `STAGING_JWT_SECRET`
-- `STAGING_OAUTH_CLIENT_SECRET`
-
-### 3. Cloudflare Workers Configuration
-
-Ensure your `wrangler.jsonc` is properly configured:
+This matches worker/wrangler.jsonc in the repo (values are examples):
 
 ```jsonc
 {
@@ -133,146 +64,48 @@ Ensure your `wrangler.jsonc` is properly configured:
 }
 ```
 
-## 🧪 Testing
+Notes
+- The application supports a default cookie name of "__Host-link_session" if SESSION_COOKIE_NAME is omitted; the current config sets it explicitly to "link_session".
+- Secrets GITHUB_CLIENT_SECRET and JWT_SECRET are supplied at deploy time by the workflow.
 
-### Local Testing
+## 🧪 Local test/validation
 
 ```bash
 # Install all dependencies
-npm run install:all
+npm ci
 
-# Run tests
-npm run test
-
-# Build and validate locally
+# Build (admin + worker), then validate the running dev worker
 npm run build
 npm run validate:local
+
+# Basic analytics tests
+node --test worker/src/test-analytics.js
 ```
 
-### Staging Testing
+## 🚀 Deploys
 
-After staging deployment, test these URLs:
-- `https://staging-worker.spyicydev.workers.dev` - Main site
-- `https://staging-worker.spyicydev.workers.dev/admin` - Admin panel
-- `https://staging-worker.spyicydev.workers.dev/api/links` - API (should return 401)
+Automatic (recommended)
+- Push to main → ci.yml builds and deploys
 
-## 📊 Monitoring
+Manual (from local)
+- From repo root: `npm run deploy`
 
-### Health Checks
+## 🧭 Troubleshooting
 
-The maintenance workflow monitors:
-- **Endpoint availability** - All critical URLs respond correctly
-- **Authentication flow** - GitHub OAuth integration working
-- **API functionality** - Protected endpoints secure
-- **Performance** - Response times under 2 seconds
-- **Security** - Headers and vulnerability scanning
+- Deployment fails with authentication error
+  - Ensure CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are set and valid
+- Admin panel “Failed to fetch”
+  - Ensure JWT_SECRET and OAUTH_CLIENT_SECRET are provided at deploy time
+  - Verify D1 binding exists and schema applied
+- Build size too large
+  - Check bundling; see admin/vite.config.js manualChunks and minification
 
-### Alerts
-
-Issues are automatically reported via:
-- Failed workflow notifications
-- GitHub issues for critical failures
-- Artifact reports for investigation
-
-## 🔒 Security
-
-### Automated Security Measures
-
-- **CodeQL Analysis** - Static code security scanning
-- **Dependency Auditing** - Weekly vulnerability checks
-- **Security Header Validation** - HTTPS, CSP, etc.
-- **Sensitive Data Scanning** - Prevents secret exposure
-
-### Manual Security Checklist
-
-Before major deployments:
-
-- [ ] Update dependencies with security patches
-- [ ] Rotate JWT_SECRET if compromised
-- [ ] Review GitHub OAuth app permissions
-- [ ] Check Cloudflare security settings
-- [ ] Validate CORS configuration
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-**Deployment Fails with "Authentication Error"**
-- Check `CLOUDFLARE_API_TOKEN` has correct permissions
-- Verify `CLOUDFLARE_ACCOUNT_ID` is correct
-
-**Admin Panel Shows "Failed to fetch"**
-- Ensure `JWT_SECRET` is set in worker secrets
-- Check `OAUTH_CLIENT_SECRET` for OAuth
-- Verify Cloudflare D1 database binding
-
-**Tests Fail in CI**
-- Check if new dependencies need installation
-- Verify test environment has required bindings
-- Review Node.js version compatibility
-
-**Build Size Too Large**
-- Check bundle analysis in workflow logs
-- Consider code splitting for large dependencies
-- Review embedded assets size
-
-### Emergency Rollback
-
-If deployment fails and needs immediate rollback:
-
-1. Go to Cloudflare Workers Dashboard
-2. Find the worker deployment history
-3. Rollback to previous working version
-4. Or redeploy from last known good commit:
-
-```bash
-git checkout main
-git reset --hard <last-good-commit>
-git push --force-with-lease origin main
-```
-
-### Debugging Deployment
-
-View detailed logs:
-1. Go to Actions → Failed workflow
-2. Expand each step to see detailed output
-3. Download artifacts for offline analysis
-4. Check Cloudflare Workers logs for runtime issues
-
-## 📈 Performance Optimization
-
-### Build Optimization
-
-The CI automatically optimizes:
-- **Code splitting** - Separates vendor, charts, and app code
-- **Tree shaking** - Removes unused code
-- **Minification** - Compresses all assets
-- **Bundle analysis** - Monitors size growth
-
-### Deployment Optimization
-
-- **Artifact caching** - Speeds up repeated builds
-- **Parallel jobs** - Validation and building run concurrently
-- **Smart deployments** - Only deploys when necessary changes detected
-
-## 📚 Additional Resources
-
-- [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Wrangler CLI Reference](https://developers.cloudflare.com/workers/wrangler/)
-- [Project Architecture Guide](../docs/ADMIN_INTEGRATION.md)
-
-## 🤝 Contributing
-
-When contributing to the CI/CD pipeline:
-
-1. Test changes in a fork first
-2. Update this documentation for significant changes  
-3. Test both staging and production workflows
-4. Consider impact on existing deployments
+## 📚 References
+- Cloudflare Workers: https://developers.cloudflare.com/workers/
+- Wrangler: https://developers.cloudflare.com/workers/wrangler/
+- Project architecture: ../docs/ADMIN_INTEGRATION.md
 
 ---
-
-**Last Updated:** September 2025  
-**Maintainer:** SpyicyDev  
-**Status:** ✅ Production Ready
+Last updated: 2025-09
+Maintainer: SpyicyDev
+Status: ✅ Production Ready

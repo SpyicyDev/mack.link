@@ -109,18 +109,19 @@ Note: The GitHub Client ID is set as a public environment variable in `wrangler.
 
 ### Build and Deploy Worker
 
+From the project root (recommended):
 ```bash
-# Build admin UI and embed in worker
-npm run build
-
-# Deploy worker with embedded admin
-npx wrangler deploy --config wrangler.jsonc
+# Build admin UI and embed in worker, then deploy
+npm run deploy
 ```
 
-Or use the workspace command from project root:
+From the worker directory (advanced):
 ```bash
-# Deploy everything
-npm run deploy
+cd worker
+# Ensure admin assets are built and embedded
+npm run build:admin
+# Deploy worker
+npx wrangler deploy --config wrangler.jsonc
 ```
 
 ### Custom Domain (Optional)
@@ -153,9 +154,11 @@ Update your GitHub OAuth app settings:
 2. Select your OAuth app
 3. Update URLs:
    - **Homepage URL**: `https://link.mackhaymond.co/admin`
-   - **Authorization callback URL**: `https://link.mackhaymond.co/auth/callback`
+   - **Authorization callback URL**: `https://link.mackhaymond.co/admin/auth/callback`
 
-Note: The admin interface is served from the same domain as your worker at `/admin`
+Notes:
+- The admin interface is served from the same domain as your worker at `/admin`.
+- The app initiates OAuth at `/api/auth/github` and handles the callback from the admin route, which then calls `/api/auth/callback` server-side.
 
 ## 5. SSL/HTTPS Configuration
 

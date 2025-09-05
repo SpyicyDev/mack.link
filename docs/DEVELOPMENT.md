@@ -34,17 +34,18 @@ echo "your_github_client_secret" | npx wrangler secret put GITHUB_CLIENT_SECRET
 echo "your_random_jwt_secret" | npx wrangler secret put JWT_SECRET
 ```
 
-Edit `worker/wrangler.jsonc` for public configuration:
+Edit `worker/wrangler.jsonc` for public configuration (example):
 ```json
 {
   "vars": {
     "GITHUB_CLIENT_ID": "your_github_client_id",
     "AUTHORIZED_USER": "your_github_username",
-    "SESSION_COOKIE_NAME": "__Host-link_session",
+    "SESSION_COOKIE_NAME": "link_session",
     "SESSION_MAX_AGE": "28800"
   }
 }
 ```
+Note: If `SESSION_COOKIE_NAME` is omitted, the app defaults to `__Host-link_session`.
 
 ### Admin Panel Environment
 
@@ -52,7 +53,8 @@ Create `admin/.env.local` for local development:
 ```env
 VITE_API_BASE=http://localhost:8787
 VITE_WORKER_DOMAIN=localhost:8787
-VITE_GITHUB_CLIENT_ID=your_oauth_client_id
+# VITE_GITHUB_CLIENT_ID is optional for the admin build; the server drives OAuth
+# VITE_GITHUB_CLIENT_ID=your_oauth_client_id
 ```
 
 ## Local Development
@@ -69,7 +71,7 @@ npm run dev
 
 ### Option B: Start separately
 
-### Start the Worker
+#### Start the Worker
 
 ```bash
 npm -w worker run dev
@@ -80,7 +82,7 @@ This starts the worker on `http://localhost:8787` with:
 - Local D1 database (Wrangler test environment)
 - Full API endpoints available
 
-### Start the Admin Panel
+#### Start the Admin Panel
 
 ```bash
 npm -w admin run dev
@@ -105,32 +107,38 @@ This starts the React app on `http://localhost:5173` with:
 mack.link/
 ├── worker/                     # Cloudflare Worker
 │   ├── src/
-│   │   └── index.js           # Main worker script
-│   ├── test/
-│   │   └── index.spec.js      # Worker tests
-│   ├── wrangler.jsonc         # Worker config
-│   ├── package.json
-│   └── vitest.config.js       # Test config
-├── admin/                     # React admin panel
-│   ├── src/
-│   │   ├── components/        # React components
-│   │   │   ├── AuthCallback.jsx
-│   │   │   ├── CreateLinkForm.jsx
-│   │   │   ├── EditLinkModal.jsx
-│   │   │   ├── Header.jsx
-│   │   │   ├── LinkList.jsx
-│   │   │   └── LoginScreen.jsx
-│   │   ├── services/          # API services
-│   │   │   ├── api.js         # Link API client
-│   │   │   └── auth.js        # Auth service
-│   │   ├── App.jsx            # Main app component
-│   │   ├── main.jsx           # React entry point
-│   │   └── index.css          # Global styles
-│   ├── public/
-│   │   └── favicon.jpg        # Custom favicon
-│   ├── vite.config.js         # Vite config
+│   │   ├── index.js            # Worker entry
+│   │   ├── routes.js           # Router (admin/api/redirect dispatch)
+│   │   ├── routes/
+│   │   │   ├── admin.js        # Admin static serving (embedded assets)
+│   │   │   ├── routerApi.js    # /api/* router
+│   │   │   ├── routesLinks.js  # Link CRUD handlers
+│   │   │   ├── routesOAuth.js  # GitHub OAuth handlers
+│   │   │   ├── redirect.js     # Shortcode redirects
+│   │   │   └── password.js     # Password verification endpoint
+│   │   ├── analytics.js        # Analytics helpers (D1)
+│   │   ├── auth.js             # Auth/session helpers
+│   │   ├── session.js          # JWT cookie helpers
+│   │   ├── db.js               # D1 helpers
+│   │   ├── cors.js             # CORS helpers
+│   │   ├── validation.js       # Input validation
+│   │   └── logger.js           # Structured logging
+│   ├── scripts/
+│   │   └── build-admin.js      # Embed admin assets
+│   ├── wrangler.jsonc          # Worker config
 │   └── package.json
-└── docs/                      # Documentation
+├── admin/                      # React admin panel
+│   ├── src/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── providers/
+│   │   ├── services/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── public/
+│   ├── vite.config.js
+│   └── package.json
+└── docs/                       # Documentation
 ```
 
 ## Code Style
@@ -193,25 +201,25 @@ function MyComponent() {
 
 ## Testing
 
-### Worker Tests
+### What exists
+- Basic analytics tests using Node’s test runner:
+  ```bash
+  node --test worker/src/test-analytics.js
+  ```
+- Deployment validation script:
+  ```bash
+  npm run validate:local
+  ```
 
-```bash
-cd worker
-npm test
-```
-
-Tests use Vitest and cover:
-- API endpoint functionality
-- Authentication logic
-- Link management operations
-- Error handling
+Note: There is no Vitest setup in this repo. If you need full unit/integration tests, add Vitest and related config first.
 
 ### Manual Testing Checklist
 
 - [ ] OAuth login flow
 - [ ] Link creation/editing/deletion
-- [ ] Redirect functionality
-- [ ] Analytics tracking
+- [ ] Redirect functionality (including archived/scheduled)
+- [ ] Password-protected link flow
+- [ ] Analytics polling on Analytics tab
 - [ ] Error handling
 - [ ] Mobile responsiveness
 
@@ -238,10 +246,10 @@ console.log('Debug info:', data);
 
 ### Adding New API Endpoint
 
-1. Add handler function in `worker/src/index.js`
-2. Update route handling in `handleAPI`
-3. Add client method in `admin/src/services/api.js`
-4. Update TypeScript interfaces if needed
+1. Add a handler in `worker/src/routes/routesLinks.js` (or a new file under `routes/`).
+2. Register the route in `worker/src/routes/routerApi.js`.
+3. Add a client method in `admin/src/services/api.js`.
+4. Wire up a React Query hook in `admin/src/hooks/` if needed.
 
 ### Adding New UI Component
 
@@ -262,7 +270,7 @@ Before deploying to production:
 
 1. Test locally with production-like data
 2. Verify all environment variables are set
-3. Check that OAuth redirects work with production URLs
+3. Check that OAuth redirects work with production URLs (see Deployment docs)
 4. Test on different browsers and devices
 5. Monitor Cloudflare logs after deployment
 

@@ -31,9 +31,6 @@ jobs:
       - name: Endpoint health
         run: node scripts/validate-deployment.js ${{ env.PRODUCTION_URL }}
 
-      - name: Auth sanity (non-fatal)
-        run: node scripts/test-auth-live.js ${{ env.PRODUCTION_URL }}
-        continue-on-error: true
 
       - name: Summary
         run: |

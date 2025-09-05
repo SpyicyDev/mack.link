@@ -21,10 +21,11 @@ Create `admin/.env.local` for local development:
 ```
 VITE_API_BASE=http://localhost:8787
 VITE_WORKER_DOMAIN=localhost:8787
-VITE_GITHUB_CLIENT_ID=your_github_oauth_client_id
+# Optional for admin build; OAuth is server-driven
+# VITE_GITHUB_CLIENT_ID=your_github_oauth_client_id
 ```
 
 ### Production Deployment
 - Environment variables are automatically injected by CI/CD during build
-- See [../docs/GITHUB_SECRETS.md](../docs/GITHUB_SECRETS.md) for required repository secrets
+- See [../docs/GITHUB_SECRETS.md](../docs/GITHUB_SECRETS.md) for repository secrets
 - Production builds are embedded and served by the Worker at `/admin`

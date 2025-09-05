@@ -142,10 +142,10 @@ See [SETUP.md](./docs/SETUP.md) for detailed setup instructions. The admin panel
 ## 📖 Documentation
 
 - [Setup Guide](./docs/SETUP.md) - Complete deployment instructions
-- [API Documentation](./docs/API.md) - Worker API endpoints  
+- [API Documentation](./docs/API.md) - Worker API endpoints (includes pagination and analytics filters)  
 - [Development Guide](./docs/DEVELOPMENT.md) - Local development setup
-- [Deployment Guide](./docs/DEPLOYMENT.md) - Production deployment
-- [GitHub Secrets](./docs/GITHUB_SECRETS.md) - CI/CD configuration
+- [Deployment Guide](./docs/DEPLOYMENT.md) - Production deployment (OAuth callback at /admin/auth/callback)
+- [GitHub Secrets](./docs/GITHUB_SECRETS.md) - CI/CD configuration (admin build env)
 - [Architecture Decision](./docs/ADMIN_INTEGRATION.md) - Why we merged admin into worker
 
 ## 🤝 Contributing

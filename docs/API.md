@@ -88,10 +88,14 @@ Clears the session cookie.
 
 ### 🔐 Protected Endpoints
 
+Analytics endpoints support optional date range filters (`from`, `to`, ISO 8601 dates). If a `shortcode` query param is omitted, analytics are computed globally across all links.
+
 All protected endpoints require authentication and user authorization.
 
 #### `GET /api/links`
-Get links. For large datasets, use pagination with `limit` and `cursor`.
+Get links. Behavior:
+- Without query params: returns a single JSON object of all links (keyed by shortcode)
+- With `limit` and/or `cursor`: returns a paginated result
 
 **Query Parameters:**
 - `limit` (optional) Max number of items (1-1000)

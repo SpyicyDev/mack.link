@@ -9,11 +9,11 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 # Start local development server
 npm -w worker run dev
 
-# Run tests
-npm -w worker run test
+# Basic analytics tests (Node test runner)
+node --test worker/src/test-analytics.js
 
-# Run a single test by name
-npm -w worker exec npx vitest -t "pattern"
+# Validate local deployment endpoints
+npm run validate:local
 
 # Deploy to production
 npm -w worker run deploy
@@ -240,11 +240,10 @@ Note: The admin UI is served from the same origin at `/admin`, so a dedicated `M
 - `VITE_API_BASE`: Worker API base URL
 - `VITE_WORKER_DOMAIN`: Domain for shortcode redirects
 
-## Testing Strategy
+### Testing Strategy
 
-- Worker tests use Vitest with Cloudflare Workers testing utilities
-- Tests cover API endpoints, authentication logic, and database operations
-- Manual testing checklist includes OAuth flow, CRUD operations, and redirect functionality
+- Basic analytics tests: `node --test worker/src/test-analytics.js`
+- Manual testing checklist includes OAuth flow, CRUD operations, password-protected links, and redirect functionality
 - Use `npx wrangler tail` for real-time log debugging
 - Analytics unit tests in `src/test-analytics.js` verify UTM parsing and bot detection
 - Migration script `src/migrate-analytics.sql` reconciles data inconsistencies
@@ -292,11 +291,11 @@ npx wrangler d1 execute mack-link --remote --command "SELECT shortcode, COUNT(*)
 - Use Cloudflare Analytics for worker request patterns and errors
 - Check scheduled and password-protected link performance
 
-## Keyboard Shortcuts
+### Keyboard Shortcuts
 
 The admin interface supports the following keyboard shortcuts:
 
 - `Ctrl/Cmd + N`: Create new link
 - `Ctrl/Cmd + K` or `/`: Focus search
 - `Escape`: Close modal or clear search
-- `Ctrl/Cmd + /`: Show keyboard shortcuts help
+- `Ctrl/Cmd + /`: Reserved for keyboard shortcuts help (UI TBD)
