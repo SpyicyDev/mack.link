@@ -298,4 +298,4 @@ The admin interface supports the following keyboard shortcuts:
 - `Ctrl/Cmd + N`: Create new link
 - `Ctrl/Cmd + K` or `/`: Focus search
 - `Escape`: Close modal or clear search
-- `Ctrl/Cmd + /`: Reserved for keyboard shortcuts help (UI TBD)
+- `Ctrl/Cmd + /`: Show keyboard shortcuts help

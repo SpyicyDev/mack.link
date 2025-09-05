@@ -7,13 +7,14 @@ import { Analytics } from './components/Analytics'
 import { LoginScreen } from './components/LoginScreen'
 import { authService } from './services/auth'
 import { Plus, HelpCircle, BarChart3, Link as LinkIcon } from 'lucide-react'
-import {
+import { 
   ErrorBoundary,
   ErrorMessage,
   PageLoader,
   LinkListSkeleton,
   SearchSkeleton,
   BulkToolbarSkeleton,
+  KeyboardShortcutsModal,
 } from './components/ui'
 import {
   useLinks,
@@ -28,7 +29,7 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 function App() {
   const [filteredLinks, setFilteredLinks] = useState({})
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [_showKeyboardHelp, _setShowKeyboardHelp] = useState(false)
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated())
   const [currentView, setCurrentView] = useState('links') // 'links' or 'analytics'
   const searchInputRef = useRef(null)
@@ -105,9 +106,9 @@ function App() {
     '/': () => searchInputRef.current?.focus(),
     escape: () => {
       setShowCreateForm(false)
-      _setShowKeyboardHelp(false)
+      setShowKeyboardHelp(false)
     },
-    'mod+/': () => _setShowKeyboardHelp(true),
+    'mod+/': () => setShowKeyboardHelp(true),
   })
 
   // Show login screen if not authenticated
@@ -260,6 +261,7 @@ function App() {
             <Plus className="w-5 h-5" />
           </button>
         </main>
+        <KeyboardShortcutsModal isOpen={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
       </div>
     </ErrorBoundary>
   )

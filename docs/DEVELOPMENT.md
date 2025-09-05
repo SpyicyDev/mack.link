@@ -40,7 +40,7 @@ Edit `worker/wrangler.jsonc` for public configuration (example):
   "vars": {
     "GITHUB_CLIENT_ID": "your_github_client_id",
     "AUTHORIZED_USER": "your_github_username",
-    "SESSION_COOKIE_NAME": "link_session",
+    "SESSION_COOKIE_NAME": "__Host-link_session",
     "SESSION_MAX_AGE": "28800"
   }
 }

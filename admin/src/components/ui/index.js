@@ -12,3 +12,4 @@ export {
   CreateFormSkeleton,
   BulkToolbarSkeleton 
 } from './Skeleton'
+export { KeyboardShortcutsModal } from './KeyboardShortcutsModal'

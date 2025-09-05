@@ -65,7 +65,7 @@ This matches worker/wrangler.jsonc in the repo (values are examples):
 ```
 
 Notes
-- The application supports a default cookie name of "__Host-link_session" if SESSION_COOKIE_NAME is omitted; the current config sets it explicitly to "link_session".
+- The application supports a default cookie name of "__Host-link_session". The current config explicitly sets it to "__Host-link_session".
 - Secrets GITHUB_CLIENT_SECRET and JWT_SECRET are supplied at deploy time by the workflow.
 
 ## 🧪 Local test/validation
