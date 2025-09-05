@@ -5,7 +5,6 @@ import { handleGitHubAuth, handleGitHubCallback } from './routesOAuth.js';
 import { getTimeseries, getTimeseriesByLinks, getBreakdown, getOverview, exportAnalytics } from '../analytics.js';
 import { handlePasswordVerification } from './password.js';
 import { getReservedPathsList } from '../reservedPaths.js';
-import { getProfile, updateProfile, listProfileLinks, createProfileLink, updateProfileLink, deleteProfileLink, reorderProfileLinks } from './routesProfile.js';
 
 export async function handleAPI(request, env, requestLogger) {
 	const url = new URL(request.url);
@@ -31,22 +30,6 @@ export async function handleAPI(request, env, requestLogger) {
 	// Protected endpoints - auth required
 	const authResult = await requireAuth(env, request);
 	if (authResult instanceof Response) return authResult;
-
-	// Profile endpoints (protected)
-	if (path === '/api/profile') {
-		if (method === 'GET') return await getProfile(env, request);
-		if (method === 'PUT') return await updateProfile(env, request);
-	}
-	if (path === '/api/profile/links') {
-		if (method === 'GET') return await listProfileLinks(env, request);
-		if (method === 'POST') return await createProfileLink(env, request);
-		if (method === 'PUT') return await reorderProfileLinks(env, request);
-	}
-	if (path.startsWith('/api/profile/links/')) {
-		const id = parseInt(path.split('/')[4] || '0', 10);
-		if (method === 'PUT') return await updateProfileLink(env, request, id);
-		if (method === 'DELETE') return await deleteProfileLink(env, request, id);
-	}
 
 	// Analytics endpoints (protected)
 	if (path.startsWith('/api/analytics/')) {

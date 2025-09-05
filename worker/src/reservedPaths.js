@@ -32,7 +32,6 @@ const CORE_RESERVED = [
 	'assets',   // Static assets
 	'static',   // Static files
 	'public',   // Public files
-	'profile',  // Public profile routes (linktree tracked clicks)
 	
 	// System/technical paths
 	'root',     // System root

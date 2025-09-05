@@ -3,7 +3,7 @@ import { json } from './utils.js';
 import { handleRedirect } from './routes/redirect.js';
 import { handleAPI } from './routes/routerApi.js';
 import { handleAdmin } from './routes/admin.js';
-import { handleLinktree, handleProfileClick } from './routes/linktree.js';
+import { authenticateRequest } from './auth.js';
 
 export async function handleRequest(request, env, requestLogger, ctx) {
 	const url = new URL(request.url);
@@ -21,19 +21,27 @@ export async function handleRequest(request, env, requestLogger, ctx) {
 		return await handleAdmin(request, env, requestLogger);
 	}
 
-	// Linktree tracked clicks
-	if (url.pathname.startsWith('/profile/c/')) {
-		return await handleProfileClick(request, env);
-	}
-
-	// Root route: serve linktree page
+	// Check if user is authenticated for root route
 	if (url.pathname === '/' || url.pathname === '') {
-		return await handleLinktree(request, env, requestLogger);
+		const cookieHeader = request.headers.get('Cookie') || '';
+		requestLogger.info('Root route access attempt', { cookieHeader, pathname: url.pathname });
+		
+		const user = await authenticateRequest(env, request);
+		if (user) {
+			// User is authenticated, redirect to admin panel
+			requestLogger.info('Redirecting authenticated user to admin panel', { user: user.login, cookieHeader });
+			return withCors(env, new Response(null, { 
+				status: 302, 
+				headers: { 'Location': '/admin' } 
+			}), request);
+		} else {
+			requestLogger.info('No authentication found, serving homepage', { cookieHeader });
+		}
 	}
 
 	const redirectResponse = await handleRedirect(request, env, requestLogger, ctx);
 	if (redirectResponse) return redirectResponse;
-	return await handleLinktree(request, env, requestLogger);
+	return withCors(env, new Response(renderHomeHtml(), { headers: { 'Content-Type': 'text/html; charset=utf-8' } }), request);
 }
 
 function renderHomeHtml() {
