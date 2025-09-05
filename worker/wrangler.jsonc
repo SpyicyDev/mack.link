@@ -10,15 +10,13 @@
 	"observability": {
 		"enabled": true,
 	},
-
 	"d1_databases": [
 		{
 			"binding": "DB",
 			"database_name": "mack-link",
-			"database_id": "ca5c3b4a-0a9e-4b49-bb14-4435eed0ecb3",
-		},
+			"database_id": "359a73e4-5445-41d3-ab10-2dc6f3bbc2f1"
+		}
 	],
-
 	"vars": {
 		"GITHUB_CLIENT_ID": "Ov23liS0CpATewxLcycF",
 		"AUTHORIZED_USER": "SpyicyDev",
