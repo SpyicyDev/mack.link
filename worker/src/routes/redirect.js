@@ -1,6 +1,6 @@
 import { logger } from '../logger.js';
 import { withCors } from '../cors.js';
-import { recordClick } from '../analytics.js';
+import { recordClick, getAnalyticsStatements } from '../analytics.js';
 import { dbGet, dbRun } from '../db.js';
 import { verifyPasswordSession, renderPasswordPrompt } from './password.js';
 
@@ -71,19 +71,41 @@ export async function handleRedirect(request, env, requestLogger = logger, ctx) 
 	const ua = request.headers.get('User-Agent') || '';
 	const method = request.method || 'GET';
 	const isBot =
-		/(bot|spider|crawler|preview|facebookexternalhit|slackbot|discordbot|twitterbot|linkedinbot|embedly|quora link|whatsapp|skypeuripreview)/i.test(
+		/(bot|spider|crawler|preview|facebookexternalhit|slackbot|discordbot|twitterbot|linkedinbot|embedly|quora link|whatsapp|skypeuripreview|googlebot|bingbot|yahoobot|duckduckbot|baiduspider|yandexbot|applebot|pinterestrequestinfobot|telegrambot|bitlybot|zoom|msteamsbot)/i.test(
 			ua,
 		);
 	const isHead = method === 'HEAD';
 	if (!isBot && !isHead) {
-		const now = new Date().toISOString();
-		await dbRun(env, `UPDATE links SET clicks = COALESCE(clicks,0) + 1, last_clicked = ? WHERE shortcode = ?`, [now, shortcode]);
-		// Record analytics breakdowns
-		const recordPromise = recordClick(env, request, shortcode, link.url);
-		// If runtime context available, run in background
+		// Record click and analytics transactionally to prevent data inconsistency
 		try {
-			ctx && typeof ctx.waitUntil === 'function' ? ctx.waitUntil(recordPromise) : await recordPromise;
-		} catch {}
+			const now = new Date().toISOString();
+			const updateLinkStatement = {
+				sql: `UPDATE links SET clicks = COALESCE(clicks,0) + 1, last_clicked = ? WHERE shortcode = ?`,
+				bindings: [now, shortcode]
+			};
+			
+			// Get analytics statements and combine with link update
+			const analyticsStatements = await getAnalyticsStatements(env, request, shortcode, link.url, requestLogger);
+			const allStatements = [updateLinkStatement, ...analyticsStatements];
+			
+			// Execute all statements in a single transaction
+			const transactionPromise = env.DB.batch(allStatements.map(stmt => 
+				env.DB.prepare(stmt.sql).bind(...(stmt.bindings || []))
+			));
+			
+			// If runtime context available, run in background
+			if (ctx && typeof ctx.waitUntil === 'function') {
+				ctx.waitUntil(transactionPromise);
+			} else {
+				await transactionPromise;
+			}
+		} catch (error) {
+			requestLogger.error('Failed to record click and analytics', {
+				shortcode,
+				error: error.message
+			});
+			// Continue with redirect even if analytics fail
+		}
 	}
 	requestLogger.info('Link redirected', {
 		shortcode,
