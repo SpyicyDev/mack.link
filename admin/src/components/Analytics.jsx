@@ -541,7 +541,7 @@ export function Analytics({ links, currentView }) {
                     },
                   },
                 }}
-                height={260}
+                height={220}
               />
             ) : ts?.points?.length ? (
               <Line
