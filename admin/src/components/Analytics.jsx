@@ -513,14 +513,13 @@ export function Analytics({ links, currentView }) {
                       label: s.shortcode,
                       data: s.values,
                       borderColor: `rgb(${r}, ${g}, ${b})`,
-                      backgroundColor: `rgba(${r}, ${g}, ${b}, 0.35)`,
+                      backgroundColor: `rgba(${r}, ${g}, ${b}, 0.22)`,
                       borderWidth: 2,
                       tension: 0.25,
                       fill: true,
                       pointRadius: 0,
                       pointHitRadius: 6,
                       pointHoverRadius: 3,
-                      stack: 'clicks',
                     }
                   }),
                 }}
@@ -533,12 +532,10 @@ export function Analytics({ links, currentView }) {
                   layout: { padding: { top: 8, right: 12, bottom: 28, left: 8 } },
                   scales: {
                     x: {
-                      stacked: true,
                       grid: { display: false },
                       ticks: { autoSkip: true, maxTicksLimit: 8, maxRotation: 0 },
                     },
                     y: {
-                      stacked: true,
                       beginAtZero: true,
                       grid: { color: 'rgba(148,163,184,0.2)' },
                     },
