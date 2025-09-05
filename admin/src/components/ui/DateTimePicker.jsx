@@ -124,7 +124,7 @@ export function DateTimePicker({ name, value, onChange, placeholder = 'Select da
         >
           <div className="flex">
             {/* Calendar Section */}
-            <div className="p-3">
+            <div className="p-4">
               <DayPicker
                 mode="single"
                 selected={selected ?? undefined}
@@ -134,12 +134,18 @@ export function DateTimePicker({ name, value, onChange, placeholder = 'Select da
                 weekStartsOn={0}
                 className="rdp"
                 captionLayout="dropdown"
+                formatters={{
+                  formatWeekdayName: (weekday) => {
+                    const names = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+                    return names[weekday.getDay()]
+                  }
+                }}
               />
             </div>
             
             {/* Time Section */}
             <div className="border-l border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
-              <div className="flex h-full min-w-[140px] flex-col p-3">
+              <div className="flex h-full min-w-[160px] flex-col p-4">
                 <div className="mb-3">
                   <label className="mb-2 block text-xs font-medium text-gray-700 dark:text-gray-300">
                     Time
