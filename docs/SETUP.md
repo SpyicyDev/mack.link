@@ -23,8 +23,8 @@ cd mack.link
 2. Click "New OAuth App"
 3. Fill in details:
    - **Application name**: `Your Domain Link Manager`
-   - **Homepage URL**: `https://your-management-domain.com`
-   - **Authorization callback URL**: `https://your-management-domain.com/auth/callback`
+   - **Homepage URL**: `https://your-worker-domain.com/admin`
+   - **Authorization callback URL**: `https://your-worker-domain.com/auth/callback`
 4. Save the **Client ID** and **Client Secret**
 
 ## 3. Configure Cloudflare Worker
@@ -41,7 +41,8 @@ Edit `wrangler.jsonc`:
   "vars": {
     "GITHUB_CLIENT_ID": "your_github_client_id",
     "AUTHORIZED_USER": "your_github_username",
-    "MANAGEMENT_ORIGIN": "http://localhost:5173"
+    "SESSION_COOKIE_NAME": "__Host-link_session",
+    "SESSION_MAX_AGE": "28800"
   }
 }
 ```
@@ -65,14 +66,7 @@ Add a JWT secret for session cookies:
 echo "your_random_jwt_secret" | npx wrangler secret put JWT_SECRET
 ```
 
-Ensure CORS allowlist is set in wrangler.jsonc vars (single or comma-separated origins):
-```json
-{
-  "vars": {
-    "MANAGEMENT_ORIGIN": "https://your-management-domain.com,http://localhost:5173"
-  }
-}
-```
+Note: Because the admin UI is served from the same origin (`/admin`), a CORS allowlist is not required for the management UI.
 
 ## 4. Deploy Worker
 
@@ -101,34 +95,25 @@ VITE_WORKER_DOMAIN=your-worker-domain.com
 VITE_GITHUB_CLIENT_ID=your_github_oauth_client_id
 ```
 
-## 6. Deploy Management Panel
+## 6. Deploy Worker (with embedded Admin)
 
-### Option A: Cloudflare Pages (Recommended)
-
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. Navigate to Pages → "Connect to Git"
-3. Select your repository
-4. Configure:
-   - **Framework**: React
-   - **Build command**: `npm run build`
-   - **Build directory**: `dist`
-- **Root directory**: `admin`
-5. Add environment variables:
-   - `VITE_API_BASE=https://your-worker-domain.com`
-6. Deploy!
-
-### Option B: Manual Deploy
+The admin panel is embedded and served by the Worker at `/admin`. Deploy the Worker and you’re done:
 
 ```bash
-npm run build
-npx wrangler pages deploy dist
+# From the repo root
+npm run build                  # Builds admin and embeds assets into the worker
+npm -w worker run deploy       # Deploys the worker to Cloudflare Workers
+```
+
+Alternatively, deploy directly with Wrangler from the worker directory:
+
+```bash
+npx wrangler deploy --config worker/wrangler.jsonc
 ```
 
 ## 7. Configure DNS
 
-If using custom domains:
-1. Point your short domain to Cloudflare Workers
-2. Point your admin domain to Cloudflare Pages
+If using a custom domain, point it to Cloudflare Workers. The admin UI will be available at `/admin` on the same domain.
 
 ## 8. Test Everything
 
@@ -173,7 +158,7 @@ Edit Tailwind classes in React components or modify `admin/src/index.css`.
 
 1. **OAuth not working**: Check callback URLs match exactly
 2. **Worker not deploying**: Ensure wrangler is authenticated
-3. **KV errors**: Verify namespace binding is correct
+3. **D1 errors**: Verify database binding and schema are correct
 4. **CORS issues**: Check API_BASE environment variable
 
 **Getting Help:**

@@ -30,7 +30,7 @@ npm -w worker run db:apply:local
 The worker uses `wrangler.jsonc` for configuration. For local development secrets:
 ```bash
 # Set secrets via Wrangler (for local development)
-echo "your_oauth_client_secret" | npx wrangler secret put OAUTH_CLIENT_SECRET
+echo "your_github_client_secret" | npx wrangler secret put GITHUB_CLIENT_SECRET
 echo "your_random_jwt_secret" | npx wrangler secret put JWT_SECRET
 ```
 
@@ -38,9 +38,10 @@ Edit `worker/wrangler.jsonc` for public configuration:
 ```json
 {
   "vars": {
-    "GITHUB_CLIENT_ID": "your_oauth_client_id",
+    "GITHUB_CLIENT_ID": "your_github_client_id",
     "AUTHORIZED_USER": "your_github_username",
-    "MANAGEMENT_ORIGIN": "http://localhost:5173"
+    "SESSION_COOKIE_NAME": "__Host-link_session",
+    "SESSION_MAX_AGE": "28800"
   }
 }
 ```

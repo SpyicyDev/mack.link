@@ -67,13 +67,14 @@ Access:
 
 ## Architecture Overview
 
-This is a two-part URL shortener system built on Cloudflare's edge platform:
+This project runs as a single Cloudflare Worker that also serves an embedded React admin panel:
 
 ### Core Components
 
 **Cloudflare Worker** (`/worker/`)
 - **Entry Point**: `src/index.js` - Main worker with request lifecycle management
-- **Routing**: `src/routes.js` handles request dispatching between redirects and API
+- **Admin UI**: `src/routes/admin.js` serves the embedded React app at `/admin` using assets from `src/admin-assets.js`
+- **Routing**: `src/routes.js` handles request dispatching between admin, redirects, and API
 - **Authentication**: `src/auth.js` manages GitHub OAuth and session verification
 - **Database**: `src/db.js` abstracts Cloudflare D1 operations for link storage
 - **API Router**: `src/routes/routerApi.js` handles all `/api/*` endpoints
@@ -145,7 +146,10 @@ This is a two-part URL shortener system built on Cloudflare's edge platform:
 - `GITHUB_CLIENT_SECRET`: OAuth application secret (via `wrangler secret put`)
 - `JWT_SECRET`: Secret used to sign session JWT cookies (via `wrangler secret put`)
 - `AUTHORIZED_USER`: GitHub username allowed to access the system
-- `MANAGEMENT_ORIGIN`: CORS allowlist for management UI origins
+- `SESSION_COOKIE_NAME` (optional): Name of the session cookie (default `__Host-link_session`)
+- `SESSION_MAX_AGE` (optional): Session lifetime in seconds (default `28800`)
+
+Note: The admin UI is served from the same origin at `/admin`, so a dedicated `MANAGEMENT_ORIGIN` is no longer required.
 
 ### Required Environment Variables (Admin)
 - `VITE_API_BASE`: Worker API base URL
@@ -161,6 +165,6 @@ This is a two-part URL shortener system built on Cloudflare's edge platform:
 ## Deployment Notes
 
 - Worker deploys via `wrangler deploy` to Cloudflare Workers
-- Management panel deploys to Cloudflare Pages
+- Management panel is embedded and served by the Worker at `/admin`
 - D1 database migrations handled through Wrangler CLI
 - Environment variables must be set in Cloudflare Dashboard for production

@@ -70,7 +70,7 @@ A personal URL shortener built with Cloudflare Workers and React, featuring GitH
 
 - **User Authentication**: GitHub OAuth integration
 - **Access Control**: Restricted to authorized users only
-- **API Protection**: Bearer token verification on all endpoints
+- **API Protection**: HttpOnly session cookies with server-side verification (Bearer tokens still supported for backward compatibility)
 - **CORS Policy**: Configured for secure cross-origin requests
 
 ## 🛠 Tech Stack

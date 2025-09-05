@@ -276,16 +276,16 @@ interface User {
 
 ## Rate Limits
 
-Cloudflare Free Tier limits:
-- **100,000 requests/day** total
-- **1,000 KV writes/day** (creating/updating links)
-- **100,000 KV reads/day** (getting links, redirects)
+Refer to Cloudflare’s current limits for Workers and D1. Actual quotas vary by plan and are subject to change. For most personal projects on free tiers, this application will comfortably operate within default limits.
 
 ## CORS
 
-All API endpoints include CORS headers. In production, the worker echoes the request Origin if it matches the allowlist configured via `MANAGEMENT_ORIGIN` (single origin or comma‑separated list). `Vary: Origin` and `Access-Control-Allow-Credentials: true` are included to support cookie-based auth. Example headers:
+- Admin routes under `/admin` are same-origin and do not require CORS.
+- API routes include permissive CORS headers: the worker echoes the request `Origin` when present (or `*`), allows credentials, and sets `Vary: Origin`.
+
+Example headers:
 ```
-Access-Control-Allow-Origin: https://link-admin.example.com
+Access-Control-Allow-Origin: https://your-site.example
 Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 Access-Control-Allow-Headers: Content-Type, Authorization
 Access-Control-Allow-Credentials: true
