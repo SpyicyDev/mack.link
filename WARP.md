@@ -29,6 +29,12 @@ npm -w worker run db:apply:local
 
 # Apply D1 schema to production
 npm -w worker run db:apply
+
+# Reconcile analytics data inconsistencies
+npx wrangler d1 execute mack-link --file src/migrate-analytics.sql --remote
+
+# Run basic analytics tests
+node --test src/test-analytics.js
 ```
 
 ### Admin Panel Development
@@ -161,6 +167,8 @@ Note: The admin UI is served from the same origin at `/admin`, so a dedicated `M
 - Tests cover API endpoints, authentication logic, and database operations
 - Manual testing checklist includes OAuth flow, CRUD operations, and redirect functionality
 - Use `npx wrangler tail` for real-time log debugging
+- Analytics unit tests in `src/test-analytics.js` verify UTM parsing and bot detection
+- Migration script `src/migrate-analytics.sql` reconciles data inconsistencies
 
 ## Deployment Notes
 
@@ -168,3 +176,34 @@ Note: The admin UI is served from the same origin at `/admin`, so a dedicated `M
 - Management panel is embedded and served by the Worker at `/admin`
 - D1 database migrations handled through Wrangler CLI
 - Environment variables must be set in Cloudflare Dashboard for production
+
+## Analytics Monitoring
+
+### Error Monitoring
+```bash
+# Monitor analytics errors in real-time
+npx wrangler tail --format pretty | grep -i "analytics"
+
+# Check for specific error patterns
+npx wrangler tail --format pretty | grep -E "(Analytics.*failed|statement.*failed)"
+```
+
+### Data Consistency Checks
+```bash
+# Check analytics counter consistency
+npx wrangler d1 execute mack-link --remote --command "SELECT 
+    'Links total' as source, SUM(clicks) as count FROM links WHERE archived=0
+UNION ALL
+    SELECT 'Analytics counter' as source, value as count FROM counters WHERE name='analytics:_all:totalClicks'
+UNION ALL
+    SELECT 'Analytics daily total' as source, SUM(clicks) as count FROM analytics_day WHERE scope='_all';"
+
+# Verify UTM tracking is working
+npx wrangler d1 execute mack-link --remote --command "SELECT dimension, key, clicks FROM analytics_agg WHERE dimension LIKE 'utm_%' ORDER BY clicks DESC LIMIT 10;"
+```
+
+### Performance Metrics
+- Monitor `counters` table growth for traffic trends
+- Check `analytics_day` for daily click patterns  
+- Review `analytics_agg` for top referrers and UTM performance
+- Use Cloudflare Analytics for worker request patterns and errors
