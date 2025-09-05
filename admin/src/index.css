@@ -140,11 +140,15 @@ html.dark {
   max-width: 350px;
 }
 
-/* Dark mode calendar */
-:where(.dark *) .date-picker-calendar {
-  border-color: rgb(75 85 99); /* gray-600 */
-  background-color: rgb(55 65 81); /* gray-700 */
+/* DayPicker dark mode adjustments */
+:where(.dark *) .rdp {
+  --rdp-accent-color: rgb(59 130 246);
+  --rdp-background-color: rgb(55 65 81);
+  --rdp-outline-selected: 2px solid rgb(59 130 246);
   color: white;
+}
+:where(.dark *) .rdp .rdp-day:hover {
+  background-color: rgb(75 85 99);
 }
 
 /* Calendar header */

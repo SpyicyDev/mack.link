@@ -1,31 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { X } from 'lucide-react'
+import { DateTimePicker } from './ui'
 import { workerHost } from '../services/links'
 
 export function EditLinkModal({ link, onSave, onClose }) {
-  // Helper to convert ISO -> value accepted by <input type="datetime-local">
-  const toLocalInput = (iso) => {
-    if (!iso) return ''
-    try {
-      const d = new Date(iso)
-      if (isNaN(d.getTime())) return ''
-      // Adjust to local and trim seconds
-      const tzOffset = d.getTimezoneOffset()
-      const local = new Date(d.getTime() - tzOffset * 60000)
-      return local.toISOString().slice(0, 16)
-    } catch {
-      return ''
-    }
-  }
-
   const initial = useMemo(() => ({
     url: link.url || '',
     description: link.description || '',
     redirectType: link.redirectType || 301,
     tags: Array.isArray(link.tags) ? link.tags : [],
     archived: !!link.archived,
-    activatesAt: toLocalInput(link.activatesAt),
-    expiresAt: toLocalInput(link.expiresAt),
+    activatesAt: link.activatesAt || '',
+    expiresAt: link.expiresAt || '',
     password: '',
     passwordProtectionEnabled: !!link.passwordEnabled,
   }), [link])
@@ -246,14 +232,14 @@ export function EditLinkModal({ link, onSave, onClose }) {
               >
                 Activates At (optional)
               </label>
-              <input
-                type="datetime-local"
-                name="activatesAt"
-                id="activatesAt"
-                value={formData.activatesAt}
-                onChange={handleChange}
-                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
+              <div className="mt-1">
+                <DateTimePicker
+                  name="activatesAt"
+                  value={formData.activatesAt}
+                  onChange={handleChange}
+                  placeholder="Select activation date and time"
+                />
+              </div>
             </div>
             <div>
               <label
@@ -262,14 +248,14 @@ export function EditLinkModal({ link, onSave, onClose }) {
               >
                 Expires At (optional)
               </label>
-              <input
-                type="datetime-local"
-                name="expiresAt"
-                id="expiresAt"
-                value={formData.expiresAt}
-                onChange={handleChange}
-                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
+              <div className="mt-1">
+                <DateTimePicker
+                  name="expiresAt"
+                  value={formData.expiresAt}
+                  onChange={handleChange}
+                  placeholder="Select expiration date and time"
+                />
+              </div>
             </div>
           </div>
 
