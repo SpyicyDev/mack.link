@@ -40,39 +40,4 @@ class LinkAPI {
   }
 }
 
-class ProfileAPI {
-  async getProfile() {
-    return await http.get('/api/profile');
-  }
-  async updateProfile(updates) {
-    return await http.put('/api/profile', updates);
-  }
-  async listLinks() {
-    return await http.get('/api/profile/links');
-  }
-  async createLink({ title, url, icon = '', isVisible = true }) {
-    return await http.post('/api/profile/links', {
-      title,
-      url,
-      icon,
-      is_visible: isVisible ? 1 : 0,
-    });
-  }
-  async updateLink(id, updates) {
-    const body = { ...updates };
-    if (typeof body.isVisible === 'boolean') {
-      body.is_visible = body.isVisible ? 1 : 0;
-      delete body.isVisible;
-    }
-    return await http.put(`/api/profile/links/${id}`, body);
-  }
-  async deleteLink(id) {
-    return await http.delete(`/api/profile/links/${id}`);
-  }
-  async reorderLinks(orderIds) {
-    return await http.put('/api/profile/links', { order: orderIds });
-  }
-}
-
 export const linkAPI = new LinkAPI();
-export const profileAPI = new ProfileAPI();

@@ -6,8 +6,7 @@ import { Header } from './components/Header'
 import { Analytics } from './components/Analytics'
 import { LoginScreen } from './components/LoginScreen'
 import { authService } from './services/auth'
-import { Plus, HelpCircle, BarChart3, Link as LinkIcon, User } from 'lucide-react'
-import ProfileTab from './components/ProfileTab'
+import { Plus, HelpCircle, BarChart3, Link as LinkIcon } from 'lucide-react'
 import { 
   ErrorBoundary,
   ErrorMessage,
@@ -32,7 +31,7 @@ function App() {
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated())
-  const [currentView, setCurrentView] = useState('links') // 'links' | 'analytics' | 'profile'
+  const [currentView, setCurrentView] = useState('links') // 'links' or 'analytics'
   const searchInputRef = useRef(null)
 
   // Check if analytics polling should be active
@@ -108,12 +107,10 @@ function App() {
     // Focus app search instead of browser Find
     'mod+f': () => searchInputRef.current?.focus(),
     // Quick tab switching (note: browsers may reserve Cmd+1/2). Also support Alt+1/2 as fallback.
-'mod+1': () => setCurrentView('links'),
+    'mod+1': () => setCurrentView('links'),
     'mod+2': () => setCurrentView('analytics'),
-    'mod+3': () => setCurrentView('profile'),
     'alt+1': () => setCurrentView('links'),
     'alt+2': () => setCurrentView('analytics'),
-    'alt+3': () => setCurrentView('profile'),
     // Open shortcuts help
     'mod+/': () => setShowKeyboardHelp(true),
     'shift+?': () => setShowKeyboardHelp(true),
@@ -236,17 +233,6 @@ function App() {
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Analytics
               </button>
-              <button
-                onClick={() => setCurrentView('profile')}
-                className={`${
-                  currentView === 'profile'
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-                } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center transition-colors`}
-              >
-                <User className="w-4 h-4 mr-2" />
-                Profile
-              </button>
             </nav>
           </div>
 
@@ -268,10 +254,8 @@ function App() {
                 onBulkDelete={handleBulkDeleteLinks}
               />
             </>
-          ) : currentView === 'analytics' ? (
-            <Analytics links={links} currentView={currentView} />
           ) : (
-            <ProfileTab />
+            <Analytics links={links} currentView={currentView} />
           )}
 
           {showCreateForm && (
