@@ -1,4 +1,4 @@
-import { Link as LinkIcon, LogOut, Moon, Sun, HelpCircle } from 'lucide-react'
+import { Link as LinkIcon, LogOut, Moon, Sun, Keyboard } from 'lucide-react'
 import { authService } from '../services/auth'
 import { useTheme } from '../providers/ThemeProvider'
 
@@ -30,7 +30,7 @@ export function Header({ onShowShortcuts = () => {} }) {
               aria-label="Show keyboard shortcuts (Ctrl/Cmd + /)"
               title="Keyboard shortcuts (Ctrl/Cmd + /)"
             >
-              <HelpCircle className="w-5 h-5" />
+              <Keyboard className="w-5 h-5" />
             </button>
             <button
               onClick={toggleTheme}
