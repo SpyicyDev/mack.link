@@ -182,9 +182,10 @@ html.dark {
   border-radius: 0.5rem;
   border: 1px solid rgb(229 231 235);
   background-color: transparent;
-  color: rgb(107 114 128);
+  color: rgb(156 163 175);
   transition: all 0.2s ease-in-out;
 }
+.rdp-nav_button svg { width: 1rem; height: 1rem; }
 
 .rdp-nav_button:hover {
   background-color: rgb(243 244 246);
@@ -216,6 +217,16 @@ html.dark {
   text-align: center;
   color: rgb(107 114 128);
   width: var(--rdp-cell-size);
+}
+/* Ensure weekday labels occupy equal width and remove abbr underline */
+.rdp-head_cell abbr[title] {
+  display: inline-flex;
+  width: var(--rdp-cell-size);
+  height: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-bottom: none;
 }
 
 /* Day cells */
