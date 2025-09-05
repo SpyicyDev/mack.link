@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useProfile, useUpdateProfile, useProfileLinks, useCreateProfileLink, useDeleteProfileLink, useReorderProfileLinks } from '../hooks/useProfile'
 import { Plus, Trash2, ArrowUp, ArrowDown, Save } from 'lucide-react'
 
@@ -20,15 +20,26 @@ export default function ProfileTab() {
     custom_css: profile.custom_css || '',
   })
 
-  // keep form in sync when profile loads
-  useMemo(() => {
-    setForm({
+  // keep form in sync when profile loads/changes
+  useEffect(() => {
+    const next = {
       title: profile.title || '',
       description: profile.description || '',
       avatar_url: profile.avatar_url || '',
       background_type: profile.background_type || 'gradient',
       background_value: profile.background_value || 'blue-purple',
       custom_css: profile.custom_css || '',
+    }
+    // Only update if something actually changed to avoid unnecessary re-renders
+    setForm((prev) => {
+      const same =
+        prev.title === next.title &&
+        prev.description === next.description &&
+        prev.avatar_url === next.avatar_url &&
+        prev.background_type === next.background_type &&
+        prev.background_value === next.background_value &&
+        prev.custom_css === next.custom_css
+      return same ? prev : next
     })
   }, [profile])
 
