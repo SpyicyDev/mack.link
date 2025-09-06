@@ -67,7 +67,7 @@ function renderHomeHtml() {
     p.sub{margin:0;color:var(--muted)}
     a.btn{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:var(--text);padding:12px 16px;border-radius:12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.2s ease}
     a.btn:hover{border-color:rgba(96,165,250,.7);box-shadow:0 0 0 4px var(--ring)}
-    a.btn.small{padding:10px 14px;font-size:14px}
+    a.btn.small{height:40px;padding:0 14px;font-size:14px}
     .icon-btn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);border-radius:12px;color:var(--text);transition:.2s ease;text-decoration:none}
     .icon-btn:hover{border-color:rgba(96,165,250,.7);box-shadow:0 0 0 4px var(--ring)}
     .icon{width:20px;height:20px;display:block;fill:currentColor}
