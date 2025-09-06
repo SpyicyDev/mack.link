@@ -4,6 +4,16 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Development Commands
 
+### Script Overview (updated)
+- Build (admin + embed into worker): `npm run build`
+- Deploy (build + wrangler deploy): `npm run deploy`
+- Dev (two terminals recommended):
+  - Terminal 1: `npm -w worker run dev` (builds admin, embeds, then runs wrangler dev)
+  - Terminal 2: `npm -w admin run dev` (Vite dev server at http://localhost:5173)
+- Validate local: `npm run validate:local` (requires the worker dev server running)
+- Validate prod: `npm run validate:prod`
+- Maintenance: `npm run maintenance` (audit → build → validate prod)
+
 ### Worker Development
 ```bash
 # Start local development server
