@@ -4,41 +4,54 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Development Commands
 
-### Script Overview (updated)
-- Build (admin + embed into worker): `npm run build`
-- Deploy (build + wrangler deploy): `npm run deploy`
-- Dev (two terminals recommended):
-  - Terminal 1: `npm -w worker run dev` (builds admin, embeds, then runs wrangler dev)
-  - Terminal 2: `npm -w admin run dev` (Vite dev server at http://localhost:5173)
-- Validate local: `npm run validate:local` (requires the worker dev server running)
-- Validate prod: `npm run validate:prod`
+### Script Overview (root-first)
+- Dev (long-running):
+  - Start both: `npm run dev`
+  - Worker only: `npm run dev:worker`
+  - Admin only: `npm run dev:admin`
+  - Fast worker (skip pre-embed): `npm run dev:worker:fast`
+- Build: `npm run build` (admin → embed → worker)
+- Deploy: `npm run deploy`
+- Validate: `npm run validate:local` | `npm run validate:prod` | `npm run validate:url --url="https://staging.example.com"`
+- Database:
+  - Apply schema (local): `npm run db:apply:local`
+  - Apply schema (prod): `npm run db:apply:prod`
+  - Reconcile analytics (local|prod): `npm run db:reconcile:analytics:local` | `npm run db:reconcile:analytics:prod`
+  - One-off query: `npm run db:q:local --sql="SELECT COUNT(*) FROM links;"` (or `db:q:prod`)
+- Logs (long-running):
+  - Tail: `npm run logs:tail`
+  - Analytics only: `npm run logs:analytics`
+  - Errors only: `npm run logs:errors`
+- Secrets (pipe values; do not paste inline):
+  - `echo "secret_value" | npm run secrets:put --name=SECRET_NAME`
+- Lint: `npm run lint` (admin) or `npm run lint:all`
 - Maintenance: `npm run maintenance` (audit → build → validate prod)
 
 ### Worker Development
 ```bash
-# Start local development server
-npm -w worker run dev
+# Start local worker (build admin, embed, run wrangler dev)
+npm run dev:worker
 
 # Validate local deployment endpoints
 npm run validate:local
 
 # Deploy to production
-npm -w worker run deploy
+npm run deploy
 
-# Manage secrets
-echo "secret_value" | npx wrangler secret put SECRET_NAME
+# Manage secrets (via stdin)
+echo "secret_value" | npm run secrets:put --name=SECRET_NAME
 
 # Tail worker logs
-npx wrangler tail
+npm run logs:tail
 
 # Apply D1 schema locally (once or after schema changes)
-npm -w worker run db:apply:local
+npm run db:apply:local
 
 # Apply D1 schema to production
-npm -w worker run db:apply
+npm run db:apply:prod
 
-# Reconcile analytics data inconsistencies
-npx wrangler d1 execute mack-link --file src/migrate-analytics.sql --remote
+# Reconcile analytics data inconsistencies (prod)
+npm run db:reconcile:analytics:prod
 
 # Run validation script for deployment
 npm run validate:local
@@ -46,16 +59,16 @@ npm run validate:local
 
 ### Admin Panel Development
 ```bash
-# Start development server (requires worker running)
-npm -w admin run dev
+# Start development server (requires worker running for full flow)
+npm run dev:admin
 
 # Build for production
-npm -w admin run build
+npm run build:admin
 
 # Lint code
-npm -w admin run lint
+npm run lint
 
-# Preview production build
+# Preview production build (from admin workspace)
 npm -w admin run preview
 ```
 
@@ -63,10 +76,10 @@ npm -w admin run preview
 With npm workspaces, you can start both from the repo root:
 ```bash
 # Terminal 1: Start worker (builds admin and runs wrangler dev)
-npm -w worker run dev
+npm run dev:worker
 
 # Terminal 2: Start admin (Vite)
-npm -w admin run dev
+npm run dev:admin
 ```
 Or start both in one terminal using:
 ```bash
