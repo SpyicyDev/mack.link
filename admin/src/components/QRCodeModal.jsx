@@ -78,8 +78,8 @@ export function QRCodeModal({ isOpen, onClose, shortcode, url }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-4" onClick={onClose}>
-      <div className="mx-auto p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full max-w-sm sm:max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div className="mx-auto p-4 sm:p-6 border border-gray-200 dark:border-gray-700 w-full h-[100svh] sm:h-auto max-w-none sm:max-w-md shadow-lg rounded-none sm:rounded-md bg-white dark:bg-gray-800 transition-colors overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">
             QR Code for {shortcode}

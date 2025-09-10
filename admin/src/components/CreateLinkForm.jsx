@@ -156,12 +156,10 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             >
               Short Code *
             </label>
-            <div className="mt-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 dark:text-gray-400 text-xs">
-                  link.mackhaymond.co/
-                </span>
-              </div>
+            <div className="mt-1 flex items-stretch">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
+                link.mackhaymond.co/
+              </span>
               <input
                 ref={shortcodeRef}
                 type="text"
@@ -169,7 +167,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 id="shortcode"
                 value={formData.shortcode}
                 onChange={handleChange}
-                className="block w-full pl-28 sm:pl-36 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                className="flex-1 min-w-0 pr-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-r-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                 placeholder="abc123"
                 required
                 inputMode="latin"
@@ -196,7 +194,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 id="url"
                 value={formData.url}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                className="mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                 placeholder="https://example.com"
                 required
                 inputMode="url"
@@ -219,7 +217,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               id="description"
               value={formData.description}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+              className="mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="Optional description"
             />
             {fieldErrors.description && (

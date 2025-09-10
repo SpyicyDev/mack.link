@@ -183,14 +183,14 @@ export function Analytics({ links, currentView }) {
                 type="date"
                 value={range.from}
                 onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
-                className="w-36 sm:w-40 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-36 sm:w-40 px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <span className="text-gray-500 shrink-0">to</span>
               <input
                 type="date"
                 value={range.to}
                 onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
-                className="w-36 sm:w-40 px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-36 sm:w-40 px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <div
                 className="inline-flex rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden ml-3 shrink-0"
@@ -245,7 +245,7 @@ export function Analytics({ links, currentView }) {
               <select
                 value={dimension}
                 onChange={(e) => setDimension(e.target.value)}
-                className="w-[12rem] sm:w-[14rem] px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-[12rem] sm:w-[14rem] px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="ref">Referrer</option>
                 <option value="country">Country</option>

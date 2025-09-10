@@ -165,7 +165,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
               id="url"
               value={formData.url}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+              className="mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="https://example.com"
               required
               autoFocus
@@ -188,7 +188,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
               id="description"
               value={formData.description}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+              className="mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="Optional description"
             />
           </div>
@@ -205,7 +205,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
               id="redirectType"
               value={formData.redirectType}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+              className="mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
             >
               <option value={301}>301 - Permanent</option>
               <option value={302}>302 - Temporary</option>
@@ -235,7 +235,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
                     .filter(Boolean),
                 }))
               }
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+              className="mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="personal,work"
             />
           </div>
@@ -254,7 +254,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
                 id="activatesAt"
                 value={formData.activatesAt}
                 onChange={handleChange}
-                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="date-picker mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
             <div>
@@ -270,7 +270,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
                 id="expiresAt"
                 value={formData.expiresAt}
                 onChange={handleChange}
-                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="date-picker mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
           </div>
@@ -339,10 +339,10 @@ export function EditLinkModal({ link, onSave, onClose }) {
                       id="password"
                       value={formData.password}
                       onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
-                    autoCapitalize="off"
-                    autoCorrect="off"
-                    spellCheck={false}
+                      className="block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                      autoCapitalize="off"
+                      autoCorrect="off"
+                      spellCheck={false}
                       placeholder={
                         link.passwordEnabled
                           ? 'Enter new password (leave blank to keep current)'

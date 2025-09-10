@@ -153,7 +153,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                   }
                 }
               }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               aria-label="Search links"
               role="searchbox"
             />
@@ -164,7 +164,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center"
+              className="flex items-center min-h-[44px]"
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
@@ -180,7 +180,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                 variant="outline"
                 size="sm"
                 onClick={clearFilters}
-                className="flex items-center text-red-600 hover:text-red-700"
+                className="flex items-center text-red-600 hover:text-red-700 min-h-[44px]"
               >
                 <X className="w-4 h-4 mr-1" />
                 Clear
