@@ -282,7 +282,7 @@ function App() {
           {/* Mobile Floating Create Button */}
           <button
             onClick={() => setShowCreateForm(true)}
-            className="sm:hidden fixed bottom-5 right-5 z-40 rounded-full p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-safe"
+            className="sm:hidden fixed fab-offset right-5 z-50 rounded-full p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Create new short link"
           >
             <Plus className="w-5 h-5" />

@@ -29,6 +29,12 @@ html.dark {
   margin-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Ensure FAB clears the BottomNav height + safe area on mobile */
+.fab-offset {
+  /* 1.25rem base gap + ~56px nav height + safe-area inset */
+  bottom: calc(1.25rem + 56px + env(safe-area-inset-bottom, 0px));
+}
+
 /* Smooth momentum scrolling on iOS for overflow containers */
 .ios-momentum {
   -webkit-overflow-scrolling: touch;
