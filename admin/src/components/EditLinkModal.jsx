@@ -123,17 +123,17 @@ export function EditLinkModal({ link, onSave, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/30 dark:bg-black/40 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-4"
+      className="fixed inset-0 bg-black/30 dark:bg-black/40 backdrop-blur-sm backdrop-saturate-150 z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="edit-link-title"
     >
       <div
-        className="mx-auto w-full max-w-lg sm:max-w-2xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors"
+        className="mx-auto w-screen sm:w-full h-[100svh] sm:h-auto max-w-none sm:max-w-2xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-lg rounded-none sm:rounded-md bg-white dark:bg-gray-800 transition-colors overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur -mx-4 sm:mx-0 px-4 sm:px-0 py-3 sm:py-0 border-b border-gray-200 dark:border-gray-700 sm:border-0">
           <h3 id="edit-link-title" className="text-lg font-medium text-gray-900 dark:text-white">Edit Link</h3>
           <button
             onClick={onClose}
@@ -169,6 +169,9 @@ export function EditLinkModal({ link, onSave, onClose }) {
               placeholder="https://example.com"
               required
               autoFocus
+              inputMode="url"
+              autoCapitalize="none"
+              autoCorrect="off"
             />
           </div>
 
@@ -305,7 +308,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
                     password: prev.passwordProtectionEnabled ? '' : prev.password,
                   }))
                 }
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   formData.passwordProtectionEnabled
                     ? 'bg-blue-600'
                     : 'bg-gray-200 dark:bg-gray-600'
@@ -316,8 +319,8 @@ export function EditLinkModal({ link, onSave, onClose }) {
               >
                 <span
                   aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    formData.passwordProtectionEnabled ? 'translate-x-5' : 'translate-x-0'
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    formData.passwordProtectionEnabled ? 'translate-x-6' : 'translate-x-0'
                   }`}
                 />
               </button>
@@ -336,7 +339,10 @@ export function EditLinkModal({ link, onSave, onClose }) {
                       id="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
                       placeholder={
                         link.passwordEnabled
                           ? 'Enter new password (leave blank to keep current)'

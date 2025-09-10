@@ -139,9 +139,9 @@ export function CreateLinkForm({ onSubmit, onClose }) {
   )
 
   return (
-    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-4">
-      <div className="mx-auto w-full max-w-lg sm:max-w-2xl border border-gray-200 dark:border-gray-700 shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors p-4 sm:p-5">
-        <div className="flex items-center justify-between mb-4">
+    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-0 sm:p-4">
+      <div className="mx-auto w-screen sm:w-full h-[100svh] sm:h-auto max-w-none sm:max-w-2xl border border-gray-200 dark:border-gray-700 shadow-lg rounded-none sm:rounded-md bg-white dark:bg-gray-800 transition-colors p-4 sm:p-5 overflow-y-auto">
+        <div className="flex items-center justify-between mb-4 sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur -mx-4 sm:mx-0 px-4 sm:px-0 py-3 sm:py-0 border-b border-gray-200 dark:border-gray-700 sm:border-0">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">Create New Link</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-6 h-6" />
@@ -169,9 +169,13 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 id="shortcode"
                 value={formData.shortcode}
                 onChange={handleChange}
-                className="block w-full pl-36 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                className="block w-full pl-28 sm:pl-36 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                 placeholder="abc123"
                 required
+                inputMode="latin"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
               />
             </div>
             {fieldErrors.shortcode && (
@@ -186,16 +190,19 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             >
               Destination URL *
             </label>
-            <input
-              type="url"
-              name="url"
-              id="url"
-              value={formData.url}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
-              placeholder="https://example.com"
-              required
-            />
+              <input
+                type="url"
+                name="url"
+                id="url"
+                value={formData.url}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                placeholder="https://example.com"
+                required
+                inputMode="url"
+                autoCapitalize="none"
+                autoCorrect="off"
+              />
             {fieldErrors.url && <p className="mt-1 text-sm text-red-600">{fieldErrors.url}</p>}
           </div>
 
@@ -329,7 +336,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                     password: prev.passwordProtectionEnabled ? '' : prev.password,
                   }))
                 }
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   formData.passwordProtectionEnabled
                     ? 'bg-blue-600'
                     : 'bg-gray-200 dark:bg-gray-600'
@@ -341,7 +348,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 <span
                   aria-hidden="true"
                   className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    formData.passwordProtectionEnabled ? 'translate-x-5' : 'translate-x-0'
+                    formData.passwordProtectionEnabled ? 'translate-x-6' : 'translate-x-0'
                   }`}
                 />
               </button>
