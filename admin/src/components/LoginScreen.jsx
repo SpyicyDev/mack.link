@@ -7,11 +7,11 @@ export function LoginScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 transition-colors">
+      <div className="max-w-md w-full space-y-6 sm:space-y-8">
         <div className="text-center">
-          <LinkIcon className="mx-auto h-16 w-16 text-blue-600" />
-          <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
+          <LinkIcon className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-blue-600" />
+          <h2 className="mt-4 sm:mt-6 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
             link.mackhaymond.co
           </h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
@@ -19,7 +19,7 @@ export function LoginScreen() {
           </p>
         </div>
         
-        <div className="mt-8 space-y-6">
+        <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
           <div>
             <button
               onClick={handleLogin}

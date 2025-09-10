@@ -131,9 +131,9 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   }, [filteredAndSortedLinks, onFilteredResults])
 
   return (
-    <div className="bg-white/95 dark:bg-gray-800/95 supports-[backdrop-filter]:backdrop-blur rounded-lg shadow dark:shadow-gray-700/50 mb-6 transition-colors sticky top-0 sm:static z-20">
+    <div className="bg-white/95 dark:bg-gray-800/95 supports-[backdrop-filter]:backdrop-blur rounded-lg shadow dark:shadow-gray-700/50 mb-4 sm:mb-6 transition-colors sticky top-0 sm:static z-20">
       <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" aria-hidden="true" />
             <input
@@ -153,18 +153,18 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                   }
                 }
               }}
-              className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-2.5 sm:py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               aria-label="Search links"
               role="searchbox"
             />
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center min-h-[44px]"
+              className="flex items-center h-10 px-3 text-sm"
             >
               <Filter className="w-4 h-4 mr-2" />
               Filters
@@ -180,7 +180,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                 variant="outline"
                 size="sm"
                 onClick={clearFilters}
-                className="flex items-center text-red-600 hover:text-red-700 min-h-[44px]"
+                className="flex items-center text-red-600 hover:text-red-700 h-10 px-3 text-sm"
               >
                 <X className="w-4 h-4 mr-1" />
                 Clear
@@ -190,8 +190,8 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
         </div>
 
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Sort by

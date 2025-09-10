@@ -158,15 +158,15 @@ function App() {
 
           <main
             id="main-content"
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 content-pb-safe sm:pb-8"
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 content-pb-safe sm:pb-8"
             role="main"
           >
-            <div className="sm:flex sm:items-center sm:justify-between mb-8">
+            <div className="sm:flex sm:items-center sm:justify-between mb-6 sm:mb-8">
               <header>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                   Link Management
                 </h1>
-                <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                <p className="mt-1 sm:mt-2 text-sm text-gray-700 dark:text-gray-300">
                   Manage your short links and view analytics
                 </p>
               </header>
@@ -203,11 +203,11 @@ function App() {
 
         <Header onShowShortcuts={() => setShowKeyboardHelp(true)} />
 
-        <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 content-pb-safe sm:pb-8" role="main">
-          <div className="sm:flex sm:items-center sm:justify-between mb-8">
+        <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 content-pb-safe sm:pb-8" role="main">
+          <div className="sm:flex sm:items-center sm:justify-between mb-6 sm:mb-8">
             <header>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Link Management</h1>
-              <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Link Management</h1>
+              <p className="mt-1 sm:mt-2 text-sm text-gray-700 dark:text-gray-300">
                 Manage your short links and view analytics
               </p>
             </header>
@@ -224,7 +224,7 @@ function App() {
           </div>
 
           {/* Navigation Tabs (desktop/tablet only) */}
-          <div className="mb-6 hidden sm:block">
+          <div className="mb-4 sm:mb-6 hidden sm:block">
             <nav className="flex overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 space-x-4 sm:space-x-8 no-scrollbar ios-momentum" aria-label="Tabs">
               <button
                 onClick={() => setCurrentView('links')}
