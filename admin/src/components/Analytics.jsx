@@ -57,6 +57,8 @@ export function Analytics({ links, currentView }) {
     { scope, shortcode, range, dimension },
     { enabled: isAnalyticsActive }
   )
+  const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches
+
   const analytics = useMemo(() => {
     const linkEntries = Object.entries(links)
 
@@ -440,17 +442,18 @@ export function Analytics({ links, currentView }) {
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <Clock className="w-5 h-5 mr-2 text-orange-600" />
-                Recently Created
-              </h3>
-            </div>
-            <div className="p-6">
-              {analytics.recentLinks.length > 0 ? (
-                <div className="space-y-4">
-                  {analytics.recentLinks.map((link) => (
-                    <div key={link.shortcode} className="flex items-center justify-between">
+            {isMobile ? (
+              <details>
+                <summary className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 text-lg font-semibold text-gray-900 dark:text-white flex items-center cursor-pointer select-none">
+                  <Clock className="w-5 h-5 mr-2 text-orange-600" />
+                  Recently Created
+                </summary>
+                <div className="p-6">
+                  {analytics.recentLinks.length > 0 ? (
+                    <div className="space-y-4">
+                      {analytics.recentLinks.map((link) => (
+                        <div key={link.shortcode} className="flex items-center justify-between">
+            
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {link.shortcode}
@@ -477,7 +480,50 @@ export function Analytics({ links, currentView }) {
                   No links created yet
                 </p>
               )}
-            </div>
+                </div>
+              </details>
+            ) : (
+              <>
+                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <Clock className="w-5 h-5 mr-2 text-orange-600" />
+                    Recently Created
+                  </h3>
+                </div>
+                <div className="p-6">
+                  {analytics.recentLinks.length > 0 ? (
+                    <div className="space-y-4">
+                      {analytics.recentLinks.map((link) => (
+                        <div key={link.shortcode} className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                              {link.shortcode}
+                            </p>
+                            {link.description && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                {link.description}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              {formatDate(link.created)}
+                            </p>
+                          </div>
+                          <div className="ml-4 flex-shrink-0">
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                              {link.clicks.toLocaleString()} clicks
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                      No links created yet
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -526,7 +572,7 @@ export function Analytics({ links, currentView }) {
                 options={{
                   responsive: true,
                   resizeDelay: 0,
-                  plugins: { legend: { display: true, position: 'bottom' } },
+                  plugins: { legend: { display: !isMobile, position: 'bottom' } },
                   interaction: { mode: 'index', intersect: false },
                   maintainAspectRatio: false,
                   layout: { padding: { top: 8, right: 12, bottom: 28, left: 8 } },
@@ -541,7 +587,7 @@ export function Analytics({ links, currentView }) {
                     },
                   },
                 }}
-                height={180}
+                height={isMobile ? 160 : 180}
               />
             ) : ts?.points?.length ? (
               <Line
