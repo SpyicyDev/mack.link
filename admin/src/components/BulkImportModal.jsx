@@ -41,8 +41,8 @@ export function BulkImportModal({ isOpen, onClose }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 flex items-start sm:items-center justify-center p-4" onClick={onClose}>
-      <div className="mx-auto w-full max-w-lg sm:max-w-2xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-lg rounded-md bg-white dark:bg-gray-800" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 overflow-y-auto h-full w-full z-50 flex items-start sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div className="mx-auto w-full h-[100svh] sm:h-auto max-w-none sm:max-w-2xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-lg rounded-none sm:rounded-md bg-white dark:bg-gray-800 overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white">Bulk Import from CSV</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -69,8 +69,8 @@ export function BulkImportModal({ isOpen, onClose }) {
           )}
         </div>
         <div className="flex justify-end space-x-3 pt-4">
-          <button onClick={onClose} className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-md">Close</button>
-          <button onClick={parseAndUpload} disabled={parsing} className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:opacity-50">
+          <button onClick={onClose} className="px-4 py-3 sm:py-2 text-sm bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-md">Close</button>
+          <button onClick={parseAndUpload} disabled={parsing} className="px-4 py-3 sm:py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md disabled:opacity-50">
             {parsing ? 'Importing...' : 'Import'}
           </button>
         </div>

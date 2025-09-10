@@ -3,15 +3,15 @@ import { Link as LinkIcon, BarChart3 } from 'lucide-react'
 export function BottomNav({ currentView, setCurrentView }) {
   return (
     <nav
-      className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur border-t border-gray-200 dark:border-gray-700 pb-safe"
+      className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur border-t border-gray-200 dark:border-gray-700 pb-safe h-14"
       role="navigation"
       aria-label="Primary"
     >
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-2 h-full">
         <button
           type="button"
           onClick={() => setCurrentView('links')}
-          className={`flex flex-col items-center justify-center py-3 min-h-[44px] ${
+          className={`flex flex-col items-center justify-center h-full ${
             currentView === 'links'
               ? 'text-blue-600 dark:text-blue-400'
               : 'text-gray-600 dark:text-gray-300'
@@ -26,7 +26,7 @@ export function BottomNav({ currentView, setCurrentView }) {
         <button
           type="button"
           onClick={() => setCurrentView('analytics')}
-          className={`flex flex-col items-center justify-center py-3 min-h-[44px] ${
+          className={`flex flex-col items-center justify-center h-full ${
             currentView === 'analytics'
               ? 'text-blue-600 dark:text-blue-400'
               : 'text-gray-600 dark:text-gray-300'

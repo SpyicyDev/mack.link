@@ -579,11 +579,12 @@ export function Analytics({ links, currentView }) {
                   scales: {
                     x: {
                       grid: { display: false },
-                      ticks: { autoSkip: true, maxTicksLimit: 8, maxRotation: 0 },
+                      ticks: { autoSkip: true, maxTicksLimit: isMobile ? 5 : 8, maxRotation: 0, font: { size: isMobile ? 10 : 12 } },
                     },
                     y: {
                       beginAtZero: true,
                       grid: { color: 'rgba(148,163,184,0.2)' },
+                      ticks: { font: { size: isMobile ? 10 : 12 } },
                     },
                   },
                 }}
@@ -613,8 +614,8 @@ export function Analytics({ links, currentView }) {
                   maintainAspectRatio: false,
                   layout: { padding: { top: 8, right: 12, bottom: 12, left: 8 } },
                   scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.2)' } },
+                    x: { grid: { display: false }, ticks: { maxTicksLimit: isMobile ? 6 : 12, font: { size: isMobile ? 10 : 12 } } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.2)' }, ticks: { font: { size: isMobile ? 10 : 12 } } },
                   },
                 }}
               />
@@ -668,8 +669,8 @@ export function Analytics({ links, currentView }) {
                   responsive: true,
                   plugins: { legend: { display: false } },
                   scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true },
+                    x: { grid: { display: false }, ticks: { font: { size: isMobile ? 10 : 12 } } },
+                    y: { beginAtZero: true, ticks: { font: { size: isMobile ? 10 : 12 } } },
                   },
                 }}
               />

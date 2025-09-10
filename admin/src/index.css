@@ -35,6 +35,12 @@ html.dark {
   bottom: calc(1.25rem + 56px + env(safe-area-inset-bottom, 0px));
 }
 
+/* Ensure main content clears BottomNav on small screens */
+.content-pb-safe {
+  /* ~56px BottomNav height + small extra + safe-area inset */
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
 /* Smooth momentum scrolling on iOS for overflow containers */
 .ios-momentum {
   -webkit-overflow-scrolling: touch;
