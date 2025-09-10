@@ -158,22 +158,22 @@ function App() {
 
           <main
             id="main-content"
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 content-pb-safe sm:pb-8"
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 content-pb-safe sm:pb-8"
             role="main"
           >
-            <div className="sm:flex sm:items-center sm:justify-between mb-8">
-              <header>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <div className="sm:flex sm:items-center sm:justify-between mb-6 sm:mb-8">
+              <header className="mb-4 sm:mb-0">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                   Link Management
                 </h1>
-                <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                <p className="mt-1 sm:mt-2 text-sm text-gray-700 dark:text-gray-300">
                   Manage your short links and view analytics
                 </p>
               </header>
-              <div className="mt-4 sm:mt-0">
+              <div className="hidden sm:block">
                 <button
                   disabled
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed min-h-[44px]"
                   aria-label="Create new short link (loading)"
                 >
                   <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
@@ -203,18 +203,18 @@ function App() {
 
         <Header onShowShortcuts={() => setShowKeyboardHelp(true)} />
 
-        <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 content-pb-safe sm:pb-8" role="main">
-          <div className="sm:flex sm:items-center sm:justify-between mb-8">
-            <header>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Link Management</h1>
-              <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+        <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 content-pb-safe sm:pb-8" role="main">
+          <div className="sm:flex sm:items-center sm:justify-between mb-6 sm:mb-8">
+            <header className="mb-4 sm:mb-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Link Management</h1>
+              <p className="mt-1 sm:mt-2 text-sm text-gray-700 dark:text-gray-300">
                 Manage your short links and view analytics
               </p>
             </header>
-            <div className="mt-4 sm:mt-0">
+            <div className="hidden sm:block">
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors"
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors min-h-[44px]"
                 aria-label="Create new short link"
               >
                 <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
@@ -282,10 +282,10 @@ function App() {
           {/* Mobile Floating Create Button */}
           <button
             onClick={() => setShowCreateForm(true)}
-            className="sm:hidden fixed fab-offset right-5 z-50 rounded-full p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="sm:hidden fixed fab-offset right-4 z-50 rounded-full p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 min-h-[56px] min-w-[56px] touch-manipulation transition-all duration-200 hover:scale-105 active:scale-95"
             aria-label="Create new short link"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-6 h-6" />
           </button>
 
           {/* Mobile Bottom Navigation */}

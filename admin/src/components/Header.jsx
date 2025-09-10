@@ -14,52 +14,56 @@ export function Header({ onShowShortcuts = () => {} }) {
   return (
     <header className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 transition-colors" role="banner">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 py-4 sm:py-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-4 sm:py-6">
           <div className="flex items-center min-w-0">
-            <LinkIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3" aria-hidden="true" />
+            <LinkIcon className="w-8 h-8 text-blue-600 dark:text-blue-400 mr-3 flex-shrink-0" aria-hidden="true" />
             <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">link.mackhaymond.co</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">link.mackhaymond.co</h1>
               <p className="hidden sm:block text-sm text-gray-600 dark:text-gray-300">URL Shortener Management</p>
             </div>
           </div>
           
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <button
-              onClick={onShowShortcuts}
-              className="hidden sm:inline-flex p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
-              aria-label="Show keyboard shortcuts (Ctrl/Cmd + /)"
-              title="Keyboard shortcuts (Ctrl/Cmd + /)"
-            >
-              <Keyboard className="w-5 h-5" />
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
-              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+          <div className="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4">
             {user && (
-              <nav className="flex items-center space-x-4" role="navigation" aria-label="User menu">
-                <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300" role="status" aria-live="polite">
-                  <img 
-                    src={user.avatar_url} 
-                    alt={`${user.login}'s profile picture`}
-                    className="w-6 h-6 rounded-full"
-                  />
-                  <span className="truncate max-w-[10rem] sm:max-w-none">Welcome, {user.login}!</span>
-                </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300 min-w-0" role="status" aria-live="polite">
+                <img 
+                  src={user.avatar_url} 
+                  alt={`${user.login}'s profile picture`}
+                  className="w-7 h-7 sm:w-6 sm:h-6 rounded-full flex-shrink-0"
+                />
+                <span className="truncate max-w-[8rem] sm:max-w-none text-sm">Welcome, {user.login}!</span>
+              </div>
+            )}
+            
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={onShowShortcuts}
+                className="hidden sm:inline-flex p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors min-h-[44px] min-w-[44px]"
+                aria-label="Show keyboard shortcuts (Ctrl/Cmd + /)"
+                title="Keyboard shortcuts (Ctrl/Cmd + /)"
+              >
+                <Keyboard className="w-5 h-5" />
+              </button>
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              {user && (
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 rounded"
+                  className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 rounded-md min-h-[44px] touch-manipulation"
                   aria-label={`Sign out of ${user.login}'s account`}
                 >
                   <LogOut className="w-4 h-4" aria-hidden="true" />
-                  <span>Sign out</span>
+                  <span className="hidden sm:inline">Sign out</span>
+                  <span className="sm:hidden">Out</span>
                 </button>
-              </nav>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
