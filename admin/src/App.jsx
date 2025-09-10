@@ -158,7 +158,7 @@ function App() {
 
           <main
             id="main-content"
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 sm:pb-8"
+            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 content-pb-safe sm:pb-8"
             role="main"
           >
             <div className="sm:flex sm:items-center sm:justify-between mb-8">
@@ -203,7 +203,7 @@ function App() {
 
         <Header onShowShortcuts={() => setShowKeyboardHelp(true)} />
 
-        <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 content-pb-safe sm:pb-8" role="main">
+        <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 content-pb-safe sm:pb-8" role="main">
           <div className="sm:flex sm:items-center sm:justify-between mb-8">
             <header>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Link Management</h1>
