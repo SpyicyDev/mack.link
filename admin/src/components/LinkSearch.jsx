@@ -131,9 +131,9 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   }, [filteredAndSortedLinks, onFilteredResults])
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 mb-6 transition-colors">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="bg-white/95 dark:bg-gray-800/95 supports-[backdrop-filter]:backdrop-blur rounded-lg shadow dark:shadow-gray-700/50 mb-6 transition-colors sticky top-0 sm:static z-20">
+      <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" aria-hidden="true" />
             <input

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, memo } from 'react'
+import { useState, useCallback, useMemo, memo, lazy, Suspense } from 'react'
 import {
   ExternalLink,
   Edit,
@@ -15,11 +15,12 @@ import {
   Archive,
   ArchiveRestore,
   Lock,
+  MoreVertical,
 } from 'lucide-react'
 import { EditLinkModal } from './EditLinkModal'
-import { QRCodeModal } from './QRCodeModal'
+const QRCodeModal = lazy(() => import('./QRCodeModal').then(m => ({ default: m.QRCodeModal })))
+const BulkImportModal = lazy(() => import('./BulkImportModal').then(m => ({ default: m.BulkImportModal })))
 import { ConfirmationModal } from './ui'
-import { BulkImportModal } from './BulkImportModal'
 import { shortUrl, workerHost } from '../services/links'
 
 const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelete }) {
@@ -32,6 +33,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [qrLink, setQrLink] = useState(null)
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
+  const [openMenuFor, setOpenMenuFor] = useState(null)
 
   const linkEntries = useMemo(
     () => Object.entries(links).sort(([, a], [, b]) => new Date(b.created) - new Date(a.created)),
@@ -282,7 +284,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                       </code>
                       <button
                         onClick={() => copyToClipboard(shortcode)}
-                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                        className="p-3 sm:p-1 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                         aria-label={`Copy link for ${shortcode} to clipboard`}
                       >
                         <Copy className="w-4 h-4" aria-hidden="true" />
@@ -310,8 +312,60 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                       <p className="text-sm text-gray-600 mb-2">{link.description}</p>
                     )}
 
-                    {/* Tags and archived badge */}
-                    <div className="flex items-center flex-wrap gap-2 mb-2">
+                    {/* Mobile collapsed metadata */}
+                    <details className="sm:hidden mb-2">
+                      <summary className="text-sm text-blue-600 dark:text-blue-400 cursor-pointer select-none">More</summary>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar ios-momentum whitespace-nowrap">
+                          {Array.isArray(link.tags) &&
+                            link.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          {link.archived && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                              Archived
+                            </span>
+                          )}
+                          {link.passwordEnabled && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              <Lock className="w-3 h-3 mr-1" />
+                              Protected
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-500">
+                          <div className="flex items-center space-x-1">
+                            <BarChart3 className="w-3 h-3" />
+                            <span>{link.clicks || 0} clicks</span>
+                          </div>
+                          <span>Created {formatDate(link.created)}</span>
+                          {link.updated !== link.created && (
+                            <span>Updated {formatDate(link.updated)}</span>
+                          )}
+                          <span className="px-2 py-1 bg-gray-100 rounded text-xs">
+                            {link.redirectType || 301}
+                          </span>
+                          {link.activatesAt && (
+                            <span title="Activates" className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs">
+                              Starts {formatDate(link.activatesAt)}
+                            </span>
+                          )}
+                          {link.expiresAt && (
+                            <span title="Expires" className="px-2 py-1 bg-red-50 text-red-700 rounded text-xs">
+                              Ends {formatDate(link.expiresAt)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </details>
+
+                    {/* Tags and archived badge (mobile scrollable) */}
+                    <div className="flex items-center gap-2 mb-2 overflow-x-auto no-scrollbar ios-momentum whitespace-nowrap sm:flex-wrap sm:whitespace-normal">
                       {Array.isArray(link.tags) &&
                         link.tags.map((tag) => (
                           <span
@@ -334,7 +388,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500">
+                    <div className="hidden sm:flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500">
                       <div className="flex items-center space-x-1">
                         <BarChart3 className="w-3 h-3" />
                         <span>{link.clicks || 0} clicks</span>
@@ -365,14 +419,59 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                     </div>
                   </div>
 
+                  {/* Mobile kebab menu */}
+                  <div className="sm:hidden relative self-start mt-2" role="group" aria-label={`Actions for ${shortcode}`}>
+                    <button
+                      onClick={() => setOpenMenuFor((prev) => (prev === shortcode ? null : shortcode))}
+                      className="p-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                      aria-label={`More actions for ${shortcode}`}
+                      aria-expanded={openMenuFor === shortcode}
+                    >
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+                    {openMenuFor === shortcode && (
+                      <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-20" role="menu">
+                        <button
+                          onClick={() => { setEditingLink({ shortcode, ...link }); setOpenMenuFor(null) }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+                          role="menuitem"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => { onUpdate(shortcode, { archived: !link.archived }); setOpenMenuFor(null) }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+                          role="menuitem"
+                        >
+                          {link.archived ? 'Unarchive' : 'Archive'}
+                        </button>
+                        <button
+                          onClick={() => { handleShowQRCode(shortcode, link); setOpenMenuFor(null) }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+                          role="menuitem"
+                        >
+                          QR Code
+                        </button>
+                        <button
+                          onClick={() => { handleDeleteClick(shortcode); setOpenMenuFor(null) }}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          role="menuitem"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Desktop action icons */}
                   <div
-                    className="flex items-center space-x-2 mt-3 sm:mt-0 sm:ml-4 self-start sm:self-auto"
+                    className="hidden sm:flex items-center space-x-2 mt-3 sm:mt-0 sm:ml-4 self-start sm:self-auto"
                     role="group"
                     aria-label={`Actions for ${shortcode}`}
                   >
                     <button
                       onClick={() => onUpdate(shortcode, { archived: !link.archived })}
-                      className={`p-2 ${link.archived ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-500'} hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 rounded`}
+                      className={`p-3 sm:p-2 ${link.archived ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-400 dark:text-gray-500'} hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 rounded`}
                       aria-label={`${link.archived ? 'Unarchive' : 'Archive'} link ${shortcode}`}
                       title={link.archived ? 'Unarchive' : 'Archive'}
                     >
@@ -384,7 +483,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                     </button>
                     <button
                       onClick={() => handleShowQRCode(shortcode, link)}
-                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
+                      className="p-3 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded"
                       aria-label={`Generate QR code for ${shortcode}`}
                       title="Generate QR Code"
                     >
@@ -393,7 +492,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                     </button>
                     <button
                       onClick={() => setEditingLink({ shortcode, ...link })}
-                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
+                      className="p-3 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                       aria-label={`Edit link ${shortcode}`}
                     >
                       <Edit className="w-4 h-4" aria-hidden="true" />
@@ -401,7 +500,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                     </button>
                     <button
                       onClick={() => handleDeleteClick(shortcode)}
-                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
+                      className="p-3 sm:p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
                       aria-label={`Delete link ${shortcode}`}
                     >
                       <Trash2 className="w-4 h-4" aria-hidden="true" />
@@ -437,16 +536,20 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
       />
 
       {qrLink && (
-        <QRCodeModal
-          isOpen={qrModalOpen}
-          onClose={handleCloseQRCode}
-          shortcode={qrLink.shortcode}
-          url={qrLink.url}
-        />
+        <Suspense>
+          <QRCodeModal
+            isOpen={qrModalOpen}
+            onClose={handleCloseQRCode}
+            shortcode={qrLink.shortcode}
+            url={qrLink.url}
+          />
+        </Suspense>
       )}
 
       {bulkImportOpen && (
-        <BulkImportModal isOpen={bulkImportOpen} onClose={() => setBulkImportOpen(false)} />
+        <Suspense>
+          <BulkImportModal isOpen={bulkImportOpen} onClose={() => setBulkImportOpen(false)} />
+        </Suspense>
       )}
     </>
   )
