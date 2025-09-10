@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, lazy, Suspense, useMemo } from 'react'
 import { LinkList } from './components/LinkList'
 import { LinkSearch } from './components/LinkSearch'
 import { CreateLinkForm } from './components/CreateLinkForm'
 import { Header } from './components/Header'
-import { Analytics } from './components/Analytics'
+// Lazy-load Analytics to reduce initial mobile load
+const Analytics = lazy(() => import('./components/Analytics').then(m => ({ default: m.Analytics })))
 import { LoginScreen } from './components/LoginScreen'
 import { authService } from './services/auth'
 import { Plus, HelpCircle, BarChart3, Link as LinkIcon } from 'lucide-react'
@@ -25,6 +26,7 @@ import {
 } from './hooks/useLinks'
 import { useIsAnalyticsActive } from './hooks/useAnalytics'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
+import { BottomNav } from './components/BottomNav'
 
 function App() {
   const [filteredLinks, setFilteredLinks] = useState({})
@@ -37,8 +39,22 @@ function App() {
   // Check if analytics polling should be active
   const isAnalyticsActive = useIsAnalyticsActive(currentView)
 
+  // Calculate mobile/save-data aware polling intervals
+  const polling = useMemo(() => {
+    const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches
+    const saveData = typeof navigator !== 'undefined' && navigator.connection && navigator.connection.saveData
+    const baseActive = 15000
+    const baseIdle = 10000
+    const mobileActive = 25000
+    const mobileIdle = 20000
+    return {
+      active: (isMobile || saveData) ? mobileActive : baseActive,
+      idle: (isMobile || saveData) ? mobileIdle : baseIdle,
+    }
+  }, [])
+
   // React Query hooks - only run when authenticated
-  // Make UI more realtime: periodic refetch tuned by current view
+  // Make UI more realtime: interval tuned by current view and device settings
   const {
     data: links = {},
     isLoading,
@@ -46,8 +62,7 @@ function App() {
     refetch,
   } = useLinks({
     enabled: isAuthenticated,
-    // Reduce polling to cut KV list usage on the server - sync with analytics polling
-    refetchInterval: isAnalyticsActive ? 15000 : 10000,
+    refetchInterval: isAnalyticsActive ? polling.active : polling.idle,
     refetchIntervalInBackground: isAnalyticsActive,
   })
   const createLinkMutation = useCreateLink()
@@ -199,7 +214,7 @@ function App() {
             <div className="mt-4 sm:mt-0">
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors"
+                className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors"
                 aria-label="Create new short link"
               >
                 <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
@@ -208,8 +223,8 @@ function App() {
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="mb-6">
+          {/* Navigation Tabs (desktop/tablet only) */}
+          <div className="mb-6 hidden sm:block">
             <nav className="flex overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 space-x-4 sm:space-x-8 no-scrollbar ios-momentum" aria-label="Tabs">
               <button
                 onClick={() => setCurrentView('links')}
@@ -255,7 +270,9 @@ function App() {
               />
             </>
           ) : (
-            <Analytics links={links} currentView={currentView} />
+            <Suspense fallback={<PageLoader />}>
+              <Analytics links={links} currentView={currentView} />
+            </Suspense>
           )}
 
           {showCreateForm && (
@@ -265,11 +282,18 @@ function App() {
           {/* Mobile Floating Create Button */}
           <button
             onClick={() => setShowCreateForm(true)}
-            className="sm:hidden fixed bottom-5 right-5 z-40 rounded-full p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="sm:hidden fixed bottom-5 right-5 z-40 rounded-full p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-safe"
             aria-label="Create new short link"
           >
             <Plus className="w-5 h-5" />
           </button>
+
+          {/* Mobile Bottom Navigation */}
+          <BottomNav
+            currentView={currentView}
+            setCurrentView={setCurrentView}
+            onShowShortcuts={() => setShowKeyboardHelp(true)}
+          />
         </main>
         <KeyboardShortcutsModal isOpen={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
       </div>
