@@ -312,58 +312,6 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                       <p className="text-sm text-gray-600 mb-2">{link.description}</p>
                     )}
 
-                    {/* Mobile collapsed metadata */}
-                    <details className="sm:hidden mb-2">
-                      <summary className="text-sm text-blue-600 dark:text-blue-400 cursor-pointer select-none">More</summary>
-                      <div className="mt-2 space-y-2">
-                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar ios-momentum whitespace-nowrap">
-                          {Array.isArray(link.tags) &&
-                            link.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          {link.archived && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                              Archived
-                            </span>
-                          )}
-                          {link.passwordEnabled && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                              <Lock className="w-3 h-3 mr-1" />
-                              Protected
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-gray-500">
-                          <div className="flex items-center space-x-1">
-                            <BarChart3 className="w-3 h-3" />
-                            <span>{link.clicks || 0} clicks</span>
-                          </div>
-                          <span>Created {formatDate(link.created)}</span>
-                          {link.updated !== link.created && (
-                            <span>Updated {formatDate(link.updated)}</span>
-                          )}
-                          <span className="px-2 py-1 bg-gray-100 rounded text-xs">
-                            {link.redirectType || 301}
-                          </span>
-                          {link.activatesAt && (
-                            <span title="Activates" className="px-2 py-1 bg-green-50 text-green-700 rounded text-xs">
-                              Starts {formatDate(link.activatesAt)}
-                            </span>
-                          )}
-                          {link.expiresAt && (
-                            <span title="Expires" className="px-2 py-1 bg-red-50 text-red-700 rounded text-xs">
-                              Ends {formatDate(link.expiresAt)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </details>
-
                     {/* Tags and archived badge (mobile scrollable) */}
                     <div className="flex items-center gap-2 mb-2 overflow-x-auto no-scrollbar ios-momentum whitespace-nowrap sm:flex-wrap sm:whitespace-normal">
                       {Array.isArray(link.tags) &&
@@ -388,7 +336,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                       )}
                     </div>
 
-                    <div className="hidden sm:flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500">
                       <div className="flex items-center space-x-1">
                         <BarChart3 className="w-3 h-3" />
                         <span>{link.clicks || 0} clicks</span>

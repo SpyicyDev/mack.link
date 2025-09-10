@@ -7,7 +7,7 @@ import { Header } from './components/Header'
 const Analytics = lazy(() => import('./components/Analytics').then(m => ({ default: m.Analytics })))
 import { LoginScreen } from './components/LoginScreen'
 import { authService } from './services/auth'
-import { Plus, HelpCircle, BarChart3, Link as LinkIcon } from 'lucide-react'
+import { Plus, BarChart3, Link as LinkIcon } from 'lucide-react'
 import { 
   ErrorBoundary,
   ErrorMessage,
@@ -292,7 +292,6 @@ function App() {
           <BottomNav
             currentView={currentView}
             setCurrentView={setCurrentView}
-            onShowShortcuts={() => setShowKeyboardHelp(true)}
           />
         </main>
         <KeyboardShortcutsModal isOpen={showKeyboardHelp} onClose={() => setShowKeyboardHelp(false)} />
