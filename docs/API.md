@@ -1,74 +1,116 @@
-# API Documentation 📡
+# 📡 API Reference
 
-Complete reference for the Cloudflare Worker API endpoints.
+Complete documentation for Mack.link's REST API endpoints. All endpoints support JSON requests and responses.
 
-## Base URL
+## 🌐 Base URL
 
-```
-https://link.mackhaymond.co
-```
-
-## Authentication
-
-All management API endpoints require authentication. Historically this used a GitHub access token in the Authorization header:
+Replace `YOUR_DOMAIN` with your deployed worker domain:
 
 ```
-Authorization: Bearer <github_access_token>
+https://YOUR_DOMAIN.com
 ```
 
-The management UI now uses a secure HttpOnly session cookie instead of exposing the GitHub token client‑side. Browsers include the cookie automatically when requests are made with credentials.
+**Live Demo API**: `https://link.mackhaymond.co`
 
-## Endpoints
+## 🔐 Authentication
 
-### 🔓 Public Endpoints
+Mack.link uses **GitHub OAuth** for authentication with secure session cookies:
 
-#### `GET /{shortcode}`
-Redirects to the destination URL.
+### For Web Applications (Recommended)
+The admin interface uses HttpOnly session cookies automatically. No manual token handling required.
 
-**Parameters:**
-- `shortcode` (path) - The short code for the link
+### For API Access (Legacy)
+You can still use GitHub personal access tokens for direct API access:
 
-**Response:**
-- `301/302` - Redirect to destination URL
-- `404` - Link not found
-
-**Example:**
 ```bash
-curl https://link.mackhaymond.co/abc123
-# Redirects to destination URL
+curl -H "Authorization: Bearer your_github_token" \
+     https://YOUR_DOMAIN.com/api/links
 ```
+
+> ⚠️ **Security Note**: Session cookies are more secure as tokens never leave the server.
 
 ---
 
-### 🔐 Authentication Endpoints
+## 🔓 Public Endpoints
 
-#### `GET /api/auth/github`
-Initiates GitHub OAuth flow.
+### Redirect Links
 
-**Query Parameters:**
-- `redirect_uri` (optional) - OAuth callback URL
+#### `GET /{shortcode}`
 
-**Response:**
-- `302` - Redirect to GitHub OAuth
+Redirects visitors to the destination URL and tracks analytics.
+
+**Parameters:**
+- `shortcode` - The unique identifier for your link
+
+**Response Codes:**
+- `301/302` - Successful redirect to destination
+- `403` - Link requires password or not yet active
+- `404` - Link not found
+- `410` - Link has expired
 
 **Example:**
 ```bash
-curl "https://link.mackhaymond.co/api/auth/github?redirect_uri=http://localhost:5173/auth/callback"
+curl -I https://link.mackhaymond.co/demo
+# HTTP/1.1 301 Moved Permanently
+# Location: https://github.com/SpyicyDev/mack.link
 ```
 
-#### `GET /api/auth/callback`
-Handles GitHub OAuth callback.
+### Password Protected Links
 
-**Query Parameters:**
-- `code` - OAuth authorization code from GitHub
+#### `POST /{shortcode}`
+
+Submit password for protected links.
+
+**Request Body:**
+```json
+{
+  "password": "your-password-here"
+}
+```
 
 **Response:**
+- `200` - Password correct, sets access cookie
+- `401` - Invalid password
+- `404` - Link not found
+
+---
+
+## 🔑 Authentication Endpoints
+
+### GitHub OAuth Flow
+
+#### `GET /api/auth/github`
+
+Starts the GitHub OAuth authentication process.
+
+**Query Parameters:**
+- `redirect_uri` (optional) - Where to redirect after OAuth completion
+
+**Response:**
+- `302` - Redirects to GitHub OAuth page
+
+**Example:**
+```bash
+curl "https://YOUR_DOMAIN.com/api/auth/github"
+# Redirects to GitHub for authorization
+```
+
+#### `GET /admin/auth/callback`
+
+Handles the OAuth callback from GitHub (automatic).
+
+**Query Parameters:**
+- `code` - OAuth authorization code (provided by GitHub)
+- `state` - OAuth state parameter
+
+**Success Response:**
 ```json
 {
   "user": {
-    "login": "username",
-    "avatar_url": "https://...",
-    "id": 12345
+    "login": "your-username",
+    "avatar_url": "https://avatars.githubusercontent.com/u/123456",
+    "id": 123456,
+    "name": "Your Name"
   }
 }
 ```
@@ -77,56 +119,152 @@ Handles GitHub OAuth callback.
 ```json
 {
   "error": "access_denied",
-  "error_description": "Only SpyicyDev is authorized to use this service."
+  "error_description": "Only authorized users can access this service."
 }
 ```
 
 #### `POST /api/auth/logout`
-Clears the session cookie.
+
+Sign out and clear the session cookie.
+
+**Response:**
+- `200` - Successfully logged out
 
 ---
 
-### 🔐 Protected Endpoints
+## 🔐 Protected API Endpoints
 
-Analytics endpoints support optional date range filters (`from`, `to`, ISO 8601 dates). If a `shortcode` query param is omitted, analytics are computed globally across all links.
+All endpoints below require authentication via session cookie or GitHub token.
 
-All protected endpoints require authentication and user authorization.
+### Link Management
 
 #### `GET /api/links`
-Get links. Behavior:
-- Without query params: returns a single JSON object of all links (keyed by shortcode)
-- With `limit` and/or `cursor`: returns a paginated result
+
+Retrieve all your links. Supports both complete and paginated responses.
 
 **Query Parameters:**
-- `limit` (optional) Max number of items (1-1000)
-- `cursor` (optional) Opaque cursor from previous response
+- `limit` (optional) - Max links per page (1-1000)
+- `cursor` (optional) - Pagination cursor from previous response
 
-**Paginated Response:**
+**Complete Response** (no pagination params):
+```json
+{
+  "abc123": {
+    "url": "https://example.com",
+    "description": "My awesome link",
+    "redirectType": 301,
+    "created": "2024-01-15T10:30:00Z",
+    "updated": "2024-01-15T10:30:00Z",
+    "clicks": 42,
+    "lastClicked": "2024-01-16T15:45:30Z",
+    "password": null,
+    "activatesAt": null,
+    "expiresAt": null,
+    "archived": false
+  }
+}
+```
+
+**Paginated Response** (with limit/cursor):
 ```json
 {
   "links": {
-    "abc123": {
-      "url": "https://example.com",
-      "description": "Example link",
-      "redirectType": 301,
-      "created": "2025-09-03T16:00:00Z",
-      "updated": "2025-09-03T16:00:00Z",
-      "clicks": 42,
-      "lastClicked": "2025-09-03T17:30:00Z"
-    }
+    "abc123": { /* link object */ }
   },
-  "cursor": "..." // null when complete
+  "cursor": "eyJzaG9ydGNvZGUiOiJhYmMxMjMifQ",
+  "hasMore": true
 }
 ```
+
+#### `POST /api/links`
+
+Create a new short link.
+
+**Request Body:**
+```json
+{
+  "shortcode": "my-link",
+  "url": "https://example.com",
+  "description": "Optional description",
+  "redirectType": 301,
+  "password": "optional-password",
+  "activatesAt": "2024-02-01T00:00:00Z",
+  "expiresAt": "2024-12-31T23:59:59Z"
+}
+```
+
+**Response:**
+```json
+{
+  "shortcode": "my-link",
+  "url": "https://example.com",
+  "description": "Optional description",
+  "redirectType": 301,
+  "created": "2024-01-15T10:30:00Z",
+  "updated": "2024-01-15T10:30:00Z",
+  "clicks": 0,
+  "password": "••••••••",
+  "activatesAt": "2024-02-01T00:00:00Z",
+  "expiresAt": "2024-12-31T23:59:59Z",
+  "archived": false
+}
+```
+
+**Error Responses:**
+- `400` - Missing required fields or invalid data
+- `409` - Shortcode already exists
+
+#### `PUT /api/links/{shortcode}`
+
+Update an existing link.
+
+**Request Body:** (all fields optional)
+```json
+{
+  "url": "https://new-url.com",
+  "description": "Updated description",
+  "redirectType": 302,
+  "password": "new-password",
+  "activatesAt": null,
+  "expiresAt": "2025-01-01T00:00:00Z"
+}
+```
+
+**Response:** Updated link object (same as POST response)
+
+#### `DELETE /api/links/{shortcode}`
+
+Delete a link permanently.
+
+**Response:**
+- `204` - Link deleted successfully
+- `404` - Link not found
+
+#### `GET /api/links/{shortcode}`
+
+Get details for a specific link.
+
+**Response:** Single link object (same format as GET /api/links)
+
+### Bulk Operations
+
 #### `POST /api/links/bulk`
-Create multiple links (up to 100 items).
+
+Create multiple links at once (up to 100).
 
 **Request Body:**
 ```json
 {
   "items": [
-    { "shortcode": "abc123", "url": "https://example.com", "description": "Optional", "redirectType": 301 },
-    { "shortcode": "def456", "url": "https://example.org" }
+    {
+      "shortcode": "link1",
+      "url": "https://example.com",
+      "description": "First link"
+    },
+    {
+      "shortcode": "link2", 
+      "url": "https://example.org"
+    }
   ]
 }
 ```
@@ -134,115 +272,40 @@ Create multiple links (up to 100 items).
 **Response:**
 ```json
 {
-  "created": [ { "shortcode": "abc123", "url": "https://example.com", "description": "Optional", "redirectType": 301, "created": "...", "updated": "...", "clicks": 0 } ],
-  "conflicts": [ "def456" ],
-  "errors": [ { "shortcode": "ghi789", "error": "URL is required" } ]
+  "created": [
+    { "shortcode": "link1", "url": "https://example.com", /* ... */ }
+  ],
+  "conflicts": ["link2"],
+  "errors": [
+    { "shortcode": "invalid", "error": "Invalid URL format" }
+  ]
 }
 ```
 
-#### `POST /api/links`
-Create a new link.
+### Analytics
 
-**Request Body:**
-```json
-{
-  "shortcode": "abc123",
-  "url": "https://example.com",
-  "description": "Optional description",
-  "redirectType": 301
-}
-```
+#### `GET /api/analytics/overview`
+Get summary analytics for all links or a specific link.
 
-**Response:**
-```json
-{
-  "shortcode": "abc123",
-  "url": "https://example.com",
-  "description": "Optional description",
-  "redirectType": 301,
-  "created": "2025-09-03T16:00:00Z",
-  "updated": "2025-09-03T16:00:00Z",
-  "clicks": 0
-}
-```
+**Query Parameters:**
+- `shortcode` (optional) - Get analytics for specific link
+- `from` (optional) - Start date (ISO 8601)
+- `to` (optional) - End date (ISO 8601)
 
-**Error Responses:**
-- `400` - Missing shortcode or URL
-- `409` - Shortcode already exists
+#### `GET /api/analytics/timeseries`
+Get click data over time for charts.
 
-#### `PUT /api/links/{shortcode}`
-Update an existing link.
+#### `GET /api/analytics/breakdown`
+Get detailed breakdowns by country, referrer, device, etc.
 
-**Parameters:**
-- `shortcode` (path) - The short code to update
-
-**Request Body:**
-```json
-{
-  "url": "https://newexample.com",
-  "description": "Updated description",
-  "redirectType": 302
-}
-```
-
-**Response:**
-```json
-{
-  "shortcode": "abc123",
-  "url": "https://newexample.com",
-  "description": "Updated description",
-  "redirectType": 302,
-  "created": "2025-09-03T16:00:00Z",
-  "updated": "2025-09-03T18:00:00Z",
-  "clicks": 42
-}
-```
-
-#### `DELETE /api/links/{shortcode}`
-Delete a link.
-
-**Parameters:**
-- `shortcode` (path) - The short code to delete
-
-**Response:**
-- `204` - Link deleted successfully
-- `404` - Link not found
-
-#### `GET /api/links/{shortcode}`
-Get a specific link.
-
-**Parameters:**
-- `shortcode` (path) - The short code to retrieve
-
-**Response:**
-```json
-{
-  "url": "https://example.com",
-  "description": "Example link",
-  "redirectType": 301,
-  "created": "2025-09-03T16:00:00Z",
-  "updated": "2025-09-03T16:00:00Z",
-  "clicks": 42,
-  "lastClicked": "2025-09-03T17:30:00Z"
-}
-```
+### User Management
 
 #### `GET /api/user`
-Get current authenticated user info.
-
-**Response:**
-```json
-{
-  "login": "SpyicyDev",
-  "id": 12345,
-  "avatar_url": "https://avatars.githubusercontent.com/u/12345",
-  "name": "Display Name"
-}
-```
+Get current authenticated user information.
 
 ---
 
-## Data Models
+## 📊 Data Models
 
 ### Link Object
 ```typescript
