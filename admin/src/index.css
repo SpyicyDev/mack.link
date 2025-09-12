@@ -31,14 +31,14 @@ html.dark {
 
 /* Ensure FAB clears the BottomNav height + safe area on mobile */
 .fab-offset {
-  /* 1.25rem base gap + ~56px nav height + safe-area inset */
-  bottom: calc(1.25rem + 56px + env(safe-area-inset-bottom, 0px));
+  /* 1rem base gap + ~64px nav height + safe-area inset */
+  bottom: calc(1rem + 64px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Ensure main content clears BottomNav on small screens */
 .content-pb-safe {
-  /* ~56px BottomNav height + small extra + safe-area inset */
-  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  /* ~64px BottomNav height + small extra + safe-area inset */
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Smooth momentum scrolling on iOS for overflow containers */
@@ -68,6 +68,27 @@ html.dark {
   overflow: visible;
   clip: auto;
   white-space: normal;
+}
+
+/* Mobile-specific touch targets and spacing */
+@media (max-width: 640px) {
+  /* Ensure minimum touch target size of 44px on mobile */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better mobile spacing for cards and containers */
+  .mobile-card {
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+  }
+  
+  /* Larger text inputs for better mobile UX */
+  .mobile-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.75rem;
+  }
 }
 
 /* Enhanced date picker styling */
