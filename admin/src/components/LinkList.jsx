@@ -239,19 +239,19 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
         </div>
       )}
 
-      <section
+<section
         className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 overflow-hidden sm:rounded-lg transition-colors"
         aria-labelledby="links-heading"
       >
-        <div className="px-3 sm:px-4 py-4 sm:py-5 sm:p-6">
+        <div className="px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-5 sm:p-6">
           <h2 id="links-heading" className="sr-only">
             Your short links
           </h2>
-          <div className="grid gap-3 sm:gap-4" role="list" aria-label="List of short links">
+          <div className="grid gap-2.5 xs:gap-3 sm:gap-4" role="list" aria-label="List of short links">
             {linkEntries.map(([shortcode, link]) => (
               <article
                 key={shortcode}
-                className={`border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4 hover:shadow-md dark:hover:shadow-gray-700/50 transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800 bg-white dark:bg-gray-800 ${
+                className={`border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 xs:p-3 sm:p-4 hover:shadow-md dark:hover:shadow-gray-700/50 transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800 bg-white dark:bg-gray-800 ${
                   bulkMode && selectedLinks.has(shortcode)
                     ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : ''
