@@ -140,23 +140,27 @@ export function CreateLinkForm({ onSubmit, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-0 sm:p-4">
-      <div className="mx-auto w-screen sm:w-full h-[100svh] sm:h-auto max-w-none sm:max-w-2xl border border-gray-200 dark:border-gray-700 shadow-lg rounded-none sm:rounded-md bg-white dark:bg-gray-800 transition-colors p-4 sm:p-5 overflow-y-auto">
-        <div className="flex items-center justify-between mb-4 sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur -mx-4 sm:mx-0 px-4 sm:px-0 py-3 sm:py-0 border-b border-gray-200 dark:border-gray-700 sm:border-0">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Create New Link</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+      <div className="mx-auto w-screen sm:w-full h-[100svh] sm:h-auto max-w-none sm:max-w-2xl border border-gray-200 dark:border-gray-700 shadow-lg rounded-none sm:rounded-md bg-white dark:bg-gray-800 transition-colors p-4 sm:p-6 overflow-y-auto">
+        <div className="flex items-center justify-between mb-4 sm:mb-6 sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur -mx-4 sm:mx-0 px-4 sm:px-0 py-3 sm:py-0 border-b border-gray-200 dark:border-gray-700 sm:border-0">
+          <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white">Create New Link</h3>
+          <button 
+            onClick={onClose} 
+            className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Close"
+          >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div className="md:col-span-2">
             <label
               htmlFor="shortcode"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Short Code *
             </label>
-            <div className="mt-1 flex items-stretch">
+            <div className="flex items-stretch">
               <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
                 link.mackhaymond.co/
               </span>
@@ -167,7 +171,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 id="shortcode"
                 value={formData.shortcode}
                 onChange={handleChange}
-                className="flex-1 min-w-0 pr-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-r-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                className="flex-1 min-w-0 pr-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-r-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors text-base sm:text-sm"
                 placeholder="abc123"
                 required
                 inputMode="latin"
@@ -177,14 +181,14 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               />
             </div>
             {fieldErrors.shortcode && (
-              <p className="mt-1 text-sm text-red-600">{fieldErrors.shortcode}</p>
+              <p className="mt-2 text-sm text-red-600">{fieldErrors.shortcode}</p>
             )}
           </div>
 
           <div className="md:col-span-2">
             <label
               htmlFor="url"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Destination URL *
             </label>
@@ -194,20 +198,20 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 id="url"
                 value={formData.url}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                className="block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors text-base sm:text-sm"
                 placeholder="https://example.com"
                 required
                 inputMode="url"
                 autoCapitalize="none"
                 autoCorrect="off"
               />
-            {fieldErrors.url && <p className="mt-1 text-sm text-red-600">{fieldErrors.url}</p>}
+            {fieldErrors.url && <p className="mt-2 text-sm text-red-600">{fieldErrors.url}</p>}
           </div>
 
           <div>
             <label
               htmlFor="description"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Description
             </label>
@@ -217,18 +221,18 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               id="description"
               value={formData.description}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+              className="block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors text-base sm:text-sm"
               placeholder="Optional description"
             />
             {fieldErrors.description && (
-              <p className="mt-1 text-sm text-red-600">{fieldErrors.description}</p>
+              <p className="mt-2 text-sm text-red-600">{fieldErrors.description}</p>
             )}
           </div>
 
           <div>
             <label
               htmlFor="redirectType"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Redirect Type
             </label>
@@ -237,7 +241,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               id="redirectType"
               value={formData.redirectType}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+              className="block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
             >
               <option value={301}>301 - Permanent</option>
               <option value={302}>302 - Temporary</option>
@@ -249,7 +253,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
           <div>
             <label
               htmlFor="tags"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Tags (comma separated)
             </label>
@@ -267,16 +271,16 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                     .filter(Boolean),
                 }))
               }
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+              className="block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
               placeholder="personal,work"
             />
           </div>
 
-          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
               <label
                 htmlFor="activatesAt"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
                 Activates At (optional)
               </label>
@@ -286,13 +290,13 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 id="activatesAt"
                 value={formData.activatesAt}
                 onChange={handleChange}
-                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                className="date-picker block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
               />
             </div>
             <div>
               <label
                 htmlFor="expiresAt"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
                 Expires At (optional)
               </label>
@@ -302,7 +306,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                 id="expiresAt"
                 value={formData.expiresAt}
                 onChange={handleChange}
-                className="date-picker mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
+                className="date-picker block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors"
               />
             </div>
           </div>
@@ -315,7 +319,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             </p>
           </div>
 
-          <div className="md:col-span-2 border-t border-gray-200 dark:border-gray-700 pt-4">
+          <div className="md:col-span-2 border-t border-gray-200 dark:border-gray-700 pt-4 sm:pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -334,7 +338,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                     password: prev.passwordProtectionEnabled ? '' : prev.password,
                   }))
                 }
-                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-8 w-14 sm:h-7 sm:w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   formData.passwordProtectionEnabled
                     ? 'bg-blue-600'
                     : 'bg-gray-200 dark:bg-gray-600'
@@ -345,8 +349,8 @@ export function CreateLinkForm({ onSubmit, onClose }) {
               >
                 <span
                   aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    formData.passwordProtectionEnabled ? 'translate-x-6' : 'translate-x-0'
+                  className={`pointer-events-none inline-block h-6 w-6 sm:h-5 sm:w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    formData.passwordProtectionEnabled ? 'translate-x-6 sm:translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>
@@ -364,12 +368,12 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                     id="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
+                    className="block w-full px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors"
                     placeholder="Enter password"
                     autoComplete="new-password"
                   />
                   {fieldErrors.password && (
-                    <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p>
+                    <p className="mt-2 text-sm text-red-600">{fieldErrors.password}</p>
                   )}
                   {formData.password && (
                     <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
@@ -423,18 +427,18 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             </div>
           )}
 
-          <div className="md:col-span-2 flex justify-end space-x-3 pt-4">
+          <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 sm:pt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 transition-colors"
+              className="w-full sm:w-auto px-4 py-3 sm:py-2 text-base sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || reservedPathsLoading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors"
+              className="w-full sm:w-auto px-4 py-3 sm:py-2 text-base sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors"
             >
               {loading ? 'Creating...' : reservedPathsLoading ? 'Loading...' : 'Create Link'}
             </button>

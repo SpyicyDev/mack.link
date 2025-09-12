@@ -131,7 +131,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   }, [filteredAndSortedLinks, onFilteredResults])
 
   return (
-    <div className="bg-white/95 dark:bg-gray-800/95 supports-[backdrop-filter]:backdrop-blur rounded-lg shadow dark:shadow-gray-700/50 mb-6 transition-colors sticky top-0 sm:static z-20">
+    <div className="bg-white/95 dark:bg-gray-800/95 supports-[backdrop-filter]:backdrop-blur rounded-lg shadow dark:shadow-gray-700/50 mb-4 sm:mb-6 transition-colors sticky top-0 sm:static z-20">
       <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="relative flex-1 max-w-md">
@@ -139,7 +139,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search links by shortcode, URL, or description..."
+              placeholder="Search links..."
               value={searchQuery}
               onChange={handleSearchChange}
               onKeyDown={(e) => {
@@ -153,23 +153,24 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                   }
                 }
               }}
-              className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base sm:text-sm"
               aria-label="Search links"
               role="searchbox"
             />
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center min-h-[44px]"
+              className="flex items-center min-h-[44px] px-3 sm:px-4"
             >
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
+              <Filter className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Filters</span>
+              <span className="sm:hidden">Filter</span>
               {hasFilters && (
-                <span className="ml-2 bg-blue-600 text-white text-xs rounded-full px-2 py-0.5">
+                <span className="ml-1 sm:ml-2 bg-blue-600 text-white text-xs rounded-full px-1.5 sm:px-2 py-0.5">
                   {[searchQuery, dateFilter, clicksFilter, tagFilter, showArchived ? 'archived' : ''].filter(Boolean).length}
                 </span>
               )}
@@ -180,18 +181,18 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                 variant="outline"
                 size="sm"
                 onClick={clearFilters}
-                className="flex items-center text-red-600 hover:text-red-700 min-h-[44px]"
+                className="flex items-center text-red-600 hover:text-red-700 min-h-[44px] px-2 sm:px-3"
               >
-                <X className="w-4 h-4 mr-1" />
-                Clear
+                <X className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">Clear</span>
               </Button>
             )}
           </div>
         </div>
 
         {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Sort by
@@ -203,7 +204,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                     setSortBy(field)
                     setSortOrder(order)
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="created-desc">Newest first</option>
                   <option value="created-asc">Oldest first</option>
@@ -223,7 +224,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                   type="date"
                   value={dateFilter}
                   onChange={(e) => setDateFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -237,7 +238,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                   placeholder="0"
                   value={clicksFilter}
                   onChange={(e) => setClicksFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="w-full px-3 py-2.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
 
@@ -250,12 +251,12 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
                   placeholder="work"
                   value={tagFilter}
                   onChange={(e) => setTagFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  className="w-full px-3 py-2.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 />
               </div>
 
               <div className="flex items-end">
-                <label className="inline-flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+                <label className="inline-flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300 min-h-[44px]">
                   <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
                   <span>Show archived</span>
                 </label>
