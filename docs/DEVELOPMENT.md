@@ -1,189 +1,221 @@
-# Development Guide 💻
+# 💻 Development Guide
 
-Guide for local development and contributing to link.mackhaymond.co.
+Complete guide for setting up local development and contributing to Mack.link.
 
-## Prerequisites
+## 🛠️ Prerequisites
 
-- Node.js 20.19+
-- npm or yarn
-- Git
-- Cloudflare account (for D1 database)
+Before you start, make sure you have:
 
-## Initial Setup (Workspaces)
+- **Node.js 18+** ([download here](https://nodejs.org/))
+- **Git** for version control
+- **Cloudflare account** (free tier works fine)
+- **GitHub account** for OAuth testing
+- **Code editor** (VS Code recommended)
 
+## 🚀 Quick Start
+
+### 1. Get the Code
 ```bash
 # Clone the repository
 git clone https://github.com/SpyicyDev/mack.link.git
 cd mack.link
 
-# Install all workspace dependencies (single lockfile)
-npm ci
-
-# Apply D1 schema locally (required once or when schema changes)
-npm -w worker run db:apply:local
+# Install all dependencies (uses npm workspaces)
+npm install
 ```
 
-## Environment Configuration
-
-### Worker Environment
-
-The worker uses `wrangler.jsonc` for configuration. For local development secrets:
+### 2. Setup Local Database
 ```bash
-# Set secrets via Wrangler (for local development)
-echo "your_github_client_secret" | npx wrangler secret put GITHUB_CLIENT_SECRET
-echo "your_random_jwt_secret" | npx wrangler secret put JWT_SECRET
+# Apply the database schema locally (uses in-memory D1)
+npm run db:apply:local
 ```
 
-Edit `worker/wrangler.jsonc` for public configuration (example):
+### 3. Configure Environment
+Create your local configuration in `worker/wrangler.jsonc`:
 ```json
 {
+  "name": "mack-link-dev",
   "vars": {
-    "GITHUB_CLIENT_ID": "your_github_client_id",
+    "GITHUB_CLIENT_ID": "your_github_oauth_client_id",
     "AUTHORIZED_USER": "your_github_username",
     "SESSION_COOKIE_NAME": "__Host-link_session",
     "SESSION_MAX_AGE": "28800"
   }
 }
 ```
-Note: If `SESSION_COOKIE_NAME` is omitted, the app defaults to `__Host-link_session`.
 
-### Admin Panel Environment
+### 4. Add Secrets
+```bash
+# Add your GitHub OAuth secret (get this from GitHub Developer Settings)
+echo "your_github_client_secret" | npx wrangler secret put GITHUB_CLIENT_SECRET
 
-Create `admin/.env.local` for local development:
-```env
-VITE_API_BASE=http://localhost:8787
-VITE_WORKER_DOMAIN=localhost:8787
-# VITE_GITHUB_CLIENT_ID is optional for the admin build; the server drives OAuth
-# VITE_GITHUB_CLIENT_ID=your_oauth_client_id
+# Add a JWT secret for sessions (use any random string)
+echo "$(openssl rand -base64 32)" | npx wrangler secret put JWT_SECRET
 ```
 
-## Local Development
-
-### Option A: One command (recommended)
-
+### 5. Start Development
 ```bash
-# From the repo root, start both Worker (wrangler dev) and Admin (Vite) concurrently
+# Start both the worker and admin panel
 npm run dev
+
+# This will start:
+# - Worker dev server at http://localhost:8787
+# - Admin dev server at http://localhost:5173
 ```
 
-- Worker: http://localhost:8787 (builds admin assets first, then starts wrangler dev)
-- Admin:  http://localhost:5173
+### Test Your Setup
+1. **Open the admin panel**: `http://localhost:5173`
+2. **Sign in with GitHub** (make sure your OAuth app is configured)
+3. **Create a test link**
+4. **Test the redirect**: `http://localhost:8787/your-shortcode`
 
-### Option B: Start separately
+## 📁 Project Architecture
 
-#### Start the Worker
-
-```bash
-npm -w worker run dev
-```
-
-This starts the worker on `http://localhost:8787` with:
-- Hot reload on file changes
-- Local D1 database (Wrangler test environment)
-- Full API endpoints available
-
-#### Start the Admin Panel
-
-```bash
-npm -w admin run dev
-```
-
-This starts the React app on `http://localhost:5173` with:
-- Hot reload on file changes
-- Vite dev server
-- Proxy to local worker API
-
-### Test the Integration
-
-1. Open `http://localhost:5173`
-2. Click "Sign in with GitHub"
-3. Complete OAuth flow
-4. Create test links
-5. Test redirects at `http://localhost:8787/{shortcode}`
-
-## Project Structure (Workspaces)
+Mack.link uses **npm workspaces** for managing the monorepo:
 
 ```
 mack.link/
-├── worker/                     # Cloudflare Worker
+├── 📁 worker/                  # Cloudflare Worker (Backend)
 │   ├── src/
-│   │   ├── index.js            # Worker entry
-│   │   ├── routes.js           # Router (admin/api/redirect dispatch)
-│   │   ├── routes/
-│   │   │   ├── admin.js        # Admin static serving (embedded assets)
-│   │   │   ├── routerApi.js    # /api/* router
-│   │   │   ├── routesLinks.js  # Link CRUD handlers
-│   │   │   ├── routesOAuth.js  # GitHub OAuth handlers
-│   │   │   ├── redirect.js     # Shortcode redirects
-│   │   │   └── password.js     # Password verification endpoint
-│   │   ├── analytics.js        # Analytics helpers (D1)
-│   │   ├── auth.js             # Auth/session helpers
-│   │   ├── session.js          # JWT cookie helpers
-│   │   ├── db.js               # D1 helpers
-│   │   ├── cors.js             # CORS helpers
-│   │   ├── validation.js       # Input validation
-│   │   └── logger.js           # Structured logging
-│   ├── scripts/
-│   │   └── build-admin.js      # Embed admin assets
-│   ├── wrangler.jsonc          # Worker config
+│   │   ├── index.js           # Main worker entry point
+│   │   ├── routes/            # Route handlers
+│   │   │   ├── admin.js       # Serves embedded React app
+│   │   │   ├── routerApi.js   # API endpoint routing
+│   │   │   └── redirect.js    # Shortcode redirects
+│   │   ├── auth.js            # GitHub OAuth & sessions
+│   │   ├── db.js              # D1 database operations
+│   │   ├── analytics.js       # Click tracking & reporting
+│   │   └── admin-assets.js    # Embedded React build (auto-generated)
+│   ├── wrangler.jsonc         # Worker configuration
 │   └── package.json
-├── admin/                      # React admin panel
+├── 📁 admin/                   # React Admin Panel (Frontend)
 │   ├── src/
-│   │   ├── components/
-│   │   ├── hooks/
-│   │   ├── providers/
-│   │   ├── services/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── public/
-│   ├── vite.config.js
+│   │   ├── components/        # React components
+│   │   ├── hooks/             # Custom React hooks
+│   │   ├── services/          # API client & utilities
+│   │   └── App.jsx            # Main application
+│   ├── vite.config.js         # Build configuration
 │   └── package.json
-└── docs/                       # Documentation
+├── 📁 docs/                    # Documentation
+└── package.json               # Root workspace configuration
 ```
 
-## Code Style
+## 🔄 Development Commands
 
-### Worker (JavaScript)
+### Essential Commands
+```bash
+# Start development (both worker + admin)
+npm run dev
 
-- Use ES modules (`import`/`export`)
-- Async/await for promises
-- Descriptive function names
-- Handle errors gracefully
-- Follow Cloudflare Workers patterns
+# Build for production
+npm run build
 
-Example:
+# Deploy to Cloudflare
+npm run deploy
+
+# Run linting
+npm run lint
+
+# Validate deployment
+npm run validate:local
+```
+
+### Worker-Specific Commands
+```bash
+# Start only the worker
+npm run dev:worker
+
+# Apply database schema
+npm run db:apply:local
+
+# View worker logs
+npm run logs:tail
+
+# Add secrets
+npm run secrets:put --name=SECRET_NAME
+```
+
+### Admin-Specific Commands
+```bash
+# Start only the admin panel
+npm run dev:admin
+
+# Build admin for embedding
+npm -w admin run build
+
+# Preview production build
+npm -w admin run preview
+```
+
+## 🎨 Development Workflow
+
+### Making Changes
+
+1. **Worker Changes**: Edit files in `worker/src/`
+   - Changes auto-reload with `npm run dev:worker`
+   - Test API endpoints at `http://localhost:8787/api/*`
+
+2. **Admin Changes**: Edit files in `admin/src/`
+   - Changes auto-reload with `npm run dev:admin`
+   - React dev server at `http://localhost:5173`
+
+3. **Database Changes**: Edit `worker/src/schema.sql`
+   - Apply with `npm run db:apply:local`
+
+### Environment Setup
+
+Create `admin/.env.local` for admin development:
+```env
+VITE_API_BASE=http://localhost:8787
+VITE_WORKER_DOMAIN=localhost:8787
+```
+
+### Hot Reload Setup
+- **Worker**: Uses Wrangler's built-in hot reload
+- **Admin**: Uses Vite's hot module replacement (HMR)
+- **Database**: In-memory D1 resets on worker restart
+
+## 🎨 Code Style Guidelines
+
+### Worker Code (JavaScript)
 ```javascript
-async function handleRequest(request, env) {
+// Use ES modules and async/await
+import { someFunction } from './utils.js';
+
+export async function handleRequest(request, env) {
   try {
     const url = new URL(request.url);
-    // Handle request logic
-    return new Response('Success');
+    const result = await someFunction(url.pathname);
+    return new Response(JSON.stringify(result), {
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (error) {
     console.error('Request failed:', error);
-    return new Response('Error', { status: 500 });
+    return new Response('Internal Server Error', { status: 500 });
   }
 }
 ```
 
-### Admin Panel (React)
+**Guidelines:**
+- Use descriptive function and variable names
+- Handle errors gracefully with try/catch
+- Return proper HTTP status codes
+- Use structured logging for debugging
 
-- Functional components with hooks
-- Tailwind CSS for styling
-- Lucide React for icons
-- Proper error boundaries
-- Loading states for async operations
-
-Example:
+### React Code (JSX)
 ```jsx
-function MyComponent() {
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+
+function LinkCreator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleAction = async () => {
+  const handleSubmit = async (data) => {
     try {
       setLoading(true);
       setError(null);
-      // Async operation
+      await createLink(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -192,106 +224,149 @@ function MyComponent() {
   };
 
   return (
-    <div className="p-4">
-      {/* Component JSX */}
+    <div className="space-y-4">
+      {error && (
+        <div className="text-red-600 text-sm">{error}</div>
+      )}
+      <button 
+        disabled={loading}
+        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded"
+      >
+        {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+        Create Link
+      </button>
     </div>
   );
 }
 ```
 
-## Testing
+**Guidelines:**
+- Use functional components with hooks
+- Implement loading and error states
+- Use Tailwind CSS for styling
+- Import icons from Lucide React
 
-- Deployment validation script:
-  ```bash
-  npm run validate:local
-  ```
+## 🧪 Testing Your Changes
 
-### Manual Testing Checklist
-
-- [ ] OAuth login flow
-- [ ] Link creation/editing/deletion
-- [ ] Redirect functionality (including archived/scheduled)
-- [ ] Password-protected link flow
-- [ ] Analytics polling on Analytics tab
-- [ ] Error handling
-- [ ] Mobile responsiveness
-
-## Debugging
-
-### Worker Debugging
-
+### Automated Validation
 ```bash
-# View worker logs
-npx wrangler tail
+# Test local deployment
+npm run validate:local
 
-# Debug specific function
-console.log('Debug info:', data);
+# Test production deployment
+npm run validate:prod
 ```
 
+### Manual Testing Checklist
+- [ ] **Authentication**: Sign in/out with GitHub works
+- [ ] **Link Management**: Create, edit, delete links
+- [ ] **Redirects**: Short links redirect correctly
+- [ ] **Password Protection**: Protected links require password
+- [ ] **Analytics**: Click tracking and charts work
+- [ ] **Mobile**: Interface works on mobile devices
+- [ ] **Error Handling**: Graceful error messages
+
+### Testing Password-Protected Links
+1. Create a link with a password in the admin panel
+2. Visit the short URL in an incognito window
+3. Verify password prompt appears
+4. Test with correct and incorrect passwords
+
+### Testing Analytics
+1. Create some test links
+2. Visit them multiple times from different browsers/devices
+3. Check the analytics dashboard for data
+4. Verify charts and breakdowns are working
+
+## 🐛 Debugging
+
+### Worker Debugging
+```bash
+# Real-time logs
+npm run logs:tail
+
+# Filter for errors only
+npm run logs:errors
+
+# Filter for analytics
+npm run logs:analytics
+```
+
+**Common Issues:**
+- **Database errors**: Check D1 binding and schema
+- **OAuth issues**: Verify GitHub app configuration
+- **CORS errors**: Check API configuration
+
 ### Admin Panel Debugging
+- **Browser DevTools**: Network tab for API calls
+- **React DevTools**: Component state inspection
+- **Console Errors**: JavaScript runtime errors
 
-- Use browser developer tools
-- Check Network tab for API calls
-- Inspect React components with React DevTools
-- Check console for JavaScript errors
+**Common Issues:**
+- **API connection**: Check VITE_API_BASE in .env.local
+- **Build errors**: Check Vite configuration
+- **Styling issues**: Verify Tailwind CSS setup
 
-## Common Development Tasks
+## 🚀 Adding New Features
 
-### Adding New API Endpoint
+### Adding an API Endpoint
+1. **Create handler** in `worker/src/routes/`
+2. **Register route** in `worker/src/routes/routerApi.js`
+3. **Add client method** in `admin/src/services/api.js`
+4. **Create React hook** in `admin/src/hooks/` (if needed)
 
-1. Add a handler in `worker/src/routes/routesLinks.js` (or a new file under `routes/`).
-2. Register the route in `worker/src/routes/routerApi.js`.
-3. Add a client method in `admin/src/services/api.js`.
-4. Wire up a React Query hook in `admin/src/hooks/` if needed.
+Example:
+```javascript
+// worker/src/routes/routesCustom.js
+export async function handleCustomEndpoint(request, env) {
+  return new Response(JSON.stringify({ message: 'Hello!' }));
+}
 
-### Adding New UI Component
+// worker/src/routes/routerApi.js
+import { handleCustomEndpoint } from './routesCustom.js';
+// Add to route handler...
 
-1. Create component in `admin/src/components/`
-2. Import and use in parent component
-3. Add appropriate props and styling
-4. Handle loading/error states
+// admin/src/services/api.js
+export const customApi = {
+  greeting: () => fetch('/api/custom').then(r => r.json())
+};
+```
 
-### Updating Styles
+### Adding a UI Component
+1. **Create component** in `admin/src/components/`
+2. **Use Tailwind** for styling
+3. **Handle states** (loading, error, success)
+4. **Add to parent** component
 
-- Modify Tailwind classes in components
-- Add custom CSS to `admin/src/index.css`
-- Use Tailwind's utility classes when possible
+### Updating Database Schema
+1. **Edit** `worker/src/schema.sql`
+2. **Apply locally**: `npm run db:apply:local`
+3. **Test changes** thoroughly
+4. **Apply to production**: `npm run db:apply:prod`
 
-## Deployment Testing
+## ⚡ Performance Tips
 
-Before deploying to production:
+### Worker Performance
+- **Minimize database queries** - batch operations when possible
+- **Use efficient SQL** - proper indexing and WHERE clauses
+- **Cache responses** - set appropriate cache headers
+- **Optimize redirects** - minimize redirect response time
 
-1. Test locally with production-like data
-2. Verify all environment variables are set
-3. Check that OAuth redirects work with production URLs (see Deployment docs)
-4. Test on different browsers and devices
-5. Monitor Cloudflare logs after deployment
+### Frontend Performance
+- **Lazy load components** - use React.lazy() for large components
+- **Optimize bundles** - check bundle size with Vite
+- **Implement virtualization** - for large lists
+- **Use React.memo** - for expensive re-renders
 
-## Performance Optimization
+## 🔒 Security Best Practices
 
-### Worker Optimization
-
-- Minimize D1 database queries
-- Use efficient SQL queries and indexing
-- Implement proper caching headers
-- Optimize redirect response time
-- Batch database operations when possible
-
-### Frontend Optimization
-
-- Lazy load components when appropriate
-- Optimize bundle size with Vite
-- Use React.memo for expensive renders
-- Implement proper loading states
-
-## Security Considerations
-
-- Never log sensitive data
-- Validate all user inputs
-- Use HTTPS in production
-- Implement proper CORS policies
-- Regular security audits of dependencies
+- **Never log secrets** or sensitive user data
+- **Validate all inputs** on both client and server
+- **Use HTTPS** in production environments
+- **Implement rate limiting** for sensitive endpoints
+- **Regular security audits** of dependencies
+- **Proper error handling** - don't leak internal details
 
 ---
 
-*Happy coding! 🚀*
+*Ready to contribute? Check out our [Contributing Guide](./CONTRIBUTING.md) for guidelines on submitting pull requests!*

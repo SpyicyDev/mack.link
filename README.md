@@ -213,7 +213,7 @@ npm run deploy
 
 **For Users:**
 - 🚀 [**Setup Guide**](./docs/SETUP.md) - Deploy your own instance in 10 minutes
-- 📖 [**User Guide**](./docs/USER_GUIDE.md) - How to use the admin interface *(coming soon)*
+- 📖 [**User Guide**](./docs/USER_GUIDE.md) - How to use the admin interface effectively
 
 **For Developers:**
 - 🔧 [**Development Guide**](./docs/DEVELOPMENT.md) - Local development setup
