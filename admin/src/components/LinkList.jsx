@@ -377,11 +377,11 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                     >
                       <MoreVertical className="w-5 h-5" />
                     </button>
-                    {openMenuFor === shortcode && (
-                      <div className="absolute right-0 mt-2 w-48 max-h-[60vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-20" role="menu">
+{openMenuFor === shortcode && (
+<div className="absolute right-0 mt-2 w-56 max-h-[60vh] overflow-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-20 p-1" role="menu">
                         <button
                           onClick={() => { setEditingLink({ shortcode, ...link }); setOpenMenuFor(null) }}
-                          className="w-full text-left px-4 py-3 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
+                          className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
                           role="menuitem"
                         >
                           <Edit className="w-4 h-4 mr-3 text-gray-400" />
@@ -389,7 +389,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                         </button>
                         <button
                           onClick={() => { onUpdate(shortcode, { archived: !link.archived }); setOpenMenuFor(null) }}
-                          className="w-full text-left px-4 py-3 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
+                          className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
                           role="menuitem"
                         >
                           {link.archived ? (
@@ -401,7 +401,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                         </button>
                         <button
                           onClick={() => { handleShowQRCode(shortcode, link); setOpenMenuFor(null) }}
-                          className="w-full text-left px-4 py-3 text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
+                          className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center"
                           role="menuitem"
                         >
                           <QrCode className="w-4 h-4 mr-3 text-gray-400" />
@@ -409,7 +409,7 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
                         </button>
                         <button
                           onClick={() => { handleDeleteClick(shortcode); setOpenMenuFor(null) }}
-                          className="w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
+                          className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
                           role="menuitem"
                         >
                           <Trash2 className="w-4 h-4 mr-3" />

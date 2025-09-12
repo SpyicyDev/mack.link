@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Search, Filter, X, Calendar, BarChart3 } from 'lucide-react'
 import { Input, Button } from './ui'
+import { MobileFiltersSheet } from './MobileFiltersSheet'
 
 export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -12,6 +13,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
   const [clicksFilter, setClicksFilter] = useState('')
   const [tagFilter, setTagFilter] = useState('')
   const [showArchived, setShowArchived] = useState(false)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
   const filteredAndSortedLinks = useMemo(() => {
     let filtered = Object.entries(links)
@@ -163,7 +165,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={() => (window.matchMedia('(max-width: 640px)').matches ? setMobileFiltersOpen(true) : setShowFilters(!showFilters))}
               className="flex items-center min-h-[44px] px-3 sm:px-4"
             >
               <Filter className="w-4 h-4 mr-1 sm:mr-2" />
@@ -190,6 +192,7 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
           </div>
         </div>
 
+        {/* Desktop/tablet filter grid */}
         {showFilters && (
           <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -310,6 +313,32 @@ export function LinkSearch({ links, onFilteredResults, searchInputRef }) {
           )}
         </div>
       )}
+      {/* Mobile Filters Sheet */}
+      <div className="sm:hidden">
+        <MobileFiltersSheet
+          isOpen={mobileFiltersOpen}
+          onClose={() => setMobileFiltersOpen(false)}
+          onClear={() => {
+            setSearchQuery('')
+            setDateFilter('')
+            setClicksFilter('')
+            setTagFilter('')
+            setShowArchived(false)
+            setSortBy('created')
+            setSortOrder('desc')
+          }}
+          onApply={(next) => {
+            setSortBy(next.sortBy)
+            setSortOrder(next.sortOrder)
+            setDateFilter(next.dateFilter || '')
+            setClicksFilter(next.clicksFilter || '')
+            setTagFilter(next.tagFilter || '')
+            setShowArchived(!!next.showArchived)
+            setMobileFiltersOpen(false)
+          }}
+          values={{ sortBy, sortOrder, dateFilter, clicksFilter, tagFilter, showArchived }}
+        />
+      </div>
     </div>
   )
 }
