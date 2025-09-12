@@ -145,12 +145,12 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
   if (linkEntries.length === 0) {
     return (
       <div
-        className="text-center py-8 sm:py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors mx-3 sm:mx-0"
+className="text-center py-6 xs:py-8 sm:py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors mx-3 sm:mx-0"
         role="status"
         aria-live="polite"
       >
         <LinkIcon
-          className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3 sm:mb-4"
+className="w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3 sm:mb-4"
           aria-hidden="true"
         />
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No links yet</h3>
