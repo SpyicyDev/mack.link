@@ -1,36 +1,39 @@
-# Contributing to link.mackhaymond.co 🤝
+# Contributing to Mack.link 🤝
 
-While this is primarily a personal project, contributions and forks are welcome!
+Thank you for your interest in improving Mack.link! Whether you're fixing a bug, adding a feature, or just using it for your own projects, we appreciate your involvement.
 
-## 🍴 Forking for Personal Use
+## 🌟 Ways to Contribute
 
-This project is designed to be easily forkable for your own URL shortener:
+### 🍴 Fork for Personal Use
+The easiest way to contribute is by using Mack.link for your own projects:
+
+1. **Fork this repository** to your GitHub account
+2. **Follow our [Setup Guide](./SETUP.md)** to deploy your instance
+3. **Customize it** for your domain and branding
+4. **Share your experience** - let us know how it works for you!
+
+### 🐛 Report Issues
+Found a bug or have a suggestion? We'd love to hear about it:
+
+- **Check [existing issues](https://github.com/SpyicyDev/mack.link/issues)** first
+- **Create a detailed report** with steps to reproduce
+- **Include screenshots** or error messages when helpful
+
+### 💡 Suggest Features
+Have an idea that would make Mack.link better?
+
+- **Open an issue** with the `enhancement` label
+- **Describe your use case** - what problem are you trying to solve?
+- **Discuss the approach** before writing code (saves time!)
+
+### 🔧 Submit Code
+Ready to dive into the code?
 
 1. **Fork the repository**
-2. **Follow the [Setup Guide](./SETUP.md)**
-3. **Customize for your domain and branding**
-4. **Deploy to your own Cloudflare account**
-
-## 🐛 Bug Reports
-
-If you find a bug:
-
-1. **Check existing issues** first
-2. **Create a detailed issue** with:
-   - Steps to reproduce
-   - Expected vs actual behavior  
-   - Browser/environment info
-   - Screenshots if relevant
-
-## 💡 Feature Requests
-
-For new features:
-
-1. **Open an issue** describing:
-   - The problem you're trying to solve
-   - Your proposed solution
-   - Any alternatives you've considered
-2. **Discuss before coding** - saves time!
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** (see development setup below)
+4. **Test thoroughly** - make sure existing features still work
+5. **Submit a pull request** with a clear description
 
 ## 🔧 Development Setup
 
