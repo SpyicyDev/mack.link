@@ -12,6 +12,8 @@ npm run dev:ai
 
 This command:
 - Starts both worker and admin servers with authentication disabled
+- Worker serves at http://localhost:8787 (backend + embedded admin)
+- Admin Vite dev server serves at http://localhost:5173 (for UI development)
 - Enables direct UI access without OAuth redirects  
 - Is specifically designed for automated development and testing
 - Avoids cross-origin issues that break agent workflows
@@ -43,7 +45,7 @@ This starts the Worker with AUTH_DISABLED=true and the Admin with VITE_AUTH_DISA
 
 - Run the application locally:
   - ALWAYS run the bootstrapping steps first.
-  - **AI/Copilot agents**: ALWAYS use `npm run dev:ai` -- OAuth-disabled mode for automated UI development (both worker and admin servers with auth disabled)
+  - **AI/Copilot agents**: ALWAYS use `npm run dev:ai` -- OAuth-disabled mode for automated UI development (worker at localhost:8787, admin UI at localhost:5173)
   - Full development (manual): `npm run dev` -- starts both worker (localhost:8787) and admin (localhost:5173) servers. Build takes 8-9 seconds first, then both servers start.
   - Worker only: `npm run dev:worker` -- starts worker with embedded admin at localhost:8787.
   - Worker fast mode: `npm run dev:worker:fast` -- skips admin rebuild, starts worker immediately at localhost:8787.
@@ -67,8 +69,9 @@ Production sanity checks (AUTH_DISABLED not set):
   1. **For AI/Copilot agents**: Run `npm run dev:ai` to start both servers with auth disabled.
   2. **For manual development**: Run `npm run dev` to start both servers.
   3. Open http://localhost:8787 in browser - verify homepage loads with "Sign in to Admin" button.
-  4. Open http://localhost:8787/admin - verify admin login page loads. In AI mode, login should work automatically without OAuth.
-  5. Run `npm run validate:local` - ALL 19 tests must pass.
+  4. **For admin UI development**: Open http://localhost:5173/admin - verify admin interface loads directly with auth disabled (AI mode) or shows login page (manual mode).
+  5. **For embedded admin testing**: Open http://localhost:8787/admin - verify embedded admin login page loads.
+  6. Run `npm run validate:local` - ALL 19 tests must pass.
 
 - ALWAYS run `npm run lint` before committing. The pre-commit hook runs linting automatically.
 
@@ -102,8 +105,8 @@ npm install                    # 25 seconds - sets up workspaces
 npm run db:apply:local        # 1.2 seconds - applies database schema
 
 # Development
-npm run dev:ai               # AI/Copilot agents: OAuth-disabled mode for automated UI development
-npm run dev                   # Manual development: Both worker + admin servers
+npm run dev:ai               # AI/Copilot agents: OAuth-disabled mode for automated UI development (admin UI at localhost:5173)
+npm run dev                   # Manual development: Both worker + admin servers (admin UI at localhost:5173)
 npm run dev:worker           # Worker only with embedded admin
 npm run dev:worker:fast      # Worker only, skips admin rebuild
 npm run dev:admin            # Admin dev server only
@@ -147,10 +150,11 @@ mack.link/
 ### Testing Scenarios
 After making changes, ALWAYS test these scenarios:
 1. **Homepage loads**: Visit http://localhost:8787, verify "Sign in to Admin" button appears
-2. **Admin panel loads**: Visit http://localhost:8787/admin, verify GitHub login interface appears
-3. **API accessibility**: Verify http://localhost:8787/api/links returns 401 (not 404)
-4. **Asset serving**: Verify CSS/JS assets load from /admin/assets/ paths
-5. **Validation passes**: Run `npm run validate:local` - must show "19 Passed, 0 Failed"
+2. **Admin UI development**: Visit http://localhost:5173/admin for direct admin UI access during development
+3. **Embedded admin loads**: Visit http://localhost:8787/admin, verify embedded admin interface appears  
+4. **API accessibility**: Verify http://localhost:8787/api/links returns 401 (not 404)
+5. **Asset serving**: Verify CSS/JS assets load from /admin/assets/ paths
+6. **Validation passes**: Run `npm run validate:local` - must show "19 Passed, 0 Failed"
 
 ### Troubleshooting
 
@@ -168,6 +172,7 @@ After making changes, ALWAYS test these scenarios:
 **Validation fails**:
 - Ensure dev server is running (`npm run dev:ai` for AI agents, `npm run dev` for manual)
 - Check that both localhost:8787 and localhost:5173 are accessible
+- For admin UI development, use http://localhost:5173/admin for direct access
 - Look for JavaScript console errors in browser
 
 **Deployment fails**:
