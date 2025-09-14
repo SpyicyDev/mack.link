@@ -9,7 +9,7 @@ export function getConfig(env = {}) {
 		githubClientId: env.GITHUB_CLIENT_ID,
 		githubClientSecret: env.GITHUB_CLIENT_SECRET,
 		authorizedUser: env.AUTHORIZED_USER,
-		jwtSecret: env.JWT_SECRET,
+		jwtSecret: env.JWT_SECRET || (authDisabled ? 'dev-local' : undefined),
 		sessionCookieName,
 		sessionMaxAgeSeconds: env.SESSION_MAX_AGE || 60 * 60 * 8,
 		// Development-only override to disable OAuth and simulate a logged-in user
