@@ -19,7 +19,7 @@ export async function handleGitHubAuth(request, env) {
 	} catch {}
 
 	// Short-circuit for auth-disabled dev mode: set a session for a mock user and bounce to callback
-	if (config.authDisabled || forceDevDisabled || redirectIsLocal) {
+	if (config.authDisabled || forceDevDisabled || redirectIsLocal || isLocalhost) {
 		try {
 			const env2 = { ...env, JWT_SECRET: env.JWT_SECRET || 'dev-local', AUTH_DISABLED: 'true' };
 			const { createSessionJwt, buildSessionCookie } = await import('../session.js');
