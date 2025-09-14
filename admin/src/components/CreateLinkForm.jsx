@@ -140,44 +140,45 @@ export function CreateLinkForm({ onSubmit, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/20 dark:bg-black/30 backdrop-blur-sm backdrop-saturate-150 z-50 transition duration-200 ease-out flex items-start sm:items-center justify-center p-0 sm:p-4">
-      <div className="mx-auto w-screen sm:w-full h-[100svh] sm:h-auto max-w-none sm:max-w-2xl border border-gray-200 dark:border-gray-700 shadow-lg rounded-none sm:rounded-md bg-white dark:bg-gray-800 transition-colors p-4 sm:p-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-4 sm:mb-6 sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur -mx-4 sm:mx-0 px-4 sm:px-0 py-3 sm:py-0 border-b border-gray-200 dark:border-gray-700 sm:border-0">
-          <h3 className="text-lg sm:text-xl font-medium text-gray-900 dark:text-white">Create New Link</h3>
+      <div className="mx-auto w-screen sm:w-full h-[100svh] sm:h-auto max-w-none sm:max-w-2xl border border-gray-200 dark:border-gray-700 shadow-lg rounded-none sm:rounded-lg bg-white dark:bg-gray-800 transition-colors p-0 sm:p-6 overflow-y-auto mobile-modal">
+        <div className="flex items-center justify-between mb-6 sm:mb-6 sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur px-4 sm:px-0 py-4 sm:py-0 border-b border-gray-200 dark:border-gray-700 sm:border-0">
+          <h3 className="text-xl sm:text-xl font-semibold text-gray-900 dark:text-white">Create New Link</h3>
           <button 
             onClick={onClose} 
-            className="text-gray-400 hover:text-gray-600 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors touch-target"
             aria-label="Close"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          <div className="md:col-span-2">
-            <label
-              htmlFor="shortcode"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Short Code *
-            </label>
-            <div className="flex items-stretch">
-              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs sm:text-sm">
-                link.mackhaymond.co/
-              </span>
-              <input
-                ref={shortcodeRef}
-                type="text"
-                name="shortcode"
-                id="shortcode"
-                value={formData.shortcode}
-                onChange={handleChange}
-                className="flex-1 min-w-0 pr-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-r-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors text-base sm:text-sm"
-                placeholder="abc123"
-                required
-                inputMode="latin"
-                autoCapitalize="off"
-                autoCorrect="off"
-                spellCheck={false}
+        <div className="px-4 sm:px-0">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-6 mobile-form-spacing">
+            <div className="md:col-span-2">
+              <label
+                htmlFor="shortcode"
+                className="block text-base sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 sm:mb-2"
+              >
+                Short Code *
+              </label>
+              <div className="flex items-stretch">
+                <span className="inline-flex items-center px-4 sm:px-3 rounded-l-lg sm:rounded-l-md border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm">
+                  link.mackhaymond.co/
+                </span>
+                <input
+                  ref={shortcodeRef}
+                  type="text"
+                  name="shortcode"
+                  id="shortcode"
+                  value={formData.shortcode}
+                  onChange={handleChange}
+                  className="flex-1 min-w-0 px-4 py-4 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-r-lg sm:rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-colors text-base mobile-input"
+                  placeholder="abc123"
+                  required
+                  inputMode="latin"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
               />
             </div>
             {fieldErrors.shortcode && (
@@ -427,23 +428,24 @@ export function CreateLinkForm({ onSubmit, onClose }) {
             </div>
           )}
 
-          <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 sm:pt-6">
+          <div className="md:col-span-2 flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-3 pt-6 sm:pt-6 pb-4 sm:pb-0 sticky bottom-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur -mx-4 sm:mx-0 px-4 sm:px-0 border-t border-gray-200 dark:border-gray-700 sm:border-0">
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-4 py-3 sm:py-2 text-base sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 transition-colors"
+              className="w-full sm:w-auto px-6 py-4 sm:py-2 text-base sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-lg sm:rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 transition-colors touch-target mobile-button"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || reservedPathsLoading}
-              className="w-full sm:w-auto px-4 py-3 sm:py-2 text-base sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors"
+              className="w-full sm:w-auto px-6 py-4 sm:py-2 text-base sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg sm:rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-colors touch-target mobile-button"
             >
               {loading ? 'Creating...' : reservedPathsLoading ? 'Loading...' : 'Create Link'}
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   )
