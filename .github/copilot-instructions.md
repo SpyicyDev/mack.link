@@ -2,15 +2,33 @@
 
 Always follow these instructions first and fallback to additional search and context gathering only when the information in these instructions is incomplete or found to be in error.
 
+## 🤖 CRITICAL FOR AI AGENTS: Use AI-Optimized Development Mode
+
+**If you are a Copilot agent doing ANY UI development work, ALWAYS use:**
+
+```bash
+npm run dev:ai
+```
+
+This command:
+- Starts both worker and admin servers with authentication disabled
+- Enables direct UI access without OAuth redirects  
+- Is specifically designed for automated development and testing
+- Avoids cross-origin issues that break agent workflows
+
+**Never use `npm run dev` as an AI agent - it requires manual GitHub OAuth which agents cannot complete.**
+
 ## Working Effectively
 
-### Admin UI Dev Mode (OAuth disabled)
+### Critical: Use AI-Optimized Development Mode
 
-For UI automation and agent-driven development, prefer the OAuth-disabled dev mode:
+**ALWAYS use `npm run dev:ai` for ANY UI development work as a Copilot agent.**
 
 ```
 npm run dev:ai
 ```
+
+This is the OAuth-disabled dev mode specifically designed for AI agents and automated UI development:
 
 This starts the Worker with AUTH_DISABLED=true and the Admin with VITE_AUTH_DISABLED=true. Dev auth is controlled exclusively by AUTH_DISABLED on the Worker; client flags cannot enable it. In this mode:
 - The Admin login button calls a dev-only endpoint: `POST /api/auth/dev/login` to issue a session cookie and return the mock user.
@@ -25,7 +43,8 @@ This starts the Worker with AUTH_DISABLED=true and the Admin with VITE_AUTH_DISA
 
 - Run the application locally:
   - ALWAYS run the bootstrapping steps first.
-  - Full development: `npm run dev` -- starts both worker (localhost:8787) and admin (localhost:5173) servers. Build takes 8-9 seconds first, then both servers start.
+  - **AI/Copilot agents**: ALWAYS use `npm run dev:ai` -- OAuth-disabled mode for automated UI development (both worker and admin servers with auth disabled)
+  - Full development (manual): `npm run dev` -- starts both worker (localhost:8787) and admin (localhost:5173) servers. Build takes 8-9 seconds first, then both servers start.
   - Worker only: `npm run dev:worker` -- starts worker with embedded admin at localhost:8787.
   - Worker fast mode: `npm run dev:worker:fast` -- skips admin rebuild, starts worker immediately at localhost:8787.
   - Admin only: `npm run dev:admin` -- starts React dev server at localhost:5173/admin/.
@@ -45,10 +64,11 @@ Production sanity checks (AUTH_DISABLED not set):
 - Visiting /admin shows GitHub OAuth button and requires normal authentication.
 
 - ALWAYS manually validate any changes by running the complete application:
-  1. Run `npm run dev` to start both servers.
-  2. Open http://localhost:8787 in browser - verify homepage loads with "Sign in to Admin" button.
-  3. Open http://localhost:8787/admin - verify admin login page loads with GitHub OAuth button.
-  4. Run `npm run validate:local` - ALL 19 tests must pass.
+  1. **For AI/Copilot agents**: Run `npm run dev:ai` to start both servers with auth disabled.
+  2. **For manual development**: Run `npm run dev` to start both servers.
+  3. Open http://localhost:8787 in browser - verify homepage loads with "Sign in to Admin" button.
+  4. Open http://localhost:8787/admin - verify admin login page loads. In AI mode, login should work automatically without OAuth.
+  5. Run `npm run validate:local` - ALL 19 tests must pass.
 
 - ALWAYS run `npm run lint` before committing. The pre-commit hook runs linting automatically.
 
@@ -82,7 +102,8 @@ npm install                    # 25 seconds - sets up workspaces
 npm run db:apply:local        # 1.2 seconds - applies database schema
 
 # Development
-npm run dev                   # Both worker + admin servers
+npm run dev:ai               # AI/Copilot agents: OAuth-disabled mode for automated UI development
+npm run dev                   # Manual development: Both worker + admin servers
 npm run dev:worker           # Worker only with embedded admin
 npm run dev:worker:fast      # Worker only, skips admin rebuild
 npm run dev:admin            # Admin dev server only
@@ -141,10 +162,11 @@ After making changes, ALWAYS test these scenarios:
 **Dev server won't start**:
 - Kill existing processes on ports 8787 and 5173
 - Run `npm run db:apply:local` to ensure database is set up
+- For AI/Copilot agents: Use `npm run dev:ai` instead of `npm run dev`
 - Network warnings about cloudflare.com are normal in sandboxed environments
 
 **Validation fails**:
-- Ensure dev server is running (`npm run dev`)
+- Ensure dev server is running (`npm run dev:ai` for AI agents, `npm run dev` for manual)
 - Check that both localhost:8787 and localhost:5173 are accessible
 - Look for JavaScript console errors in browser
 
