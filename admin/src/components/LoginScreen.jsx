@@ -1,10 +1,11 @@
-import { Link as LinkIcon, Github } from 'lucide-react'
+import { Link as LinkIcon, Github, Shield } from 'lucide-react'
 import { authService } from '../services/auth'
 
 export function LoginScreen() {
   const handleLogin = () => {
     authService.login();
   };
+  const authDisabled = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_AUTH_DISABLED === 'true'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 transition-colors">
@@ -38,6 +39,9 @@ export function LoginScreen() {
               <p className="text-blue-800 dark:text-blue-400 text-sm">
                 🔒 This system is restricted to authorized users only
               </p>
+              {authDisabled && (
+                <p className="mt-2 text-amber-700 dark:text-amber-300 flex items-center justify-center"><Shield className="w-4 h-4 mr-1" /> Dev mode: OAuth disabled</p>
+              )}
             </div>
           </div>
         </div>

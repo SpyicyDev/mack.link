@@ -100,6 +100,35 @@ mack.link/
 └── package.json               # Root workspace configuration
 ```
 
+### OAuth-disabled Dev Mode (for AI/Playwright)
+
+For automated UI development and testing by an agent, you can run the stack in a special mode where clicking “Sign in with GitHub” immediately authenticates a mock user and redirects to the dashboard (no GitHub roundtrip).
+
+Run:
+
+```
+$ npm run dev:ai
+```
+
+What this does:
+- Starts the Worker with AUTH_DISABLED=true and a development JWT secret
+- Starts the Admin with VITE_API_BASE=http://localhost:8787 and VITE_AUTH_DISABLED=true
+- The OAuth endpoints are short-circuited to mint a session cookie for a mock user (ai-dev)
+- The Admin UI shows a small banner indicating dev auth is disabled
+
+Notes:
+- This mode is strictly for local/remote development by an AI agent. Do not enable it in production.
+- The Worker still requires a session cookie; the login button performs a simulated flow to establish the session.
+- You can customize the mock user via environment variables passed to the Worker: AUTH_DISABLED_USER_LOGIN, AUTH_DISABLED_USER_NAME, AUTH_DISABLED_USER_AVATAR_URL
+
+Playwright usage:
+- Launch your tests against http://localhost:5173/admin
+- In tests, navigate to /admin and click the Sign in button; your test should land on the dashboard immediately.
+- Protected API routes are available once the session cookie is set.
+
+Long-running command guidance:
+- This command starts dev servers. If you ask an agent to run it, provide explicit instructions for what you want tested while it’s running and confirm before proceeding.
+
 ## 🔄 Development Commands
 
 ### Essential Commands

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm:dev:worker\" \"npm:dev:admin\"",
+    "dev:ai": "concurrently \"npm -w worker run dev:ai\" \"VITE_API_BASE=http://localhost:8787 VITE_AUTH_DISABLED=true npm -w admin run dev\"",
     "dev:worker": "npm -w worker run dev",
     "dev:worker:fast": "npm -w worker run dev:fast",
     "dev:admin": "npm -w admin run dev",

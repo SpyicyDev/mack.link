@@ -1,4 +1,4 @@
-import { getConfig } from '../config.js';
+import { getConfig, getMockUser } from '../config.js';
 import { withCors } from '../cors.js';
 import { generateStateToken } from '../auth.js';
 import { withTimeout, retryWithBackoff } from '../utils.js';
@@ -9,6 +9,24 @@ export async function handleGitHubAuth(request, env) {
 	const redirectUri = url.searchParams.get('redirect_uri') || 'http://localhost:5173/auth/callback';
 	const state = generateStateToken();
 	const config = getConfig(env);
+
+	// Short-circuit for auth-disabled dev mode: set a session for a mock user and bounce to callback
+	if (config.authDisabled) {
+		const { createSessionJwt, buildSessionCookie } = await import('../session.js');
+		const user = getMockUser(env);
+		logger.info('Auth-disabled mode: issuing mock session and redirecting to callback', { redirectUri, login: user.login });
+		const sessionJwt = await createSessionJwt(env, user);
+		const sessionCookie = buildSessionCookie(sessionJwt, env);
+		const oauthStateCookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly; Secure; SameSite=None`;
+		const callbackUrl = new URL(redirectUri);
+		callbackUrl.searchParams.set('code', 'disabled');
+		callbackUrl.searchParams.set('state', state);
+		const resp = new Response(null, { status: 302, headers: { 'Location': callbackUrl.toString() } });
+		resp.headers.append('Set-Cookie', sessionCookie);
+		resp.headers.append('Set-Cookie', oauthStateCookie);
+		return withCors(env, resp, request);
+	}
+
 	const authUrl = new URL('https://github.com/login/oauth/authorize');
 	authUrl.searchParams.set('client_id', config.githubClientId);
 	authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -39,6 +57,20 @@ export async function handleGitHubCallback(request, env) {
 	if (!cookieState || (state && cookieState !== state)) {
 		return withCors(env, new Response(JSON.stringify({ error: 'invalid_state', error_description: 'OAuth state mismatch' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
 	}
+
+	// Short-circuit for auth-disabled dev mode: return mock user and set/refresh session
+	if (config.authDisabled) {
+		const { createSessionJwt, buildSessionCookie, clearOauthStateCookie } = await import('../session.js');
+		const user = getMockUser(env);
+		logger.info('Auth-disabled mode: returning mock user from callback', { login: user.login });
+		const sessionJwt = await createSessionJwt(env, user);
+		const sessionCookie = buildSessionCookie(sessionJwt, env);
+		const response = new Response(JSON.stringify({ user }), { headers: { 'Content-Type': 'application/json' } });
+		response.headers.append('Set-Cookie', sessionCookie);
+		response.headers.append('Set-Cookie', clearOauthStateCookie());
+		return withCors(env, response, request);
+	}
+
 	try {
 		const tokenData = await retryWithBackoff(async (attempt) => {
 			const tokenResponse = await withTimeout(

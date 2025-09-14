@@ -4,6 +4,16 @@ Always follow these instructions first and fallback to additional search and con
 
 ## Working Effectively
 
+### Admin UI Dev Mode (OAuth disabled)
+
+For UI automation and agent-driven development, prefer the OAuth-disabled dev mode:
+
+```
+npm run dev:ai
+```
+
+This starts the Worker with AUTH_DISABLED=true and the Admin with VITE_AUTH_DISABLED=true. Clicking “Sign in with GitHub” will immediately authenticate a mock user and go to the dashboard. Use this for Playwright E2E flows.
+
 - Bootstrap, build, and test the repository:
   - `npm install` -- takes 25 seconds. NEVER CANCEL.
   - `npm run lint` -- takes 2 seconds. Always run before committing.

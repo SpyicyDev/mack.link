@@ -1,10 +1,11 @@
-import { Link as LinkIcon, LogOut, Moon, Sun, Keyboard } from 'lucide-react'
+import { Link as LinkIcon, LogOut, Moon, Sun, Keyboard, Shield } from 'lucide-react'
 import { authService } from '../services/auth'
 import { useTheme } from '../providers/ThemeProvider'
 
 export function Header({ onShowShortcuts = () => {} }) {
   const user = authService.getUser();
   const { theme, toggleTheme } = useTheme()
+  const authDisabled = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_AUTH_DISABLED === 'true'
   
   const handleLogout = () => {
     authService.logout();
@@ -40,6 +41,11 @@ export function Header({ onShowShortcuts = () => {} }) {
             >
               {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
+            {authDisabled && (
+              <div className="hidden md:flex items-center text-xs px-2 py-1 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" title="OAuth disabled dev mode">
+                <Shield className="w-4 h-4 mr-1" /> Dev auth disabled
+              </div>
+            )}
             {user && (
               <nav className="flex items-center space-x-2 sm:space-x-4" role="navigation" aria-label="User menu">
                 <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300" role="status" aria-live="polite">
