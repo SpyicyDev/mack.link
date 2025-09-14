@@ -4,6 +4,47 @@ import { generateStateToken } from '../auth.js';
 import { withTimeout, retryWithBackoff } from '../utils.js';
 import { logger } from '../logger.js';
 
+// Dev-only: programmatic login endpoint for Playwright/AI when AUTH_DISABLED=true
+export async function handleDevAuthLogin(request, env) {
+	const config = getConfig(env);
+	if (!config.authDisabled) {
+		return withCors(env, new Response(JSON.stringify({ error: 'forbidden', error_description: 'Dev auth not enabled' }), { status: 403, headers: { 'Content-Type': 'application/json' } }), request);
+	}
+	try {
+		// Optional overrides via body { login, name, avatar_url }
+		let overrides = {};
+		if ((request.method || 'GET').toUpperCase() === 'POST') {
+			try {
+				const text = await request.text();
+				if (text) {
+					const parsed = JSON.parse(text);
+					overrides = {
+						login: typeof parsed.login === 'string' && parsed.login.trim().length > 0 ? parsed.login.trim() : undefined,
+						name: typeof parsed.name === 'string' && parsed.name.trim().length > 0 ? parsed.name.trim() : undefined,
+						avatar_url: typeof parsed.avatar_url === 'string' && /^https?:\/\//.test(parsed.avatar_url) ? parsed.avatar_url : undefined,
+					};
+				}
+			} catch {}
+		}
+		const baseUser = getMockUser(env);
+		const user = {
+			...baseUser,
+			...(overrides.login ? { login: overrides.login } : {}),
+			...(overrides.name ? { name: overrides.name } : {}),
+			...(overrides.avatar_url ? { avatar_url: overrides.avatar_url } : {}),
+		};
+		const { createSessionJwt, buildSessionCookie } = await import('../session.js');
+		const sessionJwt = await createSessionJwt(env, user);
+		const sessionCookie = buildSessionCookie(sessionJwt, env);
+		const response = new Response(JSON.stringify({ user }), { headers: { 'Content-Type': 'application/json' } });
+		response.headers.append('Set-Cookie', sessionCookie);
+		return withCors(env, response, request);
+	} catch (error) {
+		logger.error('Dev auth login failed', { error: error.message });
+		return withCors(env, new Response(JSON.stringify({ error: 'dev_auth_failed', error_description: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } }), request);
+	}
+}
+
 export async function handleGitHubAuth(request, env) {
 	const url = new URL(request.url);
 	const redirectUri = url.searchParams.get('redirect_uri') || 'http://localhost:5173/auth/callback';

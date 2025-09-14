@@ -29,13 +29,37 @@ class AuthService {
   }
 
   async login() {
-    // Redirect to GitHub OAuth (must hit the Worker origin in dev)
     const redirectUri = `${window.location.origin}/admin/auth/callback`
     const base = API_BASE || window.location.origin
     const dev = import.meta?.env?.VITE_AUTH_DISABLED === 'true'
+
+    if (dev) {
+      // Prefer dev programmatic login to avoid redirects during tests
+      try {
+        const resp = await fetch(new URL('/api/auth/dev/login', base).toString(), {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        })
+        if (resp.ok) {
+          const data = await resp.json()
+          this.user = data.user
+          localStorage.setItem('user', JSON.stringify(this.user))
+          const event = new CustomEvent('auth:change', { detail: { token: this.token, user: this.user } })
+          window.dispatchEvent(event)
+          // Navigate to app root after login
+          window.location.assign('/admin')
+          return
+        }
+      } catch (e) {
+        console.warn('Dev login failed, falling back to OAuth redirect', e)
+      }
+    }
+
+    // Fallback to GitHub OAuth
     const auth = new URL('/api/auth/github', base)
     auth.searchParams.set('redirect_uri', redirectUri)
-    if (dev) auth.searchParams.set('dev_auth_disabled', '1')
     window.location.href = auth.toString()
   }
 

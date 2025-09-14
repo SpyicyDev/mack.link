@@ -1,7 +1,7 @@
 import { requireAuth, handleLogout } from '../auth.js';
 import { withCors } from '../cors.js';
 import { getAllLinks, createLink, updateLink, deleteLink, bulkDeleteLinks, getLink, bulkCreateLinks, listLinks } from './routesLinks.js';
-import { handleGitHubAuth, handleGitHubCallback } from './routesOAuth.js';
+import { handleGitHubAuth, handleGitHubCallback, handleDevAuthLogin } from './routesOAuth.js';
 import { getTimeseries, getTimeseriesByLinks, getBreakdown, getOverview, exportAnalytics } from '../analytics.js';
 import { handlePasswordVerification } from './password.js';
 import { getReservedPathsList } from '../reservedPaths.js';
@@ -20,6 +20,10 @@ export async function handleAPI(request, env, requestLogger) {
 	}
 	if (path === '/api/auth/logout' && method === 'POST') {
 		return await handleLogout(env, request);
+	}
+	// Dev-only programmatic login endpoint
+	if (path === '/api/auth/dev/login' && method === 'POST') {
+		return await handleDevAuthLogin(request, env);
 	}
 
 	// Password verification endpoint (no auth required)

@@ -104,6 +104,10 @@ mack.link/
 
 For automated UI development and testing by an agent, you can run the stack in a special mode where clicking “Sign in with GitHub” immediately authenticates a mock user and redirects to the dashboard (no GitHub roundtrip).
 
+Dev mode is controlled exclusively by the Worker environment variable AUTH_DISABLED=true. The client-side flag VITE_AUTH_DISABLED=true merely toggles UX hints; it cannot enable dev auth by itself.
+
+For automated UI development and testing by an agent, you can run the stack in a special mode where clicking “Sign in with GitHub” immediately authenticates a mock user and redirects to the dashboard (no GitHub roundtrip).
+
 Run:
 
 ```
@@ -113,6 +117,7 @@ $ npm run dev:ai
 What this does:
 - Starts the Worker with AUTH_DISABLED=true and a development JWT secret
 - Starts the Admin with VITE_API_BASE=http://localhost:8787 and VITE_AUTH_DISABLED=true
+- Adds a dedicated dev login endpoint at POST /api/auth/dev/login that issues a session cookie and returns the mock user
 - The OAuth endpoints are short-circuited to mint a session cookie for a mock user (ai-dev)
 - The Admin UI shows a small banner indicating dev auth is disabled
 
@@ -123,7 +128,33 @@ Notes:
 
 Playwright usage:
 - Launch your tests against http://localhost:5173/admin
-- In tests, navigate to /admin and click the Sign in button; your test should land on the dashboard immediately.
+- Option A (UI): navigate to /admin and click the Sign in button; login happens without redirects.
+- Option B (API, recommended for headless tests): do a POST to http://localhost:8787/api/auth/dev/login with credentials include, then visit /admin. Example:
+
+```bash
+curl -i -X POST \
+  -H "Content-Type: application/json" \
+  --cookie-jar cookies.txt \
+  http://localhost:8787/api/auth/dev/login
+```
+
+Playwright example:
+
+```ts
+// playwright.dev-auth.ts
+import { test as setup } from '@playwright/test';
+
+setup('dev login', async ({ request, context }) => {
+  const resp = await request.post('http://localhost:8787/api/auth/dev/login', {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!resp.ok()) throw new Error('Dev login failed');
+  // Session cookie is now stored in the browser context; navigate to admin
+  const page = await context.newPage();
+  await page.goto('http://localhost:5173/admin');
+});
+```
+
 - Protected API routes are available once the session cookie is set.
 
 Long-running command guidance:
