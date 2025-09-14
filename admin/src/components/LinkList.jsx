@@ -243,15 +243,15 @@ className="w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-
         className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 overflow-hidden sm:rounded-lg transition-colors"
         aria-labelledby="links-heading"
       >
-        <div className="px-2 xs:px-3 sm:px-4 py-3 xs:py-4 sm:py-5 sm:p-6">
+        <div className="px-2 xs:px-3 sm:px-4 py-2 xs:py-3 sm:py-5 sm:p-6">
           <h2 id="links-heading" className="sr-only">
             Your short links
           </h2>
-          <div className="grid gap-2.5 xs:gap-3 sm:gap-4" role="list" aria-label="List of short links">
+          <div className="grid gap-2 xs:gap-3 sm:gap-4" role="list" aria-label="List of short links">
             {linkEntries.map(([shortcode, link]) => (
               <article
                 key={shortcode}
-                className={`border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 xs:p-3 sm:p-4 hover:shadow-md dark:hover:shadow-gray-700/50 transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800 bg-white dark:bg-gray-800 ${
+                className={`border border-gray-200 dark:border-gray-700 rounded-lg p-3 xs:p-3 sm:p-4 hover:shadow-md dark:hover:shadow-gray-700/50 transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800 bg-white dark:bg-gray-800 mobile-card ${
                   bulkMode && selectedLinks.has(shortcode)
                     ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : ''
@@ -275,16 +275,16 @@ className="w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-2 sm:mb-2">
+                    <div className="flex items-center space-x-2 mb-2">
                       <code
-                        className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-mono rounded break-all sm:break-normal"
+                        className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs sm:text-sm font-mono rounded break-all sm:break-normal"
                         aria-label={`Short URL: ${workerHost()}/${shortcode}`}
                       >
                         {workerHost()}/{shortcode}
                       </code>
                       <button
                         onClick={() => copyToClipboard(shortcode)}
-                        className="p-2 sm:p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded min-h-[44px] min-w-[44px] sm:min-h-[auto] sm:min-w-[auto] flex items-center justify-center flex-shrink-0"
+                        className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded touch-target flex items-center justify-center flex-shrink-0"
                         aria-label={`Copy link for ${shortcode} to clipboard`}
                       >
                         <Copy className="w-4 h-4" aria-hidden="true" />
@@ -302,14 +302,14 @@ className="w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 break-all sm:break-normal sm:truncate transition-colors text-sm sm:text-base"
+                        className="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 break-all sm:break-normal sm:truncate transition-colors text-sm touch-target"
                       >
                         {link.url}
                       </a>
                     </div>
 
                     {link.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{link.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 leading-5">{link.description}</p>
                     )}
 
                     {/* Tags and badges - mobile scrollable */}
@@ -336,7 +336,7 @@ className="w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                       <div className="flex items-center space-x-1">
                         <BarChart3 className="w-3 h-3" />
                         <span>{link.clicks || 0} clicks</span>
@@ -368,10 +368,10 @@ className="w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-
                   </div>
 
                   {/* Mobile kebab menu */}
-                  <div className="sm:hidden relative self-start mt-1" role="group" aria-label={`Actions for ${shortcode}`}>
+                  <div className="sm:hidden relative self-start" role="group" aria-label={`Actions for ${shortcode}`}>
                     <button
                       onClick={() => setOpenMenuFor((prev) => (prev === shortcode ? null : shortcode))}
-                      className="p-2 min-h-[44px] min-w-[44px] text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded flex items-center justify-center"
+                      className="p-2 touch-target text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded flex items-center justify-center"
                       aria-label={`More actions for ${shortcode}`}
                       aria-expanded={openMenuFor === shortcode}
                     >

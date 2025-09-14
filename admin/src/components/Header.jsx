@@ -14,12 +14,12 @@ export function Header({ onShowShortcuts = () => {} }) {
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 transition-colors" role="banner">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2 sm:gap-4 py-3 sm:py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 py-2 sm:py-6">
           <div className="flex items-center min-w-0 flex-1">
-            <LinkIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400 mr-2 sm:mr-3 flex-shrink-0" aria-hidden="true" />
+            <LinkIcon className="w-5 h-5 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400 mr-2 sm:mr-3 flex-shrink-0" aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">link.mackhaymond.co</h1>
+              <h1 className="text-base sm:text-2xl font-bold text-gray-900 dark:text-white truncate">link.mackhaymond.co</h1>
               <p className="hidden sm:block text-sm text-gray-600 dark:text-gray-300">URL Shortener Management</p>
             </div>
           </div>

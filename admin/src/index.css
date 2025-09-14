@@ -80,14 +80,40 @@ html.dark {
   
   /* Better mobile spacing for cards and containers */
   .mobile-card {
-    margin-bottom: 0.75rem;
-    padding: 1rem;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
   }
   
   /* Larger text inputs for better mobile UX */
   .mobile-input {
     font-size: 16px; /* Prevents zoom on iOS */
     padding: 0.75rem;
+  }
+  
+  /* Better mobile typography */
+  .mobile-text-sm {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  
+  /* Improved mobile button spacing */
+  .mobile-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Better mobile link cards */
+  .mobile-link-card {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 0.5rem;
+  }
+  
+  /* Mobile-optimized form elements */
+  .mobile-form-element {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.75rem;
+    border-radius: 0.5rem;
   }
 }
 

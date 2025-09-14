@@ -11,9 +11,9 @@ export function BottomNav({ currentView, setCurrentView }) {
         <button
           type="button"
           onClick={() => setCurrentView('links')}
-          className={`flex flex-col items-center justify-center h-full transition-colors ${
+          className={`flex flex-col items-center justify-center h-full transition-colors touch-target ${
             currentView === 'links'
-              ? 'text-blue-600 dark:text-blue-400'
+              ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
               : 'text-gray-600 dark:text-gray-300 active:bg-gray-100 dark:active:bg-gray-800'
           }`}
           aria-current={currentView === 'links' ? 'page' : undefined}
@@ -26,9 +26,9 @@ export function BottomNav({ currentView, setCurrentView }) {
         <button
           type="button"
           onClick={() => setCurrentView('analytics')}
-          className={`flex flex-col items-center justify-center h-full transition-colors ${
+          className={`flex flex-col items-center justify-center h-full transition-colors touch-target ${
             currentView === 'analytics'
-              ? 'text-blue-600 dark:text-blue-400'
+              ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
               : 'text-gray-600 dark:text-gray-300 active:bg-gray-100 dark:active:bg-gray-800'
           }`}
           aria-current={currentView === 'analytics' ? 'page' : undefined}
