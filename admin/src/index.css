@@ -31,14 +31,14 @@ html.dark {
 
 /* Ensure FAB clears the BottomNav height + safe area on mobile */
 .fab-offset {
-  /* 1rem base gap + ~80px nav height + safe-area inset */
-  bottom: calc(1rem + 80px + env(safe-area-inset-bottom, 0px));
+  /* 1rem base gap + ~64px nav height + safe-area inset */
+  bottom: calc(1rem + 64px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Ensure main content clears BottomNav on small screens */
 .content-pb-safe {
-  /* ~80px BottomNav height + small extra + safe-area inset */
-  padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  /* ~64px BottomNav height + small extra + safe-area inset */
+  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Smooth momentum scrolling on iOS for overflow containers */
@@ -80,42 +80,14 @@ html.dark {
   
   /* Better mobile spacing for cards and containers */
   .mobile-card {
-    margin-bottom: 1rem;
-    padding: 1.25rem;
-    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
   }
   
   /* Larger text inputs for better mobile UX */
   .mobile-input {
     font-size: 16px; /* Prevents zoom on iOS */
-    padding: 1rem;
-    border-radius: 0.75rem;
-  }
-  
-  /* Enhanced mobile button styling */
-  .mobile-button {
-    padding: 1rem 1.5rem;
-    font-size: 1rem;
-    border-radius: 0.75rem;
-    font-weight: 500;
-  }
-  
-  /* Mobile-optimized form spacing */
-  .mobile-form-spacing > * + * {
-    margin-top: 1.5rem;
-  }
-  
-  /* Better mobile list item spacing */
-  .mobile-list-item {
-    padding: 1.25rem;
-    margin-bottom: 0.75rem;
-  }
-  
-  /* Mobile-friendly modal styling */
-  .mobile-modal {
-    margin: 1rem;
-    border-radius: 1rem;
-    max-height: calc(100vh - 2rem);
+    padding: 0.75rem;
   }
 }
 
