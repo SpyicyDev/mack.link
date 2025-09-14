@@ -59,8 +59,22 @@ export async function authenticateRequest(env, request) {
 	});
 	
 	if (sessionToken) {
-		const user = await verifySessionJwt(env, sessionToken);
+		let user = await verifySessionJwt(env, sessionToken);
 		logger.debug('Session JWT verification result', { hasUser: !!user, userLogin: user?.login });
+		if (!user) {
+			// Dev fallback: if disabled auth is on and we have a token, try to parse payload without verifying
+			const { authDisabled } = getConfig(env);
+			if (authDisabled) {
+				try {
+					const parts = sessionToken.split('.');
+					if (parts.length >= 2) {
+						const payloadStr = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/').padEnd(parts[1].length + (4 - parts[1].length % 4) % 4, '='));
+						const payload = JSON.parse(decodeURIComponent(escape(payloadStr)));
+						user = payload?.user || null;
+					}
+				} catch {}
+			}
+		}
 		if (user) return user;
 	}
 	const authHeader = request.headers.get('Authorization');
