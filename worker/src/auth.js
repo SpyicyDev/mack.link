@@ -44,6 +44,12 @@ export async function verifyGitHubToken(env, token) {
 }
 
 export async function authenticateRequest(env, request) {
+	// Bypass entirely in disabled mode
+	const { authDisabled } = getConfig(env);
+	if (authDisabled) {
+		const { getMockUser } = await import('./config.js');
+		return getMockUser(env);
+	}
 	// Prefer session cookie; fall back to Authorization for backward compatibility
 	const cookieHeader = request.headers.get('Cookie') || '';
 	const cookies = parseCookies(cookieHeader);
@@ -59,22 +65,8 @@ export async function authenticateRequest(env, request) {
 	});
 	
 	if (sessionToken) {
-		let user = await verifySessionJwt(env, sessionToken);
+		const user = await verifySessionJwt(env, sessionToken);
 		logger.debug('Session JWT verification result', { hasUser: !!user, userLogin: user?.login });
-		if (!user) {
-			// Dev fallback: if disabled auth is on and we have a token, try to parse payload without verifying
-			const { authDisabled } = getConfig(env);
-			if (authDisabled) {
-				try {
-					const parts = sessionToken.split('.');
-					if (parts.length >= 2) {
-						const payloadStr = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/').padEnd(parts[1].length + (4 - parts[1].length % 4) % 4, '='));
-						const payload = JSON.parse(decodeURIComponent(escape(payloadStr)));
-						user = payload?.user || null;
-					}
-				} catch {}
-			}
-		}
 		if (user) return user;
 	}
 	const authHeader = request.headers.get('Authorization');
