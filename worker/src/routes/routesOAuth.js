@@ -9,14 +9,6 @@ export async function handleGitHubAuth(request, env) {
 	const redirectUri = url.searchParams.get('redirect_uri') || 'http://localhost:5173/auth/callback';
 	const state = generateStateToken();
 	const config = getConfig(env);
-	const urlHost = new URL(request.url).hostname;
-	const isLocalhost = urlHost === 'localhost' || urlHost === '127.0.0.1';
-	const forceDevDisabled = url.searchParams.get('dev_auth_disabled') === '1' && isLocalhost;
-	let redirectIsLocal = false;
-	try {
-		const r = new URL(redirectUri);
-		redirectIsLocal = r.hostname === 'localhost' || r.hostname === '127.0.0.1';
-	} catch {}
 
 	// Short-circuit for auth-disabled dev mode: set a session for a mock user and bounce to callback
 	if (config.authDisabled) {
@@ -72,26 +64,23 @@ export async function handleGitHubCallback(request, env) {
 	}));
 	const cookieState = cookies['oauth_state'];
 	// Accept missing oauth_state in dev-disabled localhost flow where insecure cookies may be used
-	const urlHost = new URL(request.url).hostname;
-	const isLocalhost = urlHost === 'localhost' || urlHost === '127.0.0.1';
-	const devDisabledCode = url.searchParams.get('code') === 'disabled';
+	// Verify localhost flags are not used to bypass state in production; only allow when AUTH_DISABLED
 	if (!cookieState || (state && cookieState !== state)) {
-		if (!(config.authDisabled || (devDisabledCode && isLocalhost))) {
+		if (!config.authDisabled) {
 			return withCors(env, new Response(JSON.stringify({ error: 'invalid_state', error_description: 'OAuth state mismatch' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
 		}
 	}
 
 	// Short-circuit for auth-disabled dev mode: return mock user and set/refresh session
-	if (config.authDisabled || (devDisabledCode && isLocalhost)) {
+	if (config.authDisabled) {
 		const { createSessionJwt, buildSessionCookie, clearOauthStateCookie } = await import('../session.js');
-		const env2 = { ...env, JWT_SECRET: env.JWT_SECRET || 'dev-local', AUTH_DISABLED: 'true' };
-		const user = getMockUser(env2);
+		const user = getMockUser(env);
 		logger.info('Auth-disabled mode: returning mock user from callback', { login: user.login });
-		const sessionJwt = await createSessionJwt(env2, user);
-		const sessionCookie = buildSessionCookie(sessionJwt, env2);
+		const sessionJwt = await createSessionJwt(env, user);
+		const sessionCookie = buildSessionCookie(sessionJwt, env);
 		const response = new Response(JSON.stringify({ user }), { headers: { 'Content-Type': 'application/json' } });
 		response.headers.append('Set-Cookie', sessionCookie);
-		response.headers.append('Set-Cookie', clearOauthStateCookie(env2));
+		response.headers.append('Set-Cookie', clearOauthStateCookie(env));
 		return withCors(env, response, request);
 	}
 
