@@ -7,11 +7,11 @@ export function BottomNav({ currentView, setCurrentView }) {
       role="navigation"
       aria-label="Primary"
     >
-      <div className="grid grid-cols-2 h-16">
+      <div className="grid grid-cols-2 h-16 xs:h-18">
         <button
           type="button"
           onClick={() => setCurrentView('links')}
-          className={`flex flex-col items-center justify-center h-full transition-colors ${
+          className={`flex flex-col items-center justify-center h-full transition-colors touch-target ${
             currentView === 'links'
               ? 'text-blue-600 dark:text-blue-400'
               : 'text-gray-600 dark:text-gray-300 active:bg-gray-100 dark:active:bg-gray-800'
@@ -19,14 +19,14 @@ export function BottomNav({ currentView, setCurrentView }) {
           aria-current={currentView === 'links' ? 'page' : undefined}
           aria-label="Links"
         >
-          <LinkIcon className="w-5 h-5 mb-1" />
-          <span className="text-xs font-medium">Links</span>
+          <LinkIcon className="w-5 h-5 xs:w-6 xs:h-6 mb-1" />
+          <span className="text-xs xs:text-sm font-medium">Links</span>
         </button>
 
         <button
           type="button"
           onClick={() => setCurrentView('analytics')}
-          className={`flex flex-col items-center justify-center h-full transition-colors ${
+          className={`flex flex-col items-center justify-center h-full transition-colors touch-target ${
             currentView === 'analytics'
               ? 'text-blue-600 dark:text-blue-400'
               : 'text-gray-600 dark:text-gray-300 active:bg-gray-100 dark:active:bg-gray-800'
@@ -34,8 +34,8 @@ export function BottomNav({ currentView, setCurrentView }) {
           aria-current={currentView === 'analytics' ? 'page' : undefined}
           aria-label="Analytics"
         >
-          <BarChart3 className="w-5 h-5 mb-1" />
-          <span className="text-xs font-medium">Analytics</span>
+          <BarChart3 className="w-5 h-5 xs:w-6 xs:h-6 mb-1" />
+          <span className="text-xs xs:text-sm font-medium">Analytics</span>
         </button>
       </div>
     </nav>

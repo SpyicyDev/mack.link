@@ -8,7 +8,7 @@ const Input = forwardRef(({
   className = '',
   ...props 
 }, ref) => {
-  const inputBase = 'block w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-0 sm:text-sm transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400'
+  const inputBase = 'block w-full px-3 py-3 sm:py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-offset-0 text-base sm:text-sm transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 touch-target'
   const inputState = error
     ? 'border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500'
     : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500'

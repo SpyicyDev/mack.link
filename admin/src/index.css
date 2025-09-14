@@ -41,6 +41,64 @@ html.dark {
   padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
 }
 
+/* Enhanced mobile touch targets */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Better mobile spacing for cards and containers */
+.mobile-card {
+  margin-bottom: 0.75rem;
+  padding: 1rem;
+}
+
+/* Larger text inputs for better mobile UX */
+.mobile-input {
+  font-size: 16px; /* Prevents zoom on iOS */
+  padding: 0.75rem;
+}
+
+/* Improved mobile spacing and layout */
+.mobile-spacing {
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Better mobile button sizing */
+.mobile-button {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  min-height: 44px;
+}
+
+/* Enhanced mobile typography */
+.mobile-text-lg {
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+.mobile-text-base {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Mobile-first grid improvements */
+.mobile-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+/* Better mobile form spacing */
+.mobile-form-group {
+  margin-bottom: 1rem;
+}
+
+.mobile-form-group:last-child {
+  margin-bottom: 0;
+}
+
 /* Smooth momentum scrolling on iOS for overflow containers */
 .ios-momentum {
   -webkit-overflow-scrolling: touch;
@@ -88,6 +146,30 @@ html.dark {
   .mobile-input {
     font-size: 16px; /* Prevents zoom on iOS */
     padding: 0.75rem;
+  }
+  
+  /* Improved mobile spacing and layout */
+  .mobile-spacing {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  /* Better mobile button sizing */
+  .mobile-button {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+  
+  /* Enhanced mobile typography */
+  .mobile-text-lg {
+    font-size: 1.125rem;
+    line-height: 1.5;
+  }
+  
+  .mobile-text-base {
+    font-size: 1rem;
+    line-height: 1.5;
   }
 }
 
