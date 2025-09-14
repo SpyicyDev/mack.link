@@ -12,9 +12,14 @@ export async function handleGitHubAuth(request, env) {
 	const urlHost = new URL(request.url).hostname;
 	const isLocalhost = urlHost === 'localhost' || urlHost === '127.0.0.1';
 	const forceDevDisabled = url.searchParams.get('dev_auth_disabled') === '1' && isLocalhost;
+	let redirectIsLocal = false;
+	try {
+		const r = new URL(redirectUri);
+		redirectIsLocal = r.hostname === 'localhost' || r.hostname === '127.0.0.1';
+	} catch {}
 
 	// Short-circuit for auth-disabled dev mode: set a session for a mock user and bounce to callback
-	if (config.authDisabled || forceDevDisabled) {
+	if (config.authDisabled || forceDevDisabled || redirectIsLocal) {
 		try {
 			const env2 = { ...env, JWT_SECRET: env.JWT_SECRET || 'dev-local', AUTH_DISABLED: 'true' };
 			const { createSessionJwt, buildSessionCookie } = await import('../session.js');

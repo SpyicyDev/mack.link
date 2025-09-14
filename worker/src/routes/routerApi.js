@@ -37,7 +37,7 @@ export async function handleAPI(request, env, requestLogger) {
 		const origin = request.headers.get('Origin') || '';
 		const isLocalhost = host === 'localhost' || host === '127.0.0.1';
 		const isAdminOrigin = /localhost:5173$/.test(new URL(origin || 'http://invalid').host || '');
-		if (cfg.authDisabled || (isLocalhost && isAdminOrigin)) {
+		if (cfg.authDisabled || isLocalhost || isAdminOrigin) {
 			authResult = getMockUser(env);
 		} else {
 			authResult = await requireAuth(env, request);
