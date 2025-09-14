@@ -80,36 +80,36 @@ export function MobileFiltersSheet({
         ref={dialogRef}
         className="absolute inset-x-0 bottom-0 top-0 bg-white dark:bg-gray-800 shadow-xl rounded-t-lg flex flex-col pb-safe"
       >
-        <div className="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-b border-gray-200 dark:border-gray-700 px-4 py-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
-          <div className="flex items-center gap-3">
+        <div className="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">Filters</h2>
+          <div className="flex items-center gap-2">
             <button
               ref={firstFocusRef}
               type="button"
               onClick={onClear}
-              className="px-4 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 touch-target"
+              className="px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700"
             >
               Clear
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 touch-target"
+              className="px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700"
             >
               Close
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto px-4 py-4 ios-momentum">
-          <form className="grid grid-cols-1 gap-6">
+        <div className="flex-1 overflow-auto px-4 py-3 ios-momentum">
+          <form className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sort by</label>
-              <div className="flex gap-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort by</label>
+              <div className="flex gap-2">
                 <select
                   name="sortBy"
                   defaultValue={values.sortBy}
-                  className="flex-1 px-4 py-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base mobile-input"
+                  className="flex-1 px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="created">Created</option>
                   <option value="updated">Updated</option>
@@ -120,7 +120,7 @@ export function MobileFiltersSheet({
                 <select
                   name="sortOrder"
                   defaultValue={values.sortOrder}
-                  className="w-32 px-4 py-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base mobile-input"
+                  className="w-28 px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="desc">Desc</option>
                   <option value="asc">Asc</option>
@@ -129,51 +129,51 @@ export function MobileFiltersSheet({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Created after</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Created after</label>
               <input
                 type="date"
                 name="dateFilter"
                 defaultValue={values.dateFilter}
-                className="w-full px-4 py-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base mobile-input"
+                className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Min. clicks</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Min. clicks</label>
               <input
                 type="number"
                 min="0"
                 name="clicksFilter"
                 defaultValue={values.clicksFilter}
-                className="w-full px-4 py-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base mobile-input"
+                className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tag contains</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tag contains</label>
               <input
                 type="text"
                 name="tagFilter"
                 defaultValue={values.tagFilter}
                 placeholder="work"
-                className="w-full px-4 py-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-base mobile-input"
+                className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
 
             <div>
-              <label className="inline-flex items-center space-x-3 text-base text-gray-700 dark:text-gray-300 py-2">
-                <input type="checkbox" name="showArchived" defaultChecked={values.showArchived} className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+              <label className="inline-flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
+                <input type="checkbox" name="showArchived" defaultChecked={values.showArchived} className="h-4 w-4 text-blue-600 border-gray-300 rounded" />
                 <span>Show archived</span>
               </label>
             </div>
           </form>
         </div>
 
-        <div className="sticky bottom-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-t border-gray-200 dark:border-gray-700 px-4 py-4 flex items-center justify-end gap-3">
+        <div className="sticky bottom-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur border-t border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={onClear}
-            className="px-6 py-4 text-base rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 touch-target mobile-button"
+            className="px-4 py-3 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 min-h-[44px]"
           >
             Clear
           </button>
@@ -181,7 +181,7 @@ export function MobileFiltersSheet({
             ref={lastFocusRef}
             type="button"
             onClick={handleApply}
-            className="px-6 py-4 text-base rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 touch-target mobile-button"
+            className="px-4 py-3 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
           >
             Apply
           </button>

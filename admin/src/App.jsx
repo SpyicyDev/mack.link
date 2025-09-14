@@ -6,7 +6,7 @@ import { Header } from './components/Header'
 // Lazy-load Analytics to reduce initial mobile load
 const Analytics = lazy(() => import('./components/Analytics').then(m => ({ default: m.Analytics })))
 import { LoginScreen } from './components/LoginScreen'
-import { PullToRefreshIndicator } from './components/PullToRefreshIndicator'
+
 import { authService } from './services/auth'
 import { Plus, BarChart3, Link as LinkIcon } from 'lucide-react'
 import { 
@@ -27,7 +27,7 @@ import {
 } from './hooks/useLinks'
 import { useIsAnalyticsActive } from './hooks/useAnalytics'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
-import { usePullToRefresh } from './hooks/usePullToRefresh'
+
 import { BottomNav } from './components/BottomNav'
 
 function App() {
@@ -112,16 +112,7 @@ function App() {
     refetch()
   }, [refetch])
 
-  // Pull-to-refresh functionality for mobile
-  const { 
-    isRefreshing: isPullRefreshing, 
-    pullDistance, 
-    showRefreshIndicator,
-    containerRef 
-  } = usePullToRefresh({
-    onRefresh: refetch,
-    enabled: isAuthenticated && !isLoading,
-  })
+
 
   const handleFilteredResults = useCallback((filtered) => {
     setFilteredLinks(filtered)
@@ -216,27 +207,15 @@ function App() {
 
         <Header onShowShortcuts={() => setShowKeyboardHelp(true)} />
 
-        {/* Pull-to-refresh indicator for mobile */}
-        <PullToRefreshIndicator 
-          isVisible={showRefreshIndicator}
-          isRefreshing={isPullRefreshing}
-          pullDistance={pullDistance}
-        />
-
-<main 
-          id="main-content" 
-          ref={containerRef}
-          className="max-w-7xl mx-auto px-4 xs:px-5 sm:px-6 lg:px-8 pt-4 xs:pt-5 sm:pt-6 lg:pt-8 content-pb-safe sm:pb-8" 
-          role="main"
-        >
-          <div className="sm:flex sm:items-center sm:justify-between mb-8 sm:mb-8">
+        <main id="main-content" className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 pt-3 xs:pt-4 sm:pt-6 lg:pt-8 content-pb-safe sm:pb-8" role="main">
+          <div className="sm:flex sm:items-center sm:justify-between mb-6 sm:mb-8">
             <header>
-              <h1 className="text-3xl sm:text-3xl font-bold text-gray-900 dark:text-white">Link Management</h1>
-              <p className="mt-2 sm:mt-2 text-base sm:text-sm text-gray-700 dark:text-gray-300">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Link Management</h1>
+              <p className="mt-1 sm:mt-2 text-sm text-gray-700 dark:text-gray-300">
                 Manage your short links and view analytics
               </p>
             </header>
-            <div className="mt-4 sm:mt-4 sm:mt-0">
+            <div className="mt-3 sm:mt-4 sm:mt-0">
               <button
                 onClick={() => setShowCreateForm(true)}
                 className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors"
@@ -249,7 +228,7 @@ function App() {
           </div>
 
           {/* Navigation Tabs (desktop/tablet only) */}
-          <div className="mb-6 sm:mb-6 hidden sm:block">
+          <div className="mb-4 sm:mb-6 hidden sm:block">
             <nav className="flex overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 space-x-4 sm:space-x-8 no-scrollbar ios-momentum" aria-label="Tabs">
               <button
                 onClick={() => setCurrentView('links')}
@@ -276,7 +255,7 @@ function App() {
             </nav>
           </div>
 
-          <ErrorMessage error={error} onRetry={handleRetryError} className="mb-6" />
+          <ErrorMessage error={error} onRetry={handleRetryError} className="mb-4" />
 
           {/* Content based on current view */}
           {currentView === 'links' ? (
@@ -307,10 +286,10 @@ function App() {
           {/* Mobile Floating Create Button */}
           <button
             onClick={() => setShowCreateForm(true)}
-            className="sm:hidden fixed fab-offset right-5 z-50 rounded-full p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95 transition-all touch-target"
+            className="sm:hidden fixed fab-offset right-4 sm:right-5 z-50 rounded-full p-3 sm:p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95 transition-all"
             aria-label="Create new short link"
           >
-            <Plus className="w-6 h-6" />
+            <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
 
           {/* Mobile Bottom Navigation */}
