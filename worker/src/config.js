@@ -1,17 +1,21 @@
 // Centralized configuration access
 
 export function getConfig(env = {}) {
+	const authDisabled = String(env.AUTH_DISABLED || '').toLowerCase() === 'true';
+	const allowInsecureCookies = String(env.SESSION_ALLOW_INSECURE_COOKIES || '').toLowerCase() === 'true' || authDisabled;
+	const defaultCookieName = env.SESSION_COOKIE_NAME || '__Host-link_session';
+	const sessionCookieName = allowInsecureCookies ? 'link_session' : defaultCookieName;
 	return {
 		githubClientId: env.GITHUB_CLIENT_ID,
 		githubClientSecret: env.GITHUB_CLIENT_SECRET,
 		authorizedUser: env.AUTHORIZED_USER,
 		jwtSecret: env.JWT_SECRET,
-		sessionCookieName: env.SESSION_COOKIE_NAME || '__Host-link_session',
+		sessionCookieName,
 		sessionMaxAgeSeconds: env.SESSION_MAX_AGE || 60 * 60 * 8,
 		// Development-only override to disable OAuth and simulate a logged-in user
-		authDisabled: String(env.AUTH_DISABLED || '').toLowerCase() === 'true',
+		authDisabled,
 		// Allow insecure cookies (no Secure, SameSite=Lax) in local dev; auto-enabled when authDisabled
-		allowInsecureCookies: String(env.SESSION_ALLOW_INSECURE_COOKIES || '').toLowerCase() === 'true' || String(env.AUTH_DISABLED || '').toLowerCase() === 'true',
+		allowInsecureCookies,
 		// Optional mock user overrides for disabled auth mode
 		authDisabledUserLogin: env.AUTH_DISABLED_USER_LOGIN,
 		authDisabledUserName: env.AUTH_DISABLED_USER_NAME,
