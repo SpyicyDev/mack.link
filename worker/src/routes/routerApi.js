@@ -27,17 +27,12 @@ export async function handleAPI(request, env, requestLogger) {
 		return await handlePasswordVerification(request, env);
 	}
 
-	// Protected endpoints - auth required (bypass entirely in dev-disabled mode)
+	// Protected endpoints - auth required (bypass only when AUTH_DISABLED=true)
 	let authResult;
 	{
 		const { getConfig, getMockUser } = await import('../config.js');
 		const cfg = getConfig(env);
-		const urlObj = new URL(request.url);
-		const host = urlObj.hostname;
-		const origin = request.headers.get('Origin') || '';
-		const isLocalhost = host === 'localhost' || host === '127.0.0.1';
-		const isAdminOrigin = /localhost:5173$/.test(new URL(origin || 'http://invalid').host || '');
-		if (cfg.authDisabled || isLocalhost || isAdminOrigin) {
+		if (cfg.authDisabled) {
 			authResult = getMockUser(env);
 		} else {
 			authResult = await requireAuth(env, request);

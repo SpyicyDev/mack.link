@@ -19,14 +19,13 @@ export async function handleGitHubAuth(request, env) {
 	} catch {}
 
 	// Short-circuit for auth-disabled dev mode: set a session for a mock user and bounce to callback
-	if (config.authDisabled || forceDevDisabled || redirectIsLocal || isLocalhost) {
+	if (config.authDisabled) {
 		try {
-			const env2 = { ...env, JWT_SECRET: env.JWT_SECRET || 'dev-local', AUTH_DISABLED: 'true' };
 			const { createSessionJwt, buildSessionCookie } = await import('../session.js');
-			const user = getMockUser(env2);
+			const user = getMockUser(env);
 			logger.info('Auth-disabled mode: issuing mock session and redirecting to callback', { redirectUri, login: user.login });
-			const sessionJwt = await createSessionJwt(env2, user);
-			const sessionCookie = buildSessionCookie(sessionJwt, env2);
+			const sessionJwt = await createSessionJwt(env, user);
+			const sessionCookie = buildSessionCookie(sessionJwt, env);
 			const secure = config.allowInsecureCookies ? '' : ' Secure;';
 			const sameSite = config.allowInsecureCookies ? 'Lax' : 'None';
 			const oauthStateCookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly;${secure} SameSite=${sameSite}`;
