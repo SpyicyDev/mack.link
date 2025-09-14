@@ -29,15 +29,18 @@ class AuthService {
   }
 
   async login() {
-    // Redirect to GitHub OAuth
+    // Redirect to GitHub OAuth (must hit the Worker origin in dev)
     const redirectUri = `${window.location.origin}/admin/auth/callback`
-    const authUrl = `/api/auth/github?redirect_uri=${encodeURIComponent(redirectUri)}`
+    const base = API_BASE || window.location.origin
+    const authUrl = `${base}/api/auth/github?redirect_uri=${encodeURIComponent(redirectUri)}`
     window.location.href = authUrl
   }
 
   async handleCallback(code, state) {
     try {
-      const url = new URL('/api/auth/callback', window.location.origin)
+      // Complete OAuth on the Worker origin in dev
+      const base = API_BASE || window.location.origin
+      const url = new URL('/api/auth/callback', base)
       url.searchParams.set('code', code)
       if (state) {
         url.searchParams.set('state', state)
