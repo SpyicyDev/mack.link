@@ -15,19 +15,19 @@ export function Header({ onShowShortcuts = () => {} }) {
   return (
     <header className="bg-white dark:bg-gray-800 shadow dark:shadow-gray-700/50 transition-colors" role="banner">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2 sm:gap-4 py-3 sm:py-6">
+        <div className="flex items-center justify-between gap-3 sm:gap-4 py-4 sm:py-6">
           <div className="flex items-center min-w-0 flex-1">
-            <LinkIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400 mr-2 sm:mr-3 flex-shrink-0" aria-hidden="true" />
+            <LinkIcon className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400 mr-3 sm:mr-3 flex-shrink-0" aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">link.mackhaymond.co</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">link.mackhaymond.co</h1>
               <p className="hidden sm:block text-sm text-gray-600 dark:text-gray-300">URL Shortener Management</p>
             </div>
           </div>
           
-          <div className="flex items-center space-x-1 sm:space-x-4 flex-shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             <button
               onClick={onShowShortcuts}
-              className="hidden sm:inline-flex p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+              className="hidden sm:inline-flex p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors touch-target"
               aria-label="Show keyboard shortcuts (Ctrl/Cmd + /)"
               title="Keyboard shortcuts (Ctrl/Cmd + /)"
             >
@@ -35,11 +35,11 @@ export function Header({ onShowShortcuts = () => {} }) {
             </button>
             <button
               onClick={toggleTheme}
-              className="p-1.5 sm:p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+              className="p-2 sm:p-2 rounded-lg sm:rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors touch-target"
               aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             {authDisabled && (
               <div className="hidden md:flex items-center text-xs px-2 py-1 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" title="OAuth disabled dev mode">
@@ -52,17 +52,17 @@ export function Header({ onShowShortcuts = () => {} }) {
                   <img 
                     src={user.avatar_url} 
                     alt={`${user.login}'s profile picture`}
-                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex-shrink-0"
+                    className="w-6 h-6 sm:w-6 sm:h-6 rounded-full flex-shrink-0"
                   />
                   <span className="hidden sm:block truncate max-w-[8rem] lg:max-w-none">Welcome, {user.login}!</span>
                   <span className="sm:hidden text-xs truncate max-w-[4rem]">{user.login}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 px-2 py-1 sm:px-3 sm:py-1 text-xs sm:text-sm text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 rounded"
+                  className="flex items-center space-x-1 px-3 py-2 sm:px-3 sm:py-1 text-sm sm:text-sm text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 rounded-lg sm:rounded touch-target"
                   aria-label={`Sign out of ${user.login}'s account`}
                 >
-                  <LogOut className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden="true" />
+                  <LogOut className="w-4 h-4" aria-hidden="true" />
                   <span className="hidden sm:inline">Sign out</span>
                 </button>
               </nav>
