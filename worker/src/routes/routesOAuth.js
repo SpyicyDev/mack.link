@@ -16,11 +16,12 @@ export async function handleGitHubAuth(request, env) {
 	// Short-circuit for auth-disabled dev mode: set a session for a mock user and bounce to callback
 	if (config.authDisabled || forceDevDisabled) {
 		try {
+			const env2 = { ...env, JWT_SECRET: env.JWT_SECRET || 'dev-local', AUTH_DISABLED: 'true' };
 			const { createSessionJwt, buildSessionCookie } = await import('../session.js');
-			const user = getMockUser(env);
+			const user = getMockUser(env2);
 			logger.info('Auth-disabled mode: issuing mock session and redirecting to callback', { redirectUri, login: user.login });
-			const sessionJwt = await createSessionJwt(env, user);
-			const sessionCookie = buildSessionCookie(sessionJwt, env);
+			const sessionJwt = await createSessionJwt(env2, user);
+			const sessionCookie = buildSessionCookie(sessionJwt, env2);
 			const secure = config.allowInsecureCookies ? '' : ' Secure;';
 			const sameSite = config.allowInsecureCookies ? 'Lax' : 'None';
 			const oauthStateCookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly;${secure} SameSite=${sameSite}`;
@@ -79,13 +80,14 @@ export async function handleGitHubCallback(request, env) {
 	// Short-circuit for auth-disabled dev mode: return mock user and set/refresh session
 	if (config.authDisabled || (devDisabledCode && isLocalhost)) {
 		const { createSessionJwt, buildSessionCookie, clearOauthStateCookie } = await import('../session.js');
-		const user = getMockUser(env);
+		const env2 = { ...env, JWT_SECRET: env.JWT_SECRET || 'dev-local', AUTH_DISABLED: 'true' };
+		const user = getMockUser(env2);
 		logger.info('Auth-disabled mode: returning mock user from callback', { login: user.login });
-		const sessionJwt = await createSessionJwt(env, user);
-		const sessionCookie = buildSessionCookie(sessionJwt, env);
+		const sessionJwt = await createSessionJwt(env2, user);
+		const sessionCookie = buildSessionCookie(sessionJwt, env2);
 		const response = new Response(JSON.stringify({ user }), { headers: { 'Content-Type': 'application/json' } });
 		response.headers.append('Set-Cookie', sessionCookie);
-		response.headers.append('Set-Cookie', clearOauthStateCookie());
+		response.headers.append('Set-Cookie', clearOauthStateCookie(env2));
 		return withCors(env, response, request);
 	}
 
@@ -130,7 +132,7 @@ export async function handleGitHubCallback(request, env) {
 		const response = new Response(JSON.stringify(responseBody), { headers: { 'Content-Type': 'application/json' } });
 		response.headers.append('Set-Cookie', sessionCookie);
 		// Clear oauth_state cookie after successful exchange
-		response.headers.append('Set-Cookie', clearOauthStateCookie());
+		response.headers.append('Set-Cookie', clearOauthStateCookie(env));
 		logger.info('OAuth callback complete', { userId: user.login, cookiesSet: 2 });
 		return withCors(env, response, request);
 	} catch (error) {
