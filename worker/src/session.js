@@ -65,19 +65,23 @@ export async function verifySessionJwt(env, token) {
 }
 
 export function buildSessionCookie(token, env) {
-	const { sessionCookieName, sessionMaxAgeSeconds } = getConfig(env);
+	const { sessionCookieName, sessionMaxAgeSeconds, allowInsecureCookies } = getConfig(env);
 	const maxAge = Number(sessionMaxAgeSeconds || 28800);
-	// Use SameSite=Lax for same-domain operation (admin panel integrated)
-	return `${sessionCookieName || '__Host-link_session'}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly; Secure; SameSite=Lax`;
+	const secure = allowInsecureCookies ? '' : ' Secure;';
+	const sameSite = allowInsecureCookies ? 'Lax' : 'Lax';
+	return `${sessionCookieName || '__Host-link_session'}=${token}; Max-Age=${maxAge}; Path=/; HttpOnly;${secure} SameSite=${sameSite}`;
 }
 
 export function clearSessionCookie(env) {
-	const { sessionCookieName } = getConfig(env);
-	return `${sessionCookieName || '__Host-link_session'}=deleted; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`;
+	const { sessionCookieName, allowInsecureCookies } = getConfig(env);
+	const secure = allowInsecureCookies ? '' : ' Secure;';
+	return `${sessionCookieName || '__Host-link_session'}=deleted; Max-Age=0; Path=/; HttpOnly;${secure} SameSite=Lax`;
 }
 
-export function clearOauthStateCookie() {
-	return `oauth_state=deleted; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`;
+export function clearOauthStateCookie(env) {
+	const { allowInsecureCookies } = getConfig(env);
+	const secure = allowInsecureCookies ? '' : ' Secure;';
+	return `oauth_state=deleted; Max-Age=0; Path=/; HttpOnly;${secure} SameSite=Lax`;
 }
 
 export function parseCookies(cookieHeader) {

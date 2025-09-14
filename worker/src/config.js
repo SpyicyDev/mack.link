@@ -10,6 +10,8 @@ export function getConfig(env = {}) {
 		sessionMaxAgeSeconds: env.SESSION_MAX_AGE || 60 * 60 * 8,
 		// Development-only override to disable OAuth and simulate a logged-in user
 		authDisabled: String(env.AUTH_DISABLED || '').toLowerCase() === 'true',
+		// Allow insecure cookies (no Secure, SameSite=Lax) in local dev; auto-enabled when authDisabled
+		allowInsecureCookies: String(env.SESSION_ALLOW_INSECURE_COOKIES || '').toLowerCase() === 'true' || String(env.AUTH_DISABLED || '').toLowerCase() === 'true',
 		// Optional mock user overrides for disabled auth mode
 		authDisabledUserLogin: env.AUTH_DISABLED_USER_LOGIN,
 		authDisabledUserName: env.AUTH_DISABLED_USER_NAME,

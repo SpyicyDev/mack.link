@@ -9,15 +9,20 @@ export async function handleGitHubAuth(request, env) {
 	const redirectUri = url.searchParams.get('redirect_uri') || 'http://localhost:5173/auth/callback';
 	const state = generateStateToken();
 	const config = getConfig(env);
+	const urlHost = new URL(request.url).hostname;
+	const isLocalhost = urlHost === 'localhost' || urlHost === '127.0.0.1';
+	const forceDevDisabled = url.searchParams.get('dev_auth_disabled') === '1' && isLocalhost;
 
 	// Short-circuit for auth-disabled dev mode: set a session for a mock user and bounce to callback
-	if (config.authDisabled) {
+	if (config.authDisabled || forceDevDisabled) {
 		const { createSessionJwt, buildSessionCookie } = await import('../session.js');
 		const user = getMockUser(env);
 		logger.info('Auth-disabled mode: issuing mock session and redirecting to callback', { redirectUri, login: user.login });
 		const sessionJwt = await createSessionJwt(env, user);
 		const sessionCookie = buildSessionCookie(sessionJwt, env);
-		const oauthStateCookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly; Secure; SameSite=None`;
+		const secure = config.allowInsecureCookies ? '' : ' Secure;';
+		const sameSite = config.allowInsecureCookies ? 'Lax' : 'None';
+		const oauthStateCookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly;${secure} SameSite=${sameSite}`;
 		const callbackUrl = new URL(redirectUri);
 		callbackUrl.searchParams.set('code', 'disabled');
 		callbackUrl.searchParams.set('state', state);
@@ -34,7 +39,9 @@ export async function handleGitHubAuth(request, env) {
 	authUrl.searchParams.set('state', state);
 	logger.info('OAuth flow initiated', { state, redirectUri });
 	// Build redirect response manually to allow setting Set-Cookie
-	const cookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly; Secure; SameSite=None`;
+	const secure = config.allowInsecureCookies ? '' : ' Secure;';
+	const sameSite = config.allowInsecureCookies ? 'Lax' : 'None';
+	const cookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly;${secure} SameSite=${sameSite}`;
 	const redirectResponse = new Response(null, { status: 302, headers: { 'Location': authUrl.toString(), 'Set-Cookie': cookie } });
 	return withCors(env, redirectResponse, request);
 }
@@ -54,12 +61,18 @@ export async function handleGitHubCallback(request, env) {
 		return [kv.slice(0, idx), kv.slice(idx + 1)];
 	}));
 	const cookieState = cookies['oauth_state'];
+	// Accept missing oauth_state in dev-disabled localhost flow where insecure cookies may be used
+	const urlHost = new URL(request.url).hostname;
+	const isLocalhost = urlHost === 'localhost' || urlHost === '127.0.0.1';
+	const devDisabledCode = url.searchParams.get('code') === 'disabled';
 	if (!cookieState || (state && cookieState !== state)) {
-		return withCors(env, new Response(JSON.stringify({ error: 'invalid_state', error_description: 'OAuth state mismatch' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		if (!(config.authDisabled || (devDisabledCode && isLocalhost))) {
+			return withCors(env, new Response(JSON.stringify({ error: 'invalid_state', error_description: 'OAuth state mismatch' }), { status: 400, headers: { 'Content-Type': 'application/json' } }), request);
+		}
 	}
 
 	// Short-circuit for auth-disabled dev mode: return mock user and set/refresh session
-	if (config.authDisabled) {
+	if (config.authDisabled || (devDisabledCode && isLocalhost)) {
 		const { createSessionJwt, buildSessionCookie, clearOauthStateCookie } = await import('../session.js');
 		const user = getMockUser(env);
 		logger.info('Auth-disabled mode: returning mock user from callback', { login: user.login });

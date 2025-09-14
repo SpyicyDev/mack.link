@@ -32,8 +32,11 @@ class AuthService {
     // Redirect to GitHub OAuth (must hit the Worker origin in dev)
     const redirectUri = `${window.location.origin}/admin/auth/callback`
     const base = API_BASE || window.location.origin
-    const authUrl = `${base}/api/auth/github?redirect_uri=${encodeURIComponent(redirectUri)}`
-    window.location.href = authUrl
+    const dev = import.meta?.env?.VITE_AUTH_DISABLED === 'true'
+    const auth = new URL('/api/auth/github', base)
+    auth.searchParams.set('redirect_uri', redirectUri)
+    if (dev) auth.searchParams.set('dev_auth_disabled', '1')
+    window.location.href = auth.toString()
   }
 
   async handleCallback(code, state) {
