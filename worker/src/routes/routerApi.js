@@ -27,9 +27,19 @@ export async function handleAPI(request, env, requestLogger) {
 		return await handlePasswordVerification(request, env);
 	}
 
-	// Protected endpoints - auth required
-	const authResult = await requireAuth(env, request);
-	if (authResult instanceof Response) return authResult;
+	// Protected endpoints - auth required (bypass entirely in dev-disabled mode)
+	let authResult;
+	{
+		const { getConfig } = await import('../config.js');
+		const cfg = getConfig(env);
+		if (cfg.authDisabled) {
+			const { getMockUser } = await import('../config.js');
+			authResult = getMockUser(env);
+		} else {
+			authResult = await requireAuth(env, request);
+			if (authResult instanceof Response) return authResult;
+		}
+	}
 
 	// Analytics endpoints (protected)
 	if (path.startsWith('/api/analytics/')) {
