@@ -12,7 +12,10 @@ For UI automation and agent-driven development, prefer the OAuth-disabled dev mo
 npm run dev:ai
 ```
 
-This starts the Worker with AUTH_DISABLED=true and the Admin with VITE_AUTH_DISABLED=true. Clicking “Sign in with GitHub” will immediately authenticate a mock user and go to the dashboard. Use this for Playwright E2E flows.
+This starts the Worker with AUTH_DISABLED=true and the Admin with VITE_AUTH_DISABLED=true. Dev auth is controlled exclusively by AUTH_DISABLED on the Worker; client flags cannot enable it. In this mode:
+- The Admin login button calls a dev-only endpoint: `POST /api/auth/dev/login` to issue a session cookie and return the mock user.
+- If the endpoint fails (e.g., AUTH_DISABLED is not set), the Admin falls back to the normal GitHub OAuth redirect.
+- Use this for Playwright E2E flows to avoid cross-origin OAuth redirects.
 
 - Bootstrap, build, and test the repository:
   - `npm install` -- takes 25 seconds. NEVER CANCEL.
@@ -32,6 +35,14 @@ This starts the Worker with AUTH_DISABLED=true and the Admin with VITE_AUTH_DISA
   - `npm run db:apply:prod` -- applies schema to production (requires Cloudflare auth).
 
 ## Validation
+
+Dev-auth sanity checks (run when AUTH_DISABLED=true):
+- `curl -s -o /dev/null -w "%{http_code}\n" -X POST http://localhost:8787/api/auth/dev/login` should return 200.
+- Visiting http://localhost:5173/admin after the POST should land on the dashboard without redirects.
+
+Production sanity checks (AUTH_DISABLED not set):
+- `POST /api/auth/dev/login` should return 403.
+- Visiting /admin shows GitHub OAuth button and requires normal authentication.
 
 - ALWAYS manually validate any changes by running the complete application:
   1. Run `npm run dev` to start both servers.

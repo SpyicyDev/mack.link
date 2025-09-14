@@ -7,6 +7,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 ### Script Overview (root-first)
 - Dev (long-running):
   - Start both: `npm run dev`
+  - AI dev (auth disabled): `npm run dev:ai` (Worker AUTH_DISABLED=true; Admin VITE_AUTH_DISABLED=true)
   - Worker only: `npm run dev:worker`
   - Admin only: `npm run dev:admin`
   - Fast worker (skip pre-embed): `npm run dev:worker:fast`
@@ -91,6 +92,23 @@ Access:
 - Admin UI: http://localhost:5173
 - Test redirects: http://localhost:8787/{shortcode}
 - Password-protected links: http://localhost:8787/{shortcode} (enter password when prompted)
+
+### Dev Auth for AI/Playwright
+- Gate: AUTH_DISABLED=true on the Worker strictly controls dev auth. The client flag VITE_AUTH_DISABLED=true only toggles UX hints.
+- Programmatic login endpoint (dev only): `POST /api/auth/dev/login` on the Worker origin.
+  - Returns `{ user }` and sets an HttpOnly session cookie.
+  - Optional overrides in body: `{ login, name, avatar_url }`.
+- In dev mode, the Admin login button calls this endpoint and navigates to `/admin` on success.
+- In production (AUTH_DISABLED not set), this endpoint returns 403.
+
+Quick usage:
+```bash
+# Programmatic login (stores session cookie in cookie jar)
+curl -i -X POST \
+  -H "Content-Type: application/json" \
+  --cookie-jar cookies.txt \
+  http://localhost:8787/api/auth/dev/login
+```
 
 ## Architecture Overview
 
