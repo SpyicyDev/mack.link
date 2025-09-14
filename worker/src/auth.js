@@ -84,10 +84,15 @@ export async function authenticateRequest(env, request) {
 }
 
 export async function requireAuth(env, request) {
-	const user = await authenticateRequest(env, request);
-	if (!user) return withCors(env, new Response('Unauthorized', { status: 401 }), request);
+	let user = await authenticateRequest(env, request);
 	const { authorizedUser, authDisabled } = getConfig(env);
-	// In auth-disabled dev mode, skip authorizedUser enforcement but still require a valid session
+	if (!user && authDisabled) {
+		// Dev bypass: if disabled mode and no session, return mock user so UI can function
+		const { getMockUser } = await import('./config.js');
+		user = getMockUser(env);
+	}
+	if (!user) return withCors(env, new Response('Unauthorized', { status: 401 }), request);
+	// In auth-disabled dev mode, skip authorizedUser enforcement
 	if (!authDisabled && authorizedUser && user.login !== authorizedUser) {
 		return withCors(env, new Response('Forbidden: Access denied', { status: 403 }), request);
 	}
