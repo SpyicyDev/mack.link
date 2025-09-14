@@ -30,14 +30,15 @@ function base64urlDecodeToString(b64url) {
 }
 
 export async function createSessionJwt(env, user) {
-	const { jwtSecret, sessionMaxAgeSeconds } = getConfig(env);
-	if (!jwtSecret) throw new Error('JWT secret not configured');
+	const { jwtSecret, sessionMaxAgeSeconds, authDisabled } = getConfig(env);
+	const secret = jwtSecret || (authDisabled ? 'dev-local' : null);
+	if (!secret) throw new Error('JWT secret not configured');
 	const header = { alg: 'HS256', typ: 'JWT' };
 	const now = Math.floor(Date.now() / 1000);
 	const payload = { sub: String(user.id), user, iat: now, exp: now + Number(sessionMaxAgeSeconds || 28800) };
 	const headerB64 = base64urlEncodeJSON(header);
 	const payloadB64 = base64urlEncodeJSON(payload);
-	const key = await importKey(jwtSecret);
+	const key = await importKey(secret);
 	const data = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
 	const sig = await crypto.subtle.sign('HMAC', key, data);
 	const sigB64 = base64urlEncode(sig);
@@ -46,11 +47,12 @@ export async function createSessionJwt(env, user) {
 
 export async function verifySessionJwt(env, token) {
 	try {
-		const { jwtSecret } = getConfig(env);
-		if (!jwtSecret) return null;
+		const { jwtSecret, authDisabled } = getConfig(env);
+		const secret = jwtSecret || (authDisabled ? 'dev-local' : null);
+		if (!secret) return null;
 		const [headerB64, payloadB64, sigB64] = token.split('.');
 		if (!headerB64 || !payloadB64 || !sigB64) return null;
-		const key = await importKey(jwtSecret);
+		const key = await importKey(secret);
 		const data = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
 		const sigBytes = Uint8Array.from(atob(sigB64.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
 		const valid = await crypto.subtle.verify('HMAC', key, sigBytes, data);
