@@ -15,21 +15,26 @@ export async function handleGitHubAuth(request, env) {
 
 	// Short-circuit for auth-disabled dev mode: set a session for a mock user and bounce to callback
 	if (config.authDisabled || forceDevDisabled) {
-		const { createSessionJwt, buildSessionCookie } = await import('../session.js');
-		const user = getMockUser(env);
-		logger.info('Auth-disabled mode: issuing mock session and redirecting to callback', { redirectUri, login: user.login });
-		const sessionJwt = await createSessionJwt(env, user);
-		const sessionCookie = buildSessionCookie(sessionJwt, env);
-		const secure = config.allowInsecureCookies ? '' : ' Secure;';
-		const sameSite = config.allowInsecureCookies ? 'Lax' : 'None';
-		const oauthStateCookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly;${secure} SameSite=${sameSite}`;
-		const callbackUrl = new URL(redirectUri);
-		callbackUrl.searchParams.set('code', 'disabled');
-		callbackUrl.searchParams.set('state', state);
-		const resp = new Response(null, { status: 302, headers: { 'Location': callbackUrl.toString() } });
-		resp.headers.append('Set-Cookie', sessionCookie);
-		resp.headers.append('Set-Cookie', oauthStateCookie);
-		return withCors(env, resp, request);
+		try {
+			const { createSessionJwt, buildSessionCookie } = await import('../session.js');
+			const user = getMockUser(env);
+			logger.info('Auth-disabled mode: issuing mock session and redirecting to callback', { redirectUri, login: user.login });
+			const sessionJwt = await createSessionJwt(env, user);
+			const sessionCookie = buildSessionCookie(sessionJwt, env);
+			const secure = config.allowInsecureCookies ? '' : ' Secure;';
+			const sameSite = config.allowInsecureCookies ? 'Lax' : 'None';
+			const oauthStateCookie = `oauth_state=${state}; Max-Age=600; Path=/; HttpOnly;${secure} SameSite=${sameSite}`;
+			const callbackUrl = new URL(redirectUri);
+			callbackUrl.searchParams.set('code', 'disabled');
+			callbackUrl.searchParams.set('state', state);
+			const resp = new Response(null, { status: 302, headers: { 'Location': callbackUrl.toString() } });
+			resp.headers.append('Set-Cookie', sessionCookie);
+			resp.headers.append('Set-Cookie', oauthStateCookie);
+			return withCors(env, resp, request);
+		} catch (error) {
+			logger.error('Auth-disabled mode: failed to issue session', { error: error.message });
+			return withCors(env, new Response(JSON.stringify({ error: 'dev_oauth_disabled_failed', error_description: error.message }), { status: 500, headers: { 'Content-Type': 'application/json' } }), request);
+		}
 	}
 
 	const authUrl = new URL('https://github.com/login/oauth/authorize');
