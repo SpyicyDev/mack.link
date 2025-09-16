@@ -308,7 +308,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
                     password: prev.passwordProtectionEnabled ? '' : prev.password,
                   }))
                 }
-                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-7 w-12 items-center p-0.5 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   formData.passwordProtectionEnabled
                     ? 'bg-blue-600'
                     : 'bg-gray-200 dark:bg-gray-600'
@@ -320,7 +320,7 @@ export function EditLinkModal({ link, onSave, onClose }) {
                 <span
                   aria-hidden="true"
                     className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    formData.passwordProtectionEnabled ? 'translate-x-6' : 'translate-x-0'
+                    formData.passwordProtectionEnabled ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
               </button>

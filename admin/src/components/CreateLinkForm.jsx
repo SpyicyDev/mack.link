@@ -338,7 +338,7 @@ export function CreateLinkForm({ onSubmit, onClose }) {
                     password: prev.passwordProtectionEnabled ? '' : prev.password,
                   }))
                 }
-                className={`relative inline-flex h-8 w-14 sm:h-7 sm:w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-8 w-14 sm:h-7 sm:w-12 items-center p-0.5 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   formData.passwordProtectionEnabled
                     ? 'bg-blue-600'
                     : 'bg-gray-200 dark:bg-gray-600'
