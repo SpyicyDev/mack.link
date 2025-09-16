@@ -14,6 +14,10 @@ class AuthService {
         window.dispatchEvent(event)
       }
     })
+
+    // Zero-click dev auth: when VITE_AUTH_DISABLED=true, auto-fetch user from the Worker
+    // This avoids any cookie requirements and works even when third-party cookies are blocked
+    this.bootstrapDevAuthIfNeeded()
   }
 
   isAuthenticated() {
@@ -28,18 +32,64 @@ class AuthService {
     return this.user
   }
 
+  async bootstrapDevAuthIfNeeded() {
+    try {
+      const dev = import.meta?.env?.VITE_AUTH_DISABLED === 'true'
+      if (!dev || this.user) return
+      const base = API_BASE || window.location.origin
+      const resp = await fetch(new URL('/api/user', base).toString(), {
+        credentials: 'include',
+        headers: { 'x-dev-auth': '1' },
+      })
+      if (resp.ok) {
+        const data = await resp.json()
+        this.user = data?.user || data
+        if (this.user) {
+          localStorage.setItem('user', JSON.stringify(this.user))
+          const event = new CustomEvent('auth:change', { detail: { token: this.token, user: this.user } })
+          window.dispatchEvent(event)
+        }
+      }
+    } catch (e) {
+      // Non-fatal during dev startup
+      console.warn('Dev auto-auth bootstrap failed', e)
+    }
+  }
+
   async login() {
     const redirectUri = `${window.location.origin}/admin/auth/callback`
     const base = API_BASE || window.location.origin
     const dev = import.meta?.env?.VITE_AUTH_DISABLED === 'true'
 
     if (dev) {
-      // Prefer dev programmatic login to avoid redirects during tests
+      // Prefer cookie-less dev auth via /api/user (Worker returns mock user when AUTH_DISABLED=true)
+      try {
+        const respUser = await fetch(new URL('/api/user', base).toString(), {
+          credentials: 'include',
+          headers: { 'x-dev-auth': '1' },
+        })
+        if (respUser.ok) {
+          const json = await respUser.json()
+          this.user = json?.user || json
+          if (this.user) {
+            localStorage.setItem('user', JSON.stringify(this.user))
+            const event = new CustomEvent('auth:change', { detail: { token: this.token, user: this.user } })
+            window.dispatchEvent(event)
+            // Navigate to app root after login
+            window.location.assign('/admin')
+            return
+          }
+        }
+      } catch (e) {
+        console.warn('Dev /api/user fetch failed, trying legacy dev login', e)
+      }
+
+      // Legacy: programmatic login endpoint (sets cookie). May fail if cookies blocked.
       try {
         const resp = await fetch(new URL('/api/auth/dev/login', base).toString(), {
           method: 'POST',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'x-dev-auth': '1' },
           body: JSON.stringify({}),
         })
         if (resp.ok) {
@@ -53,7 +103,7 @@ class AuthService {
           return
         }
       } catch (e) {
-        console.warn('Dev login failed, falling back to OAuth redirect', e)
+        console.warn('Dev legacy login failed, falling back to OAuth redirect', e)
       }
     }
 

@@ -7,6 +7,12 @@ export function LoginScreen() {
   };
   const authDisabled = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_AUTH_DISABLED === 'true'
 
+  // In dev-auth-disabled mode, attempt zero-click bootstrap once the screen mounts
+  if (authDisabled) {
+    // Fire-and-forget; if it succeeds, the app layer will react to auth:change and navigate
+    setTimeout(() => authService.bootstrapDevAuthIfNeeded(), 0)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4 transition-colors">
       <div className="max-w-md w-full space-y-6 sm:space-y-8">

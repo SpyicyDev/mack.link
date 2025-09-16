@@ -42,8 +42,8 @@ export function Header({ onShowShortcuts = () => {} }) {
               {theme === 'dark' ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
             {authDisabled && (
-              <div className="hidden md:flex items-center text-xs px-2 py-1 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" title="OAuth disabled dev mode">
-                <Shield className="w-4 h-4 mr-1" /> Dev auth disabled
+              <div className="flex items-center text-xs px-2 py-1 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" title="OAuth disabled dev mode">
+                <Shield className="w-4 h-4 mr-1" /> Auth disabled (dev)
               </div>
             )}
             {user && (

@@ -2,6 +2,14 @@ import { authService } from './auth.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 
+/**
+ * In dev-auth-disabled mode (VITE_AUTH_DISABLED=true), the Admin UI adds `x-dev-auth: 1`
+ * to all API requests. The Worker accepts this header only for local Hosts (localhost/127.0.0.1)
+ * and returns a mock user, skipping cookies and authorized-user checks.
+ *
+ * This solves cross-origin cookie issues between ports (5173 → 8787) and enables
+ * zero-click UI development by an agent.
+ */
 async function request(path, { method = 'GET', headers = {}, body } = {}) {
   const init = {
     method,
@@ -9,6 +17,10 @@ async function request(path, { method = 'GET', headers = {}, body } = {}) {
       ...headers,
     },
     credentials: 'include',
+  }
+  // In dev-auth-disabled mode, send a local-only header to allow mock user bypass
+  if (import.meta?.env?.VITE_AUTH_DISABLED === 'true') {
+    init.headers['x-dev-auth'] = '1'
   }
   if (body !== undefined) {
     init.body = typeof body === 'string' ? body : JSON.stringify(body)
