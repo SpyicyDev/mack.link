@@ -1,5 +1,5 @@
 export function StatCard({ icon: Icon, title, value, subtitle, color }) {
-  const safeColor = color || 'text-gray-600 dark:text-gray-400'
+  const safeColor = color || 'text-gray-600 dark:text-gray-400';
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-4 xs:p-5 sm:p-6 transition-colors h-full">
