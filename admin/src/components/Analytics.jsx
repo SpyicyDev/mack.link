@@ -126,74 +126,77 @@ export function Analytics({ links, currentView }) {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-4 sm:p-5">
-        <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-[1fr_auto] items-center">
-          <div className="flex items-center gap-3 flex-wrap">
+        <div className="grid gap-4 md:gap-5 grid-cols-1 lg:grid-cols-[1fr_auto] items-start">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
             {/* Scope segmented control */}
-            <div
-              className="inline-flex rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden shrink-0"
-              role="group"
-              aria-label="Scope"
-            >
-          <button
-            type="button"
-            onClick={() => setScope('all')}
-            className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-              scope === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            onClick={() => setScope('shortcode')}
-            className={`px-3 py-1.5 text-sm font-medium transition-colors border-l border-gray-200 dark:border-gray-700 ${
-              scope === 'shortcode'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            Single
-          </button>
-        </div>
-
-            {/* Shortcode picker */}
-            {scope === 'shortcode' && (
-              <div className="flex items-center gap-3">
-                <label className="text-sm text-gray-600 dark:text-gray-300">Shortcode</label>
-                <select
-                  value={shortcode || ''}
-                  onChange={(e) => setShortcode(e.target.value)}
-                  className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <div className="flex flex-col xs:flex-row xs:items-center gap-2 w-full sm:w-auto">
+              <div
+                className="flex rounded-md shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden w-full xs:w-auto"
+                role="group"
+                aria-label="Scope"
+              >
+                <button
+                  type="button"
+                  onClick={() => setScope('all')}
+                  className={`flex-1 px-3 py-1.5 text-sm font-medium transition-colors ${
+                    scope === 'all'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
                 >
-                  {Object.keys(links).map((sc) => (
-                    <option key={sc} value={sc}>
-                      {sc}
-                    </option>
-                  ))}
-                </select>
+                  All
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScope('shortcode')}
+                  className={`flex-1 px-3 py-1.5 text-sm font-medium transition-colors border-l border-gray-200 dark:border-gray-700 ${
+                    scope === 'shortcode'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  Single
+                </button>
               </div>
-            )}
+
+              {/* Shortcode picker */}
+              {scope === 'shortcode' && (
+                <div className="flex items-center gap-2 w-full xs:w-auto">
+                  <label className="text-xs xs:text-sm text-gray-600 dark:text-gray-300 shrink-0">Shortcode</label>
+                  <select
+                    value={shortcode || ''}
+                    onChange={(e) => setShortcode(e.target.value)}
+                    className="flex-1 xs:w-36 sm:w-40 px-2.5 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {Object.keys(links).map((sc) => (
+                      <option key={sc} value={sc}>
+                        {sc}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
 
             {/* Date range with presets */}
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col xs:flex-row xs:items-center gap-2 w-full sm:w-auto">
               <label className="hidden md:inline text-sm text-gray-600 dark:text-gray-300 shrink-0">Date</label>
-              <input
-                type="date"
-                value={range.from}
-                onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
-                className="w-36 sm:w-40 px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="text-gray-500 shrink-0">to</span>
-              <input
-                type="date"
-                value={range.to}
-                onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
-                className="w-36 sm:w-40 px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 w-full xs:w-auto">
+                <input
+                  type="date"
+                  value={range.from}
+                  onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
+                  className="w-full xs:w-36 sm:w-40 px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <input
+                  type="date"
+                  value={range.to}
+                  onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
+                  className="w-full xs:w-36 sm:w-40 px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
               <div
-                className="inline-flex rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden ml-3 shrink-0"
+                className="flex xs:inline-flex rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden w-full xs:w-auto"
                 role="group"
                 aria-label="Quick ranges"
               >
@@ -204,7 +207,7 @@ export function Analytics({ links, currentView }) {
                     const s = d.toISOString().slice(0, 10)
                     setRange({ from: s, to: s })
                   }}
-                  className="px-2 py-1 text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 px-3 py-1.5 text-xs hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Today
                 </button>
@@ -218,7 +221,7 @@ export function Analytics({ links, currentView }) {
                       to: to.toISOString().slice(0, 10),
                     })
                   }}
-                  className="px-2 py-1 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 px-3 py-1.5 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   7d
                 </button>
@@ -232,7 +235,7 @@ export function Analytics({ links, currentView }) {
                       to: to.toISOString().slice(0, 10),
                     })
                   }}
-                  className="px-2 py-1 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  className="flex-1 px-3 py-1.5 text-xs border-l border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   30d
                 </button>
@@ -240,12 +243,12 @@ export function Analytics({ links, currentView }) {
             </div>
 
             {/* Breakdown select */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col xs:flex-row xs:items-center gap-2 w-full sm:w-auto">
               <label className="hidden md:inline text-sm text-gray-600 dark:text-gray-300 shrink-0">Breakdown</label>
               <select
                 value={dimension}
                 onChange={(e) => setDimension(e.target.value)}
-                className="w-[12rem] sm:w-[14rem] px-3 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full xs:w-[14rem] px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="ref">Referrer</option>
                 <option value="country">Country</option>
@@ -260,75 +263,92 @@ export function Analytics({ links, currentView }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 justify-start lg:justify-end shrink-0">
+          <div className="flex flex-wrap gap-2 sm:gap-3 justify-start lg:justify-end shrink-0">
             {/* Export Button */}
             <button
-          onClick={async () => {
-            if (isExporting) return
+              onClick={async () => {
+                if (isExporting) return
 
-            setIsExporting(true)
-            try {
-              const params = new URLSearchParams()
-              if (scope === 'shortcode' && shortcode) {
-                params.set('shortcode', shortcode)
-              }
-              params.set('from', range.from)
-              params.set('to', range.to)
-              params.set('format', 'json')
+                setIsExporting(true)
+                try {
+                  const params = new URLSearchParams()
+                  if (scope === 'shortcode' && shortcode) {
+                    params.set('shortcode', shortcode)
+                  }
+                  params.set('from', range.from)
+                  params.set('to', range.to)
+                  params.set('format', 'json')
 
-              const response = await fetch(`/api/analytics/export?${params.toString()}`, {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
-                },
-              })
+                  const response = await fetch(`/api/analytics/export?${params.toString()}`, {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                    },
+                  })
 
-              if (!response.ok) throw new Error('Export failed')
+                  if (!response.ok) throw new Error('Export failed')
 
-              const blob = await response.blob()
-              const url = window.URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.style.display = 'none'
-              a.href = url
-              a.download = `analytics-${scope === 'shortcode' ? shortcode : 'global'}-${range.from}-${range.to}.json`
-              document.body.appendChild(a)
-              a.click()
-              window.URL.revokeObjectURL(url)
-              document.body.removeChild(a)
-            } catch (error) {
-              console.error('Export failed:', error)
-              alert('Failed to export analytics data')
-            } finally {
-              setIsExporting(false)
-            }
-          }}
-          disabled={isExporting}
-          className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <Download className="w-4 h-4 mr-1" />
-          {isExporting ? 'Exporting...' : 'Export'}
-        </button>
+                  const blob = await response.blob()
+                  const url = window.URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.style.display = 'none'
+                  a.href = url
+                  a.download = `analytics-${scope === 'shortcode' ? shortcode : 'global'}-${range.from}-${range.to}.json`
+                  document.body.appendChild(a)
+                  a.click()
+                  window.URL.revokeObjectURL(url)
+                  document.body.removeChild(a)
+                } catch (error) {
+                  console.error('Export failed:', error)
+                  alert('Failed to export analytics data')
+                } finally {
+                  setIsExporting(false)
+                }
+              }}
+              disabled={isExporting}
+              className="inline-flex items-center justify-center px-3 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full xs:w-auto"
+            >
+              <Download className="w-4 h-4 mr-1" />
+              {isExporting ? 'Exporting...' : 'Export'}
+            </button>
 
             {/* Summary badges */}
             <div className="hidden sm:inline-flex items-center gap-3 text-sm">
-          {overview && (
-            <>
-              <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                Total:{' '}
-                <span className="ml-1 font-semibold">{overview.totalClicks.toLocaleString()}</span>
-              </span>
-              <span className="inline-flex items-center px-2 py-1 rounded-md bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800">
-                Today:{' '}
-                <span className="ml-1 font-semibold">{overview.clicksToday.toLocaleString()}</span>
-              </span>
-            </>
-          )}
+              {overview && (
+                <>
+                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                    Total{' '}
+                    <span className="ml-1 font-semibold">{overview.totalClicks.toLocaleString()}</span>
+                  </span>
+                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800">
+                    Today{' '}
+                    <span className="ml-1 font-semibold">{overview.clicksToday.toLocaleString()}</span>
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
+
+        {overview && (
+          <div className="sm:hidden mt-3">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span className="font-semibold">{overview.totalClicks.toLocaleString()}</span>
+                clicks
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800">
+                <Clock className="w-3.5 h-3.5" />
+                <span className="font-semibold">{overview.clicksToday.toLocaleString()}</span>
+                today
+              </span>
+            </div>
+          </div>
+        )}
       </div>
       {/* Stats Overview: scope-aware */}
       {scope === 'all' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={Globe}
             title="Total Links"
@@ -356,7 +376,7 @@ export function Analytics({ links, currentView }) {
           />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={BarChart3}
             title="Link Clicks"
