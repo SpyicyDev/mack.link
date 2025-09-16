@@ -409,7 +409,7 @@ export function Analytics({ links, currentView }) {
           {/* Top Performing Links */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
             {isMobile ? (
-              <details>
+              <details open>
                 <summary className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 text-lg font-semibold text-gray-900 dark:text-white flex items-center cursor-pointer select-none">
                   <TrendingUp className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
                   Top Performing Links
@@ -522,7 +522,7 @@ export function Analytics({ links, currentView }) {
           {/* Recently Created */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
             {isMobile ? (
-              <details>
+              <details open>
                 <summary className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 text-lg font-semibold text-gray-900 dark:text-white flex items-center cursor-pointer select-none">
                   <Clock className="w-5 h-5 mr-2 text-orange-600" />
                   Recently Created
