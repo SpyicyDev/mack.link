@@ -93,22 +93,27 @@ Access:
 - Test redirects: http://localhost:8787/{shortcode}
 - Password-protected links: http://localhost:8787/{shortcode} (enter password when prompted)
 
-### Dev Auth for AI/Playwright
-- Gate: AUTH_DISABLED=true on the Worker strictly controls dev auth. The client flag VITE_AUTH_DISABLED=true only toggles UX hints.
-- Programmatic login endpoint (dev only): `POST /api/auth/dev/login` on the Worker origin.
-  - Returns `{ user }` and sets an HttpOnly session cookie.
-  - Optional overrides in body: `{ login, name, avatar_url }`.
-- In dev mode, the Admin login button calls this endpoint and navigates to `/admin` on success.
-- In production (AUTH_DISABLED not set), this endpoint returns 403.
+### Agents & AI Dev Mode
 
-Quick usage:
+Zero-click dev auth for Admin UI development:
+- Run: `npm run dev:ai` (starts Worker on 8787 and Admin on 5173)
+- Admin sets `VITE_AUTH_DISABLED=true` and sends `x-dev-auth: 1` on API requests
+- Worker recognizes the header only when `Host` is `localhost`/`127.0.0.1` and returns a mock user
+- Authorized-user checks are skipped in this local mode; production remains unaffected
+
+Optional programmatic login remains available:
 ```bash
-# Programmatic login (stores session cookie in cookie jar)
 curl -i -X POST \
   -H "Content-Type: application/json" \
-  --cookie-jar cookies.txt \
+  -H "x-dev-auth: 1" \
   http://localhost:8787/api/auth/dev/login
 ```
+
+Agent workflow guidance:
+- Long-running commands: before starting `npm run dev:ai`, specify what to test (e.g., visit `/admin`, create a link, verify redirect). Await user “continue” before running.
+- Prefer rebase over merge for PRs; commit in logical chunks.
+- Tail logs locally when needed: `npm run logs:tail` (avoid tailing production unless asked).
+- If `/api/user` returns 403, ensure the request includes `x-dev-auth: 1` and uses local Host.
 
 ## Architecture Overview
 

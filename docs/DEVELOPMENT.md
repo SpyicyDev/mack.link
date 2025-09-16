@@ -102,11 +102,24 @@ mack.link/
 
 ### OAuth-disabled Dev Mode (for AI/Playwright)
 
-For automated UI development and testing by an agent, you can run the stack in a special mode where clicking “Sign in with GitHub” immediately authenticates a mock user and redirects to the dashboard (no GitHub roundtrip).
+#### Zero-click local dev auth (recommended)
 
-Dev mode is controlled exclusively by the Worker environment variable AUTH_DISABLED=true. The client-side flag VITE_AUTH_DISABLED=true merely toggles UX hints; it cannot enable dev auth by itself.
+When developing the Admin UI locally, enable a cookie-free, zero-click dev auth that works even if the browser blocks third-party cookies.
 
-For automated UI development and testing by an agent, you can run the stack in a special mode where clicking “Sign in with GitHub” immediately authenticates a mock user and redirects to the dashboard (no GitHub roundtrip).
+- Admin: set `VITE_AUTH_DISABLED=true` (done by `npm run dev:ai`)
+- Worker: optionally set `AUTH_DISABLED=true` (also done by `npm run dev:ai`)
+- The Admin sends a local-only header `x-dev-auth: 1` for API requests
+- The Worker accepts this header only for `Host: localhost` or `127.0.0.1` and returns a mock user, skipping authorized-user enforcement
+- No cookies or redirects are required
+
+Troubleshooting:
+- If `/api/user` returns 403, ensure the request has `x-dev-auth: 1` and `Host: localhost:8787`
+- If `/api/user` returns 401, the Worker rejected the request as unauthenticated and no dev bypass applied; confirm you are running `npm run dev:ai`
+- CORS preflight allows `x-dev-auth`; verify `Access-Control-Allow-Headers` includes it
+
+For automated UI development and testing by an agent, you can run the stack in a special mode where the Admin UI is available without any login clicks or cookies.
+
+Dev mode is controlled by the Worker environment variable `AUTH_DISABLED=true`. The client-side flag `VITE_AUTH_DISABLED=true` toggles the Admin UI into “dev mode” and will automatically fetch a mock user from the Worker on load.
 
 Run:
 
@@ -115,16 +128,16 @@ $ npm run dev:ai
 ```
 
 What this does:
-- Starts the Worker with AUTH_DISABLED=true and a development JWT secret
-- Starts the Admin with VITE_API_BASE=http://localhost:8787 and VITE_AUTH_DISABLED=true
-- Adds a dedicated dev login endpoint at POST /api/auth/dev/login that issues a session cookie and returns the mock user
-- The OAuth endpoints are short-circuited to mint a session cookie for a mock user (ai-dev)
+- Starts the Worker with `AUTH_DISABLED=true` and a development JWT secret
+- Starts the Admin with `VITE_AUTH_DISABLED=true` and `VITE_API_BASE=http://localhost:8787`
+- The Admin bootstraps dev auth by calling `GET /api/user` on load (no cookie needed)
+- The OAuth endpoints on the Worker are short-circuited to return a mock user when `AUTH_DISABLED=true`
 - The Admin UI shows a small banner indicating dev auth is disabled
 
 Notes:
-- This mode is strictly for local/remote development by an AI agent. Do not enable it in production.
-- The Worker still requires a session cookie; the login button performs a simulated flow to establish the session.
-- You can customize the mock user via environment variables passed to the Worker: AUTH_DISABLED_USER_LOGIN, AUTH_DISABLED_USER_NAME, AUTH_DISABLED_USER_AVATAR_URL
+- This mode is strictly for local/CI development by an AI agent. Do not enable it in production.
+- Cookies are not required; the Admin directly reads the mock user from `/api/user` and stores it in localStorage.
+- You can customize the mock user via Worker environment variables: `AUTH_DISABLED_USER_LOGIN`, `AUTH_DISABLED_USER_NAME`, `AUTH_DISABLED_USER_AVATAR_URL`
 
 Playwright usage:
 - Launch your tests against http://localhost:5173/admin
