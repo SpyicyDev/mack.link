@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Line, Bar } from 'react-chartjs-2'
 import {
   useAnalyticsOverview,
@@ -32,6 +32,16 @@ export function Analytics({ links, currentView }) {
   const [scope, setScope] = useState('all') // 'all' | 'shortcode'
   const [shortcode, setShortcode] = useState(Object.keys(links)[0])
   const [isExporting, setIsExporting] = useState(false)
+
+  // Keep selected shortcode in sync with incoming links
+  useEffect(() => {
+    if (scope !== 'shortcode') return
+    const keys = Object.keys(links)
+    if (keys.length === 0) return
+    if (!keys.includes(shortcode)) {
+      setShortcode(keys[0])
+    }
+  }, [links, scope, shortcode])
 
   // Check if analytics polling should be active
   const isAnalyticsActive = useIsAnalyticsActive(currentView)
