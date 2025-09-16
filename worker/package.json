@@ -9,7 +9,7 @@
 		"deploy": "npm run build && wrangler deploy",
 		"dev": "npm run build && wrangler dev",
 		"dev:fast": "wrangler dev",
-"dev:ai": "wrangler dev --port 8787 --var AUTH_DISABLED=true --var SESSION_ALLOW_INSECURE_COOKIES=true --var JWT_SECRET=dev-local",
+"dev:ai": "AUTH_DISABLED=true SESSION_ALLOW_INSECURE_COOKIES=true JWT_SECRET=dev-local wrangler dev --port 8787",
 		"start": "wrangler dev",
 		"tail": "wrangler tail",
 		"db:apply:local": "wrangler d1 execute mack-link --local --file src/schema.sql",
