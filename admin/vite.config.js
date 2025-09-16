@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/admin/',
   build: {
+    target: 'es2020',
     outDir: 'dist',
     assetsDir: 'assets',
 
@@ -21,10 +22,18 @@ export default defineConfig({
           vendor: ['react', 'react-dom'],
           charts: ['chart.js', 'react-chartjs-2'],
           query: ['@tanstack/react-query'],
+          router: ['react-router-dom'],
+          icons: ['lucide-react'],
         },
       },
     },
     // Optimize for size since workers have bundle limits
     minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
   },
 })

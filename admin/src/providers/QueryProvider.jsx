@@ -1,5 +1,5 @@
+import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 // Create a client
 const queryClient = new QueryClient({
@@ -25,11 +25,23 @@ const queryClient = new QueryClient({
   },
 })
 
+function DevtoolsLazy() {
+  const [Devtools, setDevtools] = useState(null)
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      import('@tanstack/react-query-devtools').then((m) => {
+        setDevtools(() => m.ReactQueryDevtools)
+      })
+    }
+  }, [])
+  return Devtools ? <Devtools initialIsOpen={false} /> : null
+}
+
 export function QueryProvider({ children }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <DevtoolsLazy />
     </QueryClientProvider>
   )
 }

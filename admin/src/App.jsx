@@ -112,6 +112,15 @@ function App() {
     refetch()
   }, [refetch])
 
+  // Warm up the Analytics chunk in the background after a brief idle
+  useEffect(() => {
+    const t = setTimeout(() => {
+      // Fire-and-forget prefetch for faster tab switch
+      import('./components/Analytics').catch(() => {})
+    }, 2000)
+    return () => clearTimeout(t)
+  }, [])
+
 
 
   const handleFilteredResults = useCallback((filtered) => {

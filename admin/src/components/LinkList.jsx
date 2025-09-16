@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, memo, lazy, Suspense } from 'react'
+import { useState, useCallback, useMemo, memo, lazy, Suspense, useEffect } from 'react'
 import {
   ExternalLink,
   Edit,
@@ -39,6 +39,21 @@ const LinkList = memo(function LinkList({ links, onDelete, onUpdate, onBulkDelet
     () => Object.entries(links).sort(([, a], [, b]) => new Date(b.created) - new Date(a.created)),
     [links]
   )
+
+  // Progressive rendering for large lists
+  const [visibleCount, setVisibleCount] = useState(30)
+  useEffect(() => {
+    setVisibleCount(30)
+  }, [links])
+  useEffect(() => {
+    const onScroll = () => {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 300) {
+        setVisibleCount((v) => Math.min(v + 30, linkEntries.length))
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [linkEntries.length])
 
   const copyToClipboard = useCallback(async (shortcode) => {
     try {
@@ -255,7 +270,7 @@ className="w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-
             Your short links
           </h2>
           <div className="grid gap-2.5 xs:gap-3 sm:gap-4" role="list" aria-label="List of short links">
-            {linkEntries.map(([shortcode, link]) => (
+            {linkEntries.slice(0, visibleCount).map(([shortcode, link]) => (
               <article
                 key={shortcode}
                 className={`border border-gray-200 dark:border-gray-700 rounded-lg p-2.5 xs:p-3 sm:p-4 hover:shadow-md dark:hover:shadow-gray-700/50 transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-gray-800 bg-white dark:bg-gray-800 ${
@@ -263,6 +278,7 @@ className="w-9 h-9 xs:w-10 xs:h-10 sm:w-12 sm:h-12 text-gray-400 dark:text-gray-
                     ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : ''
                 }`}
+                style={{ contentVisibility: 'auto', containIntrinsicSize: '260px' }}
                 role="listitem"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
