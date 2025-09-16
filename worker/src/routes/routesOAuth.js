@@ -7,7 +7,11 @@ import { logger } from '../logger.js';
 // Dev-only: programmatic login endpoint for Playwright/AI when AUTH_DISABLED=true
 export async function handleDevAuthLogin(request, env) {
 	const config = getConfig(env);
-	if (!config.authDisabled) {
+	// Allow when AUTH_DISABLED or trusted local dev header present
+	const devHeader = request.headers.get('x-dev-auth');
+	const hostHeader = (request.headers.get('Host') || '').toLowerCase();
+	const isLocalHost = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(hostHeader);
+	if (!config.authDisabled && !(devHeader && isLocalHost)) {
 		return withCors(env, new Response(JSON.stringify({ error: 'forbidden', error_description: 'Dev auth not enabled' }), { status: 403, headers: { 'Content-Type': 'application/json' } }), request);
 	}
 	try {
