@@ -225,14 +225,16 @@ function App() {
               </p>
             </header>
             <div className="mt-3 sm:mt-4 sm:mt-0">
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors"
-                aria-label="Create new short link"
-              >
-                <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
-                Create Link
-              </button>
+              {!showCreateForm && (
+                <button
+                  onClick={() => setShowCreateForm(true)}
+                  className="hidden sm:inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-colors"
+                  aria-label="Create new short link"
+                >
+                  <Plus className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Create Link
+                </button>
+              )}
             </div>
           </div>
 
@@ -293,13 +295,15 @@ function App() {
           )}
 
           {/* Mobile Floating Create Button */}
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="sm:hidden fixed fab-offset right-4 sm:right-5 z-50 rounded-full p-3 sm:p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95 transition-all"
-            aria-label="Create new short link"
-          >
-            <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
+          {!showCreateForm && (
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="sm:hidden fixed fab-offset right-4 sm:right-5 z-50 rounded-full p-3 sm:p-4 shadow-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95 transition-all"
+              aria-label="Create new short link"
+            >
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          )}
 
           {/* Mobile Bottom Navigation */}
           <BottomNav
