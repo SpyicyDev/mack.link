@@ -6,6 +6,8 @@ import {
   useAnalyticsTimeseriesLinks,
   useAnalyticsBreakdown,
   useIsAnalyticsActive,
+  useUTMBreakdowns,
+  useHourlyPatterns,
 } from '../hooks/useAnalytics'
 import {
   Chart as ChartJS,
@@ -20,8 +22,12 @@ import {
 } from 'chart.js'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Tooltip, Legend, Filler)
-import { BarChart3, TrendingUp, Clock, Globe, Download } from 'lucide-react'
+import { BarChart3, TrendingUp, Clock, Globe, Download, Map, Target, Zap } from 'lucide-react'
 import { StatCard } from './StatCard'
+import { GeographicHeatmap } from './GeographicHeatmap'
+import { ClickTimingPatterns } from './ClickTimingPatterns'
+import { UTMAnalytics } from './UTMAnalytics'
+import { ConversionGoals } from './ConversionGoals'
 
 export function Analytics({ links, currentView }) {
   const [range, setRange] = useState({
@@ -32,6 +38,7 @@ export function Analytics({ links, currentView }) {
   const [scope, setScope] = useState('all') // 'all' | 'shortcode'
   const [shortcode, setShortcode] = useState(Object.keys(links)[0])
   const [isExporting, setIsExporting] = useState(false)
+  const [analyticsView, setAnalyticsView] = useState('overview') // 'overview' | 'geography' | 'timing' | 'utm' | 'goals'
 
   // Keep selected shortcode in sync with incoming links
   useEffect(() => {
@@ -66,6 +73,22 @@ export function Analytics({ links, currentView }) {
   const { data: refTop } = useAnalyticsBreakdown(
     { scope, shortcode, range, dimension },
     { enabled: isAnalyticsActive }
+  )
+
+  // New enhanced analytics data
+  const { data: countryData } = useAnalyticsBreakdown(
+    { scope, shortcode, range, dimension: 'country' },
+    { enabled: isAnalyticsActive && analyticsView === 'geography' }
+  )
+
+  const { data: utmData } = useUTMBreakdowns(
+    { scope, shortcode, range },
+    { enabled: isAnalyticsActive && analyticsView === 'utm' }
+  )
+
+  const { data: hourlyData } = useHourlyPatterns(
+    { scope, shortcode, range },
+    { enabled: isAnalyticsActive && analyticsView === 'timing' }
   )
   const isMobile = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches
 
@@ -413,7 +436,72 @@ export function Analytics({ links, currentView }) {
         </div>
       )}
 
-      {/* Top Performing and Recent: global scope only */}
+      {/* Analytics View Tabs */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 transition-colors">
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="flex overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 space-x-4 sm:space-x-8 no-scrollbar ios-momentum" aria-label="Analytics tabs">
+            <button
+              onClick={() => setAnalyticsView('overview')}
+              className={`${
+                analyticsView === 'overview'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors`}
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Overview
+            </button>
+            <button
+              onClick={() => setAnalyticsView('geography')}
+              className={`${
+                analyticsView === 'geography'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors`}
+            >
+              <Map className="w-4 h-4 mr-2" />
+              Geography
+            </button>
+            <button
+              onClick={() => setAnalyticsView('timing')}
+              className={`${
+                analyticsView === 'timing'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors`}
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              Timing
+            </button>
+            <button
+              onClick={() => setAnalyticsView('utm')}
+              className={`${
+                analyticsView === 'utm'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors`}
+            >
+              <Target className="w-4 h-4 mr-2" />
+              UTM Tracking
+            </button>
+            <button
+              onClick={() => setAnalyticsView('goals')}
+              className={`${
+                analyticsView === 'goals'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors`}
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Goals
+            </button>
+          </nav>
+        </div>
+
+        <div className="p-6">
+          {/* Overview Tab */}
+          {analyticsView === 'overview' && (
+            <div className="space-y-6">{/* Top Performing and Recent: global scope only */}
       {scope === 'all' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Top Performing Links */}
@@ -768,6 +856,42 @@ export function Analytics({ links, currentView }) {
               </p>
             )}
           </div>
+        </div>
+      </div>
+            </div>
+          )}
+
+          {/* Geography Tab */}
+          {analyticsView === 'geography' && (
+            <div className="space-y-6">
+              <GeographicHeatmap data={countryData?.items || []} />
+            </div>
+          )}
+
+          {/* Timing Tab */}
+          {analyticsView === 'timing' && (
+            <div className="space-y-6">
+              <ClickTimingPatterns data={hourlyData?.points || []} />
+            </div>
+          )}
+
+          {/* UTM Tab */}
+          {analyticsView === 'utm' && (
+            <div className="space-y-6">
+              <UTMAnalytics 
+                utmSourceData={utmData?.utmSource || []}
+                utmMediumData={utmData?.utmMedium || []}
+                utmCampaignData={utmData?.utmCampaign || []}
+              />
+            </div>
+          )}
+
+          {/* Goals Tab */}
+          {analyticsView === 'goals' && (
+            <div className="space-y-6">
+              <ConversionGoals />
+            </div>
+          )}
         </div>
       </div>
     </div>
