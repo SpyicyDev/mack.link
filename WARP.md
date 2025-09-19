@@ -6,7 +6,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ### Script Overview (root-first)
 - Dev (long-running):
-  - Start both: `npm run dev`
+  - Start both: `npm run dev` (requires GitHub OAuth setup)
   - AI dev (auth disabled): `npm run dev:ai` (Worker AUTH_DISABLED=true; Admin VITE_AUTH_DISABLED=true)
   - Worker only: `npm run dev:worker`
   - Admin only: `npm run dev:admin`
@@ -26,6 +26,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 - Secrets (pipe values; do not paste inline):
   - `echo "secret_value" | npm run secrets:put --name=SECRET_NAME`
 - Lint: `npm run lint` (admin) or `npm run lint:all`
+- Security: `npm run security:audit` | `npm run security:fix`
 - Maintenance: `npm run maintenance` (audit → build → validate prod)
 
 ### Worker Development
