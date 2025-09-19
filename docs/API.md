@@ -282,26 +282,136 @@ Create multiple links at once (up to 100).
 }
 ```
 
+#### `DELETE /api/links/bulk`
+
+Delete multiple links at once.
+
+**Request Body:**
+```json
+{
+  "shortcodes": ["link1", "link2", "link3"]
+}
+```
+
+**Response:**
+```json
+{
+  "deleted": ["link1", "link3"],
+  "notFound": ["link2"]
+}
+```
+
 ### Analytics
 
 #### `GET /api/analytics/overview`
 Get summary analytics for all links or a specific link.
 
 **Query Parameters:**
-- `shortcode` (optional) - Get analytics for specific link
+- `shortcode` (optional) - Get analytics for specific link only
 - `from` (optional) - Start date (ISO 8601)
 - `to` (optional) - End date (ISO 8601)
+
+**Response:**
+```json
+{
+  "totalClicks": 1250,
+  "totalLinks": 42,
+  "todayClicks": 15,
+  "last7DaysClicks": 127
+}
+```
 
 #### `GET /api/analytics/timeseries`
 Get click data over time for charts.
 
+**Query Parameters:**
+- `shortcode` (optional) - Specific link or global if omitted
+- `from` (optional) - Start date (ISO 8601)
+- `to` (optional) - End date (ISO 8601)
+
+**Response:**
+```json
+{
+  "data": [
+    { "date": "2024-01-15", "clicks": 25 },
+    { "date": "2024-01-16", "clicks": 42 }
+  ]
+}
+```
+
+#### `GET /api/analytics/timeseries-links`
+Get timeseries data for top performing links.
+
+**Query Parameters:**
+- `from` (optional) - Start date (ISO 8601)
+- `to` (optional) - End date (ISO 8601)
+- `limit` (optional) - Number of top links (default: 5)
+
 #### `GET /api/analytics/breakdown`
-Get detailed breakdowns by country, referrer, device, etc.
+Get detailed breakdowns by dimension.
+
+**Query Parameters:**
+- `shortcode` (optional) - Specific link or global if omitted
+- `dimension` (optional) - One of: `ref`, `country`, `city`, `device`, `os`, `browser` (default: `ref`)
+- `limit` (optional) - Number of results (default: 10)
+- `from` (optional) - Start date (ISO 8601)
+- `to` (optional) - End date (ISO 8601)
+
+**Response:**
+```json
+{
+  "dimension": "ref",
+  "data": [
+    { "key": "twitter.com", "clicks": 127 },
+    { "key": "facebook.com", "clicks": 89 }
+  ]
+}
+```
+
+#### `GET /api/analytics/export`
+Export analytics data for download.
+
+**Query Parameters:**
+- `shortcode` (optional) - Specific link or global if omitted  
+- `from` (optional) - Start date (ISO 8601)
+- `to` (optional) - End date (ISO 8601)
+- `format` (optional) - Export format: `json` (default)
+
+**Response:** JSON file download with comprehensive analytics data.
 
 ### User Management
 
 #### `GET /api/user`
 Get current authenticated user information.
+
+**Response:**
+```json
+{
+  "login": "your-username",
+  "id": 123456,
+  "avatar_url": "https://avatars.githubusercontent.com/u/123456",
+  "name": "Your Name"
+}
+```
+
+### Metadata
+
+#### `GET /api/meta/reserved-paths`
+Get list of reserved paths that cannot be used as shortcodes.
+
+**Response:**
+```json
+{
+  "reserved": [
+    "admin", "api", "auth", "oauth", "callback",
+    "www", "mail", "ftp", "assets", "static"
+  ],
+  "count": 45,
+  "updatedAt": "2024-01-15T10:30:00Z"
+}
+```
+
+**Headers:** Includes cache headers (`Cache-Control`, `ETag`) for efficient repeated requests.
 
 ---
 

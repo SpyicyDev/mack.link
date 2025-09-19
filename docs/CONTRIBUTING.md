@@ -22,9 +22,16 @@ Found a bug or have a suggestion? We'd love to hear about it:
 ### 💡 Suggest Features
 Have an idea that would make Mack.link better?
 
-- **Open an issue** with the `enhancement` label
+- **Check our [Feature Ideas document](./FEATURE_IDEAS.md)** to see what's already planned
+- **Open an issue** with the `enhancement` label if your idea isn't listed
 - **Describe your use case** - what problem are you trying to solve?
 - **Discuss the approach** before writing code (saves time!)
+
+The Feature Ideas document includes:
+- Prioritized roadmap with implementation timelines
+- Technical complexity assessments
+- Feature request templates
+- Implementation guidelines
 
 ### 🔧 Submit Code
 Ready to dive into the code?
@@ -76,11 +83,15 @@ Popular customizations for forks:
 - Personalized messaging
 
 ### Features
-- Link expiration dates
-- Password-protected links
+- Link expiration dates ✅ (implemented)
+- Password-protected links ✅ (implemented) 
 - Custom redirect pages
-- Advanced analytics
-- QR code generation
+- Advanced analytics with UTM tracking ✅ (implemented)
+- QR code generation ✅ (implemented)
+- Bulk operations ✅ (implemented)
+- Custom themes and branding (planned)
+- Team management (planned)
+- Mobile PWA (planned)
 
 ### Integrations
 - Different OAuth providers

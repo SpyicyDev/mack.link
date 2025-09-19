@@ -124,12 +124,15 @@ npm run deploy
 ```
 
 ### Available Commands
-- `npm run dev` - Start both worker and admin dev servers
+- `npm run dev` - Start both worker and admin dev servers (requires GitHub OAuth)
+- `npm run dev:ai` - Start in AI/automation-friendly mode (no OAuth required)
 - `npm run build` - Build admin panel and embed in worker
 - `npm run deploy` - Deploy to Cloudflare Workers
 - `npm run lint` - Run ESLint on admin code
-- `npm run validate:local` - Test local deployment
+- `npm run validate:local` - Test local deployment (requires dev server running)
 - `npm run validate:prod` - Test production deployment
+- `npm run db:apply:local` - Apply database schema locally
+- `npm run db:apply:prod` - Apply database schema to production
 
 ## 🛠️ Technology Stack
 
@@ -221,6 +224,10 @@ npm run deploy
 - 🚀 [**Deployment Guide**](./docs/DEPLOYMENT.md) - Production deployment details
 - 🔑 [**GitHub Secrets**](./docs/GITHUB_SECRETS.md) - CI/CD configuration
 - 🏗️ [**Architecture Decisions**](./docs/ADMIN_INTEGRATION.md) - Technical design choices
+- 💡 [**Feature Ideas**](./docs/FEATURE_IDEAS.md) - Future enhancements and roadmap
+
+**For Contributors:**
+- 🤝 [**Contributing Guide**](./docs/CONTRIBUTING.md) - How to contribute to the project
 
 **Troubleshooting:**
 - Common issues and solutions in each guide
@@ -239,8 +246,9 @@ We welcome contributions! Here's how you can help:
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/mack.link.git`
 3. Install dependencies: `npm install`
-4. Make your changes and test locally: `npm run dev`
-5. Submit a pull request with a clear description
+4. Apply database schema: `npm run db:apply:local`
+5. Start development: `npm run dev:ai` (for AI agents) or `npm run dev` (requires GitHub OAuth)
+6. Submit a pull request with a clear description
 
 ## ❤️ Support
 

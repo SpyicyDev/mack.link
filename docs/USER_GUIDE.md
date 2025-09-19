@@ -118,9 +118,17 @@ If your links include UTM parameters (`?utm_source=twitter&utm_medium=social`), 
 - Filter by creation date, click count, or status
 
 **Bulk Operations:**
-- **Bulk Import**: Upload CSV files with multiple links
-- **Bulk Export**: Download all your links as CSV
+- **Bulk Import**: Upload CSV files with multiple links at once
+- **Bulk Delete**: Select multiple links for deletion
+- **Bulk Export**: Download all your links as CSV/JSON
 - **Archive Links**: Hide old links without deleting them
+
+**CSV Import Format:**
+```csv
+shortcode,url,description
+github,https://github.com/your-repo,My Repository
+twitter,https://twitter.com/you,My Twitter Profile
+```
 
 ### QR Codes
 
