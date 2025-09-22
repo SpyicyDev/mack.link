@@ -13,7 +13,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || '';
 async function request(path: string, { method = 'GET', headers = {}, body }: {
   method?: string;
   headers?: Record<string, string>;
-  body?: any;
+  body?: unknown;
 } = {}) {
   const init: RequestInit = {
     method,
@@ -49,8 +49,8 @@ async function request(path: string, { method = 'GET', headers = {}, body }: {
   
   if (!res.ok) {
     const message =
-      isJson && data?.error ? data.error : typeof data === 'string' ? data : 'Request failed';
-    const error = new Error(message) as any;
+      isJson && data?.error ? String(data.error) : typeof data === 'string' ? data : 'Request failed';
+    const error = new Error(message) as Error & { status: number; data: unknown };
     error.status = res.status;
     error.data = data;
     throw error;
@@ -60,8 +60,8 @@ async function request(path: string, { method = 'GET', headers = {}, body }: {
 }
 
 export const http = {
-  get: (path: string, init?: any) => request(path, { ...init, method: 'GET' }),
-  post: (path: string, body?: any, init?: any) => request(path, { ...init, method: 'POST', body }),
-  put: (path: string, body?: any, init?: any) => request(path, { ...init, method: 'PUT', body }),
-  delete: (path: string, init?: any) => request(path, { ...init, method: 'DELETE' }),
+  get: (path: string, init?: RequestInit) => request(path, { ...init, method: 'GET' }),
+  post: (path: string, body?: unknown, init?: RequestInit) => request(path, { ...init, method: 'POST', body }),
+  put: (path: string, body?: unknown, init?: RequestInit) => request(path, { ...init, method: 'PUT', body }),
+  delete: (path: string, init?: RequestInit) => request(path, { ...init, method: 'DELETE' }),
 };

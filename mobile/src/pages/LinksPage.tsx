@@ -23,8 +23,6 @@ import {
   IonToast,
   IonButtons,
   IonButton,
-  IonMenuButton,
-  IonModal,
   IonActionSheet,
 } from '@ionic/react';
 import {

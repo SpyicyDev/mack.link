@@ -16,7 +16,7 @@ class AuthService {
     if (storedUser) {
       try {
         this.user = JSON.parse(storedUser);
-      } catch (error) {
+      } catch {
         localStorage.removeItem('user');
       }
     }
@@ -53,8 +53,8 @@ class AuthService {
       this.saveUser();
       this.dispatchAuthChange();
       return this.user;
-    } catch (error: any) {
-      if (error.status === 401) {
+    } catch (error: unknown) {
+      if ((error as { status?: number }).status === 401) {
         this.user = null;
         this.clearUser();
       }
@@ -94,8 +94,8 @@ class AuthService {
       this.saveUser();
       this.dispatchAuthChange();
       return this.user;
-    } catch (error: any) {
-      if (error.status === 403) {
+    } catch (error: unknown) {
+      if ((error as { status?: number }).status === 403) {
         throw new Error('Development authentication is not enabled');
       }
       throw error;

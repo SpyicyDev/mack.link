@@ -84,8 +84,9 @@ const EditLinkModal = forwardRef<HTMLIonModalElement, EditLinkModalProps>(
         });
         resetForm();
         onDidDismiss();
-      } catch (error: any) {
-        setToastMessage(error.message || 'Failed to update link');
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to update link';
+        setToastMessage(errorMessage);
         setShowToast(true);
       }
     };

@@ -5,13 +5,13 @@ import { linkAPI, Link, CreateLinkData } from '../services/api';
 export const linkKeys = {
   all: ['links'],
   lists: () => [...linkKeys.all, 'list'],
-  list: (filters?: any) => [...linkKeys.lists(), { filters }],
+  list: (filters?: Record<string, unknown>) => [...linkKeys.lists(), { filters }],
   details: () => [...linkKeys.all, 'detail'],
   detail: (id: string) => [...linkKeys.details(), id],
 };
 
 // Hook to fetch all links
-export function useLinks(options: any = {}) {
+export function useLinks(options: Record<string, unknown> = {}) {
   return useQuery({
     queryKey: linkKeys.lists(),
     queryFn: async (): Promise<Record<string, Link>> => {
@@ -56,7 +56,7 @@ export function useCreateLink() {
 
       // Optimistically update to the new value
       if (previousLinks && newLink.shortcode) {
-        queryClient.setQueryData(linkKeys.lists(), (old: any) => ({
+        queryClient.setQueryData(linkKeys.lists(), (old: Record<string, Link> | undefined) => ({
           ...old,
           [newLink.shortcode!]: {
             ...newLink,
@@ -97,7 +97,7 @@ export function useUpdateLink() {
 
     onSuccess: (updatedLink, { shortcode }) => {
       // Update the links list
-      queryClient.setQueryData(linkKeys.lists(), (old: any) => {
+      queryClient.setQueryData(linkKeys.lists(), (old: Record<string, Link> | undefined) => {
         if (!old) return old;
         return {
           ...old,
@@ -125,7 +125,7 @@ export function useDeleteLink() {
 
     onSuccess: (_, shortcode) => {
       // Remove from links list
-      queryClient.setQueryData(linkKeys.lists(), (old: any) => {
+      queryClient.setQueryData(linkKeys.lists(), (old: Record<string, Link> | undefined) => {
         if (!old) return old;
         const newLinks = { ...old };
         delete newLinks[shortcode];
@@ -151,7 +151,7 @@ export function useBulkDeleteLinks() {
 
     onSuccess: (_, shortcodes) => {
       // Remove from links list
-      queryClient.setQueryData(linkKeys.lists(), (old: any) => {
+      queryClient.setQueryData(linkKeys.lists(), (old: Record<string, Link> | undefined) => {
         if (!old) return old;
         const newLinks = { ...old };
         shortcodes.forEach((shortcode) => {

@@ -90,8 +90,9 @@ const CreateLinkModal = forwardRef<HTMLIonModalElement, CreateLinkModalProps>(
         await createLink.mutateAsync(dataToSubmit);
         resetForm();
         onDidDismiss();
-      } catch (error: any) {
-        setToastMessage(error.message || 'Failed to create link');
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to create link';
+        setToastMessage(errorMessage);
         setShowToast(true);
       }
     };

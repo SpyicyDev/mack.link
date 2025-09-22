@@ -6,16 +6,18 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
       refetchOnWindowFocus: false,
-      retry: (failureCount, error: any) => {
-        if (error?.status === 401 || error?.status === 403) {
+      retry: (failureCount, error: unknown) => {
+        const errorWithStatus = error as { status?: number };
+        if (errorWithStatus?.status === 401 || errorWithStatus?.status === 403) {
           return false;
         }
         return failureCount < 3;
       },
     },
     mutations: {
-      retry: (failureCount, error: any) => {
-        if (error?.status === 401 || error?.status === 403) {
+      retry: (failureCount, error: unknown) => {
+        const errorWithStatus = error as { status?: number };
+        if (errorWithStatus?.status === 401 || errorWithStatus?.status === 403) {
           return false;
         }
         return failureCount < 2;

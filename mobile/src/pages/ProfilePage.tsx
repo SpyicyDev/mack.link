@@ -50,7 +50,7 @@ const ProfilePage: React.FC = () => {
     try {
       await authService.logout();
       // The app will automatically redirect to login due to auth state change
-    } catch (error) {
+    } catch {
       setToastMessage('Logout failed. Please try again.');
       setShowToast(true);
     }

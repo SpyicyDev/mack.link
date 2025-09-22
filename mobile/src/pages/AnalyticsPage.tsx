@@ -106,18 +106,18 @@ const AnalyticsPage: React.FC = () => {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value: any) => formatNumber(value),
+          callback: (value: string | number) => formatNumber(Number(value)),
         },
       },
     },
   };
 
   const timeseriesData = {
-    labels: timeseries?.map((point: any) => new Date(point.date).toLocaleDateString()) || [],
+    labels: timeseries?.map((point: { date: string }) => new Date(point.date).toLocaleDateString()) || [],
     datasets: [
       {
         label: 'Clicks',
-        data: timeseries?.map((point: any) => point.clicks) || [],
+        data: timeseries?.map((point: { clicks: number }) => point.clicks) || [],
         borderColor: 'var(--ion-color-primary)',
         backgroundColor: 'var(--ion-color-primary-tint)',
         fill: true,
@@ -127,11 +127,11 @@ const AnalyticsPage: React.FC = () => {
   };
 
   const breakdownData = {
-    labels: breakdown?.slice(0, 10).map((item: any) => item.dimension || 'Unknown') || [],
+    labels: breakdown?.slice(0, 10).map((item: { dimension?: string }) => item.dimension || 'Unknown') || [],
     datasets: [
       {
         label: 'Clicks',
-        data: breakdown?.slice(0, 10).map((item: any) => item.clicks) || [],
+        data: breakdown?.slice(0, 10).map((item: { clicks: number }) => item.clicks) || [],
         backgroundColor: 'var(--ion-color-primary)',
       },
     ],

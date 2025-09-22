@@ -32,8 +32,9 @@ const LoginPage: React.FC = () => {
         // Redirect to GitHub OAuth
         window.location.href = authService.getAuthUrl();
       }
-    } catch (error: any) {
-      setToastMessage(error.message || 'Authentication failed');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Authentication failed';
+      setToastMessage(errorMessage);
       setShowToast(true);
     } finally {
       setIsLoading(false);
