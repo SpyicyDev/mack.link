@@ -47,7 +47,11 @@ export function validateUrl(url) {
 			return 'Cannot redirect to localhost URLs for security reasons';
 		}
 		
-		if (parsedUrl.hostname.endsWith('.local') || parsedUrl.hostname.includes('192.168.') || parsedUrl.hostname.includes('10.0.')) {
+		if (
+			parsedUrl.hostname.endsWith('.local') ||
+			parsedUrl.hostname.startsWith('192.168.') ||
+			parsedUrl.hostname.startsWith('10.')
+		) {
 			return 'Cannot redirect to private network URLs for security reasons';
 		}
 		
