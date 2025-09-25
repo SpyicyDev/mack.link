@@ -1,9 +1,31 @@
 import { getConfig } from './config.js';
 import { dbAll } from './db.js';
 
-export function sanitizeInput(input) {
+/**
+ * Enhanced input sanitization with better security
+ * @param {any} input - Input to sanitize
+ * @param {Object} options - Sanitization options
+ * @returns {any} Sanitized input
+ */
+export function sanitizeInput(input, { maxLength = 2048, allowHtml = false } = {}) {
 	if (typeof input !== 'string') return input;
-	return input.trim().replace(/[\x00-\x1f\x7f-\x9f]/g, '');
+	
+	let sanitized = input.trim();
+	
+	// Remove control characters and other dangerous characters
+	sanitized = sanitized.replace(/[\x00-\x1f\x7f-\x9f]/g, '');
+	
+	// Remove potentially dangerous characters if HTML is not allowed
+	if (!allowHtml) {
+		sanitized = sanitized.replace(/[<>'"&]/g, '');
+	}
+	
+	// Enforce length limit
+	if (sanitized.length > maxLength) {
+		sanitized = sanitized.substring(0, maxLength);
+	}
+	
+	return sanitized;
 }
 
 export function json(env, data, init = {}) {
@@ -40,9 +62,46 @@ export async function retryWithBackoff(operation, { maxRetries = 3, baseDelay = 
 	}
 }
 
-// simple in-memory caches (edge-local)
-export const tokenCache = new Map();
-export const rateLimitCache = new Map();
+// Simple in-memory caches (edge-local) with size limits to prevent memory leaks
+const MAX_CACHE_SIZE = 10000;
+
+class BoundedMap extends Map {
+	constructor(maxSize = MAX_CACHE_SIZE) {
+		super();
+		this.maxSize = maxSize;
+	}
+	
+	set(key, value) {
+		// Remove oldest entry if we're at capacity
+		if (this.size >= this.maxSize) {
+			const firstKey = this.keys().next().value;
+			this.delete(firstKey);
+		}
+		return super.set(key, value);
+	}
+}
+
+export const tokenCache = new BoundedMap();
+export const rateLimitCache = new BoundedMap();
+
+/**
+ * In-memory rate limiter fallback
+ * @param {string} key - Rate limit key (usually IP address)
+ * @param {Object} options - Rate limit options
+ * @param {number} options.limit - Request limit
+ * @param {number} options.windowMs - Time window in milliseconds
+ * @returns {boolean} True if rate limited
+ */
+export function isRateLimited(key, { limit = 100, windowMs = 3600000 } = {}) {
+	const now = Date.now();
+	const window = Math.floor(now / windowMs);
+	const cacheKey = `${key}:${window}`;
+	
+	const current = rateLimitCache.get(cacheKey) || 0;
+	rateLimitCache.set(cacheKey, current + 1);
+	
+	return current >= limit;
+}
 
 export function getClientIP(request) {
 	const xff = request.headers.get('X-Forwarded-For');
@@ -70,6 +129,32 @@ export async function isRateLimitedPersistent(env, request, { key = 'default', l
 		// Fallback to in-memory limiter on failure
 		const ip = getClientIP(request);
 		return isRateLimited(ip, { limit, windowMs });
+	}
+}
+
+/**
+ * Clean expired entries from in-memory caches
+ * Should be called periodically to prevent memory buildup
+ */
+export function cleanupCaches() {
+	const now = Date.now();
+	const oneHour = 3600000;
+	
+	// Clean up rate limit cache entries older than 2 windows
+	for (const [key] of rateLimitCache.entries()) {
+		const parts = key.split(':');
+		const window = parseInt(parts[parts.length - 1]);
+		const windowMs = parseInt(parts[parts.length - 3]) || oneHour;
+		if (isNaN(window) || (now - window * windowMs) > (2 * windowMs)) {
+			rateLimitCache.delete(key);
+		}
+	
+	// Token cache cleanup is handled by application logic
+	// but we can clear very old entries (older than 24 hours)
+	for (const [key, entry] of tokenCache.entries()) {
+		if (entry && entry.timestamp && (now - entry.timestamp) > (24 * oneHour)) {
+			tokenCache.delete(key);
+		}
 	}
 }
 

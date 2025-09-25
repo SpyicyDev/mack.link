@@ -64,8 +64,8 @@ const CORE_RESERVED = [
  */
 function getApiPatterns() {
 	// These patterns represent the API structure as defined in routerApi.js
+	// Note: 'auth' is already in CORE_RESERVED, so we don't duplicate it here
 	return [
-		'auth',      // /api/auth/*
 		'analytics', // /api/analytics/*
 		'links',     // /api/links/*
 		'password',  // /api/password/*
@@ -80,11 +80,16 @@ function getApiPatterns() {
  */
 function getAdminPatterns() {
 	// The admin is a SPA that serves everything under /admin
-	// We want to reserve the top-level 'admin' path
-	return [
-		'admin', // Already in CORE_RESERVED, but being explicit
-	];
+	// Note: 'admin' is already in CORE_RESERVED, so we return empty array
+	// This function is kept for future extensibility if admin routing becomes more complex
+	return [];
 }
+
+/**
+ * Cached reserved paths set for performance optimization
+ * @type {Set<string>|null}
+ */
+let cachedReservedPaths = null;
 
 /**
  * Get the complete list of reserved paths.
@@ -93,6 +98,11 @@ function getAdminPatterns() {
  * @returns {Set<string>} Set of reserved path patterns (lowercase)
  */
 export function getReservedPaths() {
+	// Return cached result if available
+	if (cachedReservedPaths) {
+		return cachedReservedPaths;
+	}
+	
 	const reserved = new Set();
 	
 	// Add core reserved paths
@@ -104,6 +114,8 @@ export function getReservedPaths() {
 	// Add admin patterns  
 	getAdminPatterns().forEach(path => reserved.add(path.toLowerCase()));
 	
+	// Cache the result for future calls
+	cachedReservedPaths = reserved;
 	return reserved;
 }
 
@@ -164,6 +176,14 @@ export function getReservedPathError(shortcode) {
  */
 export function getReservedPathsList() {
 	return Array.from(getReservedPaths()).sort();
+}
+
+/**
+ * Clear the reserved paths cache.
+ * Useful for testing or when route configuration changes.
+ */
+export function clearReservedPathsCache() {
+	cachedReservedPaths = null;
 }
 
 /**

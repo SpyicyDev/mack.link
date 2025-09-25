@@ -3,15 +3,27 @@ import { isReservedPath, getReservedPathError } from './reservedPaths.js';
 export function validateShortcode(shortcode) {
 	if (typeof shortcode !== 'string') return 'Shortcode must be a string';
 	if (!shortcode.trim()) return 'Shortcode is required';
-	if (shortcode.length < 2) return 'Shortcode must be at least 2 characters';
-	if (shortcode.length > 50) return 'Shortcode must be less than 50 characters';
-	if (!/^[a-zA-Z0-9_-]+$/.test(shortcode)) {
-		return 'Shortcode can only contain letters, numbers, hyphens, and underscores';
+	
+	const trimmed = shortcode.trim();
+	if (trimmed.length < 2) return 'Shortcode must be at least 2 characters long';
+	if (trimmed.length > 50) return 'Shortcode must be less than 50 characters long';
+	
+	if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) {
+		return 'Shortcode can only contain letters (a-z, A-Z), numbers (0-9), hyphens (-), and underscores (_)';
+	}
+	
+	// Check for confusing character combinations
+	if (trimmed.includes('--') || trimmed.includes('__')) {
+		return 'Shortcode cannot contain consecutive special characters (-- or __)';
+	}
+	
+	if (trimmed.startsWith('-') || trimmed.startsWith('_') || trimmed.endsWith('-') || trimmed.endsWith('_')) {
+		return 'Shortcode cannot start or end with special characters';
 	}
 	
 	// Check against dynamic reserved paths system
-	if (isReservedPath(shortcode)) {
-		return getReservedPathError(shortcode);
+	if (isReservedPath(trimmed)) {
+		return getReservedPathError(trimmed);
 	}
 	
 	return null;
@@ -21,11 +33,35 @@ export function validateUrl(url) {
 	if (typeof url !== 'string') return 'URL must be a string';
 	if (!url.trim()) return 'URL is required';
 	if (url.length > 2048) return 'URL must be less than 2048 characters';
-	if (!/^https?:\/\/.+/.test(url)) return 'URL must start with http:// or https://';
+	
+	const trimmedUrl = url.trim();
+	if (!/^https?:\/\/.+/.test(trimmedUrl)) {
+		return 'URL must start with http:// or https:// (example: https://example.com)';
+	}
+	
 	try {
-		new URL(url);
-	} catch {
-		return 'Invalid URL format';
+		const parsedUrl = new URL(trimmedUrl);
+		
+		// Security checks
+		if (parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1') {
+			return 'Cannot redirect to localhost URLs for security reasons';
+		}
+		
+		if (
+			parsedUrl.hostname.endsWith('.local') ||
+			parsedUrl.hostname.startsWith('192.168.') ||
+			parsedUrl.hostname.startsWith('10.')
+		) {
+			return 'Cannot redirect to private network URLs for security reasons';
+		}
+		
+		// Check for suspicious schemes embedded in path
+		if (parsedUrl.pathname.includes('javascript:') || parsedUrl.pathname.includes('data:')) {
+			return 'URL contains potentially unsafe content';
+		}
+		
+	} catch (error) {
+		return `Invalid URL format: ${error.message}`;
 	}
 	return null;
 }
