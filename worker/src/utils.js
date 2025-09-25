@@ -1,5 +1,6 @@
 import { getConfig } from './config.js';
 import { dbAll } from './db.js';
+import { withCors } from './cors.js';
 
 /**
  * Enhanced input sanitization with better security
@@ -148,6 +149,7 @@ export function cleanupCaches() {
 		if (isNaN(window) || (now - window * windowMs) > (2 * windowMs)) {
 			rateLimitCache.delete(key);
 		}
+	}
 	
 	// Token cache cleanup is handled by application logic
 	// but we can clear very old entries (older than 24 hours)
@@ -157,8 +159,5 @@ export function cleanupCaches() {
 		}
 	}
 }
-
-// Import placed at end to avoid circular dep
-import { withCors } from './cors.js';
 
 
