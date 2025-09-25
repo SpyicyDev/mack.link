@@ -140,14 +140,14 @@ export function cleanupCaches() {
 	const now = Date.now();
 	const oneHour = 3600000;
 	
-	// Clean up rate limit cache entries older than 2 hours
+	// Clean up rate limit cache entries older than 2 windows
 	for (const [key] of rateLimitCache.entries()) {
 		const parts = key.split(':');
 		const window = parseInt(parts[parts.length - 1]);
-		if (isNaN(window) || (now - window * oneHour) > (2 * oneHour)) {
+		const windowMs = parseInt(parts[parts.length - 3]) || oneHour;
+		if (isNaN(window) || (now - window * windowMs) > (2 * windowMs)) {
 			rateLimitCache.delete(key);
 		}
-	}
 	
 	// Token cache cleanup is handled by application logic
 	// but we can clear very old entries (older than 24 hours)
