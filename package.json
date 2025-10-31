@@ -11,9 +11,10 @@
     "dev:worker:fast": "npm -w worker run dev:fast",
     "dev:admin": "npm -w admin run dev",
 
-    "build": "npm -w worker run build",
+    "build": "npm -w packages/shared run build && npm -w worker run build",
     "build:worker": "npm -w worker run build",
     "build:admin": "npm -w admin run build",
+    "build:shared": "npm -w packages/shared run build",
 
     "deploy": "npm -w worker run deploy",
 
