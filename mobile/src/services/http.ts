@@ -1,67 +1,18 @@
+import { createHttpClient } from '@mack-link/shared';
 import { authService } from './auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
+const AUTH_DISABLED = import.meta?.env?.VITE_AUTH_DISABLED === 'true';
 
 /**
- * In dev-auth-disabled mode (VITE_AUTH_DISABLED=true), the Admin UI adds `x-dev-auth: 1`
- * to all API requests. The Worker accepts this header only for local Hosts (localhost/127.0.0.1)
- * and returns a mock user, skipping cookies and authorized-user checks.
- *
- * This solves cross-origin cookie issues between ports (5173 → 8787) and enables
- * zero-click UI development by an agent.
+ * Shared HTTP client with dev-auth support
+ * Uses consolidated logic from @mack-link/shared
  */
-async function request(path: string, { method = 'GET', headers = {}, body }: {
-  method?: string;
-  headers?: Record<string, string>;
-  body?: unknown;
-} = {}) {
-  const init: RequestInit = {
-    method,
-    headers: {
-      ...headers,
-    },
-    credentials: 'include',
-  };
-  
-  // In dev-auth-disabled mode, send a local-only header to allow mock user bypass
-  if (import.meta?.env?.VITE_AUTH_DISABLED === 'true') {
-    (init.headers as Record<string, string>)['x-dev-auth'] = '1';
-  }
-  
-  if (body !== undefined) {
-    init.body = typeof body === 'string' ? body : JSON.stringify(body);
-    if (!(init.headers as Record<string, string>)['Content-Type']) {
-      (init.headers as Record<string, string>)['Content-Type'] = 'application/json';
-    }
-  }
-  
-  const res = await fetch(`${API_BASE}${path}`, init);
-  
-  if (res.status === 401) {
+export const http = createHttpClient({
+  apiBase: API_BASE,
+  authDisabled: AUTH_DISABLED,
+  onUnauthorized: () => {
     authService.logout();
     window.location.reload();
-    return;
-  }
-  
-  const contentType = res.headers.get('Content-Type') || '';
-  const isJson = contentType.includes('application/json');
-  const data = isJson ? await res.json().catch(() => null) : await res.text();
-  
-  if (!res.ok) {
-    const message =
-      isJson && data?.error ? String(data.error) : typeof data === 'string' ? data : 'Request failed';
-    const error = new Error(message) as Error & { status: number; data: unknown };
-    error.status = res.status;
-    error.data = data;
-    throw error;
-  }
-  
-  return data;
-}
-
-export const http = {
-  get: (path: string, init?: RequestInit) => request(path, { ...init, method: 'GET' }),
-  post: (path: string, body?: unknown, init?: RequestInit) => request(path, { ...init, method: 'POST', body }),
-  put: (path: string, body?: unknown, init?: RequestInit) => request(path, { ...init, method: 'PUT', body }),
-  delete: (path: string, init?: RequestInit) => request(path, { ...init, method: 'DELETE' }),
-};
+  },
+});

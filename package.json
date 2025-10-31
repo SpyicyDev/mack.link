@@ -10,17 +10,14 @@
     "dev:worker": "npm -w worker run dev",
     "dev:worker:fast": "npm -w worker run dev:fast",
     "dev:admin": "npm -w admin run dev",
-    "dev:mobile": "npm -w mobile run dev",
-    "dev:mobile:ai": "VITE_API_BASE=http://localhost:8787 VITE_AUTH_DISABLED=true npm -w mobile run dev",
 
     "build": "npm -w worker run build",
     "build:worker": "npm -w worker run build",
     "build:admin": "npm -w admin run build",
-    "build:mobile": "npm -w mobile run build",
 
     "deploy": "npm -w worker run deploy",
 
-    "test": "echo \"No tests defined\"",
+    "test": "npm -w worker run test",
     "test:ci": "npm run ci:build && npm run validate:prod",
 
     "validate": "node scripts/validate-deployment.js",
@@ -31,7 +28,7 @@
     "install:all": "npm ci",
     "clean": "rm -rf node_modules && npm -w worker run clean || true && rm -f worker/src/admin-assets.js && rm -rf worker/.wrangler && rm -rf admin/dist",
 
-    "lint": "npm -w admin run lint && npm -w mobile run lint",
+    "lint": "npm -w admin run lint",
     "lint:all": "npm run lint && echo 'All linting completed'",
 
     "security:audit": "npm audit --audit-level=moderate && npm -w worker exec npm audit --audit-level=moderate || true && npm -w admin exec npm audit --audit-level=moderate || true",
@@ -61,7 +58,7 @@
   "workspaces": [
     "worker",
     "admin",
-    "mobile"
+    "packages/shared"
   ],
   "devDependencies": {
     "concurrently": "^8.2.2",

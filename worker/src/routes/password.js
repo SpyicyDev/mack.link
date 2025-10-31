@@ -116,7 +116,9 @@ export async function handlePasswordVerification(request, env) {
 		// Store session in D1 with 1 hour expiration
 		const sessionKey = `pwd_session:${shortcode}:${sessionToken}`;
 		const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString(); // 1 hour from now
-		await dbRun(env, `INSERT OR REPLACE INTO counters (name, value) VALUES (?, ?)`, [sessionKey, expiresAt]);
+		
+		// Store with both value (expiry timestamp) and expires_at for cleanup
+		await dbRun(env, `INSERT OR REPLACE INTO counters (name, value, expires_at) VALUES (?, ?, ?)`, [sessionKey, expiresAt, expiresAt]);
 
 		return withCors(
 			env,

@@ -51,229 +51,121 @@ function parseUTMParams(url) {
 	return utmParams;
 }
 
-async function upsertDayClicks(env, scope, day, amount = 1) {
-	await dbRun(
-		env,
-		`INSERT INTO analytics_day (scope, day, clicks) VALUES (?, ?, ?)
-		 ON CONFLICT(scope, day) DO UPDATE SET clicks = analytics_day.clicks + excluded.clicks`,
-		[scope, day, amount],
-	);
+/**
+ * Extract analytics context from a request
+ */
+function extractAnalyticsContext(request, shortcode) {
+	const userAgent = request.headers.get('User-Agent') || '';
+	const ref = request.headers.get('Referer') || '';
+	let refHost = '';
+	try {
+		if (ref) refHost = new URL(ref).host;
+	} catch {}
+
+	// Enhanced analytics data from Cloudflare
+	const country = (request.cf && request.cf.country) || '??';
+	const city = (request.cf && request.cf.city) || '';
+	const region = (request.cf && request.cf.region) || '';
+	const timezone = (request.cf && request.cf.timezone) || '';
+
+	const device = parseDevice(userAgent);
+	const browser = parseBrowser(userAgent);
+	const os = parseOS(userAgent);
+	const utmParams = parseUTMParams(request.url);
+	const day = formatDay();
+
+	return {
+		shortcode,
+		userAgent,
+		refHost,
+		country,
+		city,
+		region,
+		timezone,
+		device,
+		browser,
+		os,
+		utmParams,
+		day,
+	};
 }
 
-async function upsertAgg(env, scope, dimension, key, amount = 1) {
-	await dbRun(
-		env,
-		`INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?)
-		 ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-		[scope, dimension, key, amount],
-	);
+/**
+ * Build analytics statements for a given request context
+ * Consolidated builder used by both redirect handling and background processing
+ */
+function buildAnalyticsStatements(context) {
+	const { shortcode, refHost, country, city, region, device, browser, os, timezone, utmParams, day } = context;
+	const allKey = '_all';
+	const statements = [];
+
+	// SQL template for upserts
+	const daySQL = `INSERT INTO analytics_day (scope, day, clicks) VALUES (?, ?, ?) ON CONFLICT(scope, day) DO UPDATE SET clicks = analytics_day.clicks + excluded.clicks`;
+	const aggSQL = `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`;
+	const dayAggSQL = `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`;
+	const counterSQL = `INSERT INTO counters (name, value) VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value = counters.value + excluded.value`;
+
+	// Per-shortcode daily clicks
+	statements.push({ sql: daySQL, bindings: [shortcode, day, 1] });
+
+	// Per-shortcode aggregations
+	if (refHost) statements.push({ sql: aggSQL, bindings: [shortcode, 'ref', refHost, 1] });
+	statements.push({ sql: aggSQL, bindings: [shortcode, 'country', country, 1] });
+	if (city) statements.push({ sql: aggSQL, bindings: [shortcode, 'city', `${city}, ${region || country}`, 1] });
+	statements.push({ sql: aggSQL, bindings: [shortcode, 'device', device, 1] });
+	statements.push({ sql: aggSQL, bindings: [shortcode, 'browser', browser, 1] });
+	statements.push({ sql: aggSQL, bindings: [shortcode, 'os', os, 1] });
+	if (timezone) statements.push({ sql: aggSQL, bindings: [shortcode, 'timezone', timezone, 1] });
+
+	// UTM parameters
+	if (utmParams.source) statements.push({ sql: aggSQL, bindings: [shortcode, 'utm_source', utmParams.source, 1] });
+	if (utmParams.medium) statements.push({ sql: aggSQL, bindings: [shortcode, 'utm_medium', utmParams.medium, 1] });
+	if (utmParams.campaign) statements.push({ sql: aggSQL, bindings: [shortcode, 'utm_campaign', utmParams.campaign, 1] });
+
+	// Per-shortcode daily aggregations
+	if (refHost) statements.push({ sql: dayAggSQL, bindings: [shortcode, day, 'ref', refHost, 1] });
+	statements.push({ sql: dayAggSQL, bindings: [shortcode, day, 'country', country, 1] });
+	statements.push({ sql: dayAggSQL, bindings: [shortcode, day, 'device', device, 1] });
+	statements.push({ sql: dayAggSQL, bindings: [shortcode, day, 'browser', browser, 1] });
+	statements.push({ sql: dayAggSQL, bindings: [shortcode, day, 'os', os, 1] });
+
+	// Global daily clicks
+	statements.push({ sql: daySQL, bindings: [allKey, day, 1] });
+
+	// Global aggregations
+	if (refHost) statements.push({ sql: aggSQL, bindings: [allKey, 'ref', refHost, 1] });
+	statements.push({ sql: aggSQL, bindings: [allKey, 'country', country, 1] });
+	if (city) statements.push({ sql: aggSQL, bindings: [allKey, 'city', `${city}, ${region || country}`, 1] });
+	statements.push({ sql: aggSQL, bindings: [allKey, 'device', device, 1] });
+	statements.push({ sql: aggSQL, bindings: [allKey, 'browser', browser, 1] });
+	statements.push({ sql: aggSQL, bindings: [allKey, 'os', os, 1] });
+
+	// Global UTM tracking
+	if (utmParams.source) statements.push({ sql: aggSQL, bindings: [allKey, 'utm_source', utmParams.source, 1] });
+	if (utmParams.medium) statements.push({ sql: aggSQL, bindings: [allKey, 'utm_medium', utmParams.medium, 1] });
+	if (utmParams.campaign) statements.push({ sql: aggSQL, bindings: [allKey, 'utm_campaign', utmParams.campaign, 1] });
+
+	// Global daily aggregations
+	if (refHost) statements.push({ sql: dayAggSQL, bindings: [allKey, day, 'ref', refHost, 1] });
+	statements.push({ sql: dayAggSQL, bindings: [allKey, day, 'country', country, 1] });
+	statements.push({ sql: dayAggSQL, bindings: [allKey, day, 'device', device, 1] });
+	statements.push({ sql: dayAggSQL, bindings: [allKey, day, 'browser', browser, 1] });
+	statements.push({ sql: dayAggSQL, bindings: [allKey, day, 'os', os, 1] });
+
+	// Global total counter
+	statements.push({ sql: counterSQL, bindings: ['analytics:_all:totalClicks', 1] });
+
+	return statements;
 }
 
-async function upsertDayAgg(env, scope, day, dimension, key, amount = 1) {
-	await dbRun(
-		env,
-		`INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?)
-		 ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-		[scope, day, dimension, key, amount],
-	);
-}
-
-async function incrementCounter(env, name, amount = 1) {
-	await dbRun(
-		env,
-		`INSERT INTO counters (name, value) VALUES (?, ?)
-		 ON CONFLICT(name) DO UPDATE SET value = counters.value + excluded.value`,
-		[name, amount],
-	);
-}
-
-// Export function to get analytics statements without executing them
-// This allows for transactional operations with other queries
+/**
+ * Get analytics statements without executing them
+ * This allows for transactional operations with other queries
+ */
 export async function getAnalyticsStatements(env, request, shortcode, destinationUrl = '', requestLogger) {
 	try {
-		const userAgent = request.headers.get('User-Agent') || '';
-		const ref = request.headers.get('Referer') || '';
-		let refHost = '';
-		try {
-			if (ref) refHost = new URL(ref).host;
-		} catch {}
-
-		// Enhanced analytics data
-		const country = (request.cf && request.cf.country) || '??';
-		const city = (request.cf && request.cf.city) || '';
-		const region = (request.cf && request.cf.region) || '';
-		const timezone = (request.cf && request.cf.timezone) || '';
-
-		const device = parseDevice(userAgent);
-		const browser = parseBrowser(userAgent);
-		const os = parseOS(userAgent);
-
-		// Parse UTM parameters from request URL
-		const utmParams = parseUTMParams(request.url);
-
-		const day = formatDay();
-		const allKey = '_all';
-
-		const statements = [];
-
-		// Per-shortcode counters and breakdowns
-		statements.push({
-			sql: `INSERT INTO analytics_day (scope, day, clicks) VALUES (?, ?, ?) ON CONFLICT(scope, day) DO UPDATE SET clicks = analytics_day.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 1],
-		});
-
-		// Enhanced analytics dimensions
-		if (refHost)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'ref', refHost, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, 'country', country, 1],
-		});
-		if (city)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'city', `${city}, ${region || country}`, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, 'device', device, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, 'browser', browser, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, 'os', os, 1],
-		});
-		if (timezone)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'timezone', timezone, 1],
-			});
-
-		// UTM parameter tracking
-		if (utmParams.source)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'utm_source', utmParams.source, 1],
-			});
-		if (utmParams.medium)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'utm_medium', utmParams.medium, 1],
-			});
-		if (utmParams.campaign)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'utm_campaign', utmParams.campaign, 1],
-			});
-
-		// Daily aggregations for per-shortcode
-		if (refHost)
-			statements.push({
-				sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, day, 'ref', refHost, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 'country', country, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 'device', device, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 'browser', browser, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 'os', os, 1],
-		});
-
-		// Global counters and breakdowns
-		statements.push({
-			sql: `INSERT INTO analytics_day (scope, day, clicks) VALUES (?, ?, ?) ON CONFLICT(scope, day) DO UPDATE SET clicks = analytics_day.clicks + excluded.clicks`,
-			bindings: [allKey, day, 1],
-		});
-		if (refHost)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'ref', refHost, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [allKey, 'country', country, 1],
-		});
-		if (city)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'city', `${city}, ${region || country}`, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [allKey, 'device', device, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [allKey, 'browser', browser, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [allKey, 'os', os, 1],
-		});
-
-		// Global UTM tracking
-		if (utmParams.source)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'utm_source', utmParams.source, 1],
-			});
-		if (utmParams.medium)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'utm_medium', utmParams.medium, 1],
-			});
-		if (utmParams.campaign)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'utm_campaign', utmParams.campaign, 1],
-			});
-
-		// Global daily aggregations
-		if (refHost)
-			statements.push({
-				sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-				bindings: [allKey, day, 'ref', refHost, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [allKey, day, 'country', country, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [allKey, day, 'device', device, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [allKey, day, 'browser', browser, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [allKey, day, 'os', os, 1],
-		});
-
-		// Global total counter
-		statements.push({
-			sql: `INSERT INTO counters (name, value) VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value = counters.value + excluded.value`,
-			bindings: ['analytics:_all:totalClicks', 1],
-		});
-
-		return statements;
+		const context = extractAnalyticsContext(request, shortcode);
+		return buildAnalyticsStatements(context);
 	} catch (error) {
 		if (requestLogger) {
 			requestLogger.error('Analytics statement generation failed', {
@@ -286,197 +178,20 @@ export async function getAnalyticsStatements(env, request, shortcode, destinatio
 	}
 }
 
+/**
+ * Record a click event with full analytics tracking
+ */
 export async function recordClick(env, request, shortcode, destinationUrl = '', requestLogger) {
 	try {
-		const userAgent = request.headers.get('User-Agent') || '';
-		const ref = request.headers.get('Referer') || '';
-		let refHost = '';
-		try {
-			if (ref) refHost = new URL(ref).host;
-		} catch {}
-
-		// Enhanced analytics data
-		const country = (request.cf && request.cf.country) || '??';
-		const city = (request.cf && request.cf.city) || '';
-		const region = (request.cf && request.cf.region) || '';
-		const timezone = (request.cf && request.cf.timezone) || '';
-
-		const device = parseDevice(userAgent);
-		const browser = parseBrowser(userAgent);
-		const os = parseOS(userAgent);
-
-		// Parse UTM parameters from request URL
-		const utmParams = parseUTMParams(request.url);
-
-		const day = formatDay();
-		const allKey = '_all';
-
-		const statements = [];
-
-		// Per-shortcode counters and breakdowns
-		statements.push({
-			sql: `INSERT INTO analytics_day (scope, day, clicks) VALUES (?, ?, ?) ON CONFLICT(scope, day) DO UPDATE SET clicks = analytics_day.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 1],
-		});
-
-		// Enhanced analytics dimensions
-		if (refHost)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'ref', refHost, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, 'country', country, 1],
-		});
-		if (city)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'city', `${city}, ${region || country}`, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, 'device', device, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, 'browser', browser, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, 'os', os, 1],
-		});
-		if (timezone)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'timezone', timezone, 1],
-			});
-
-		// UTM parameter tracking
-		if (utmParams.source)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'utm_source', utmParams.source, 1],
-			});
-		if (utmParams.medium)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'utm_medium', utmParams.medium, 1],
-			});
-		if (utmParams.campaign)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, 'utm_campaign', utmParams.campaign, 1],
-			});
-
-		// Daily aggregations for per-shortcode
-		if (refHost)
-			statements.push({
-				sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-				bindings: [shortcode, day, 'ref', refHost, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 'country', country, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 'device', device, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 'browser', browser, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [shortcode, day, 'os', os, 1],
-		});
-
-		// Global counters and breakdowns
-		statements.push({
-			sql: `INSERT INTO analytics_day (scope, day, clicks) VALUES (?, ?, ?) ON CONFLICT(scope, day) DO UPDATE SET clicks = analytics_day.clicks + excluded.clicks`,
-			bindings: [allKey, day, 1],
-		});
-		if (refHost)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'ref', refHost, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [allKey, 'country', country, 1],
-		});
-		if (city)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'city', `${city}, ${region || country}`, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [allKey, 'device', device, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [allKey, 'browser', browser, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-			bindings: [allKey, 'os', os, 1],
-		});
-
-		// Global UTM tracking
-		if (utmParams.source)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'utm_source', utmParams.source, 1],
-			});
-		if (utmParams.medium)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'utm_medium', utmParams.medium, 1],
-			});
-		if (utmParams.campaign)
-			statements.push({
-				sql: `INSERT INTO analytics_agg (scope, dimension, key, clicks) VALUES (?, ?, ?, ?) ON CONFLICT(scope, dimension, key) DO UPDATE SET clicks = analytics_agg.clicks + excluded.clicks`,
-				bindings: [allKey, 'utm_campaign', utmParams.campaign, 1],
-			});
-
-		// Global daily aggregations
-		if (refHost)
-			statements.push({
-				sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-				bindings: [allKey, day, 'ref', refHost, 1],
-			});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [allKey, day, 'country', country, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [allKey, day, 'device', device, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [allKey, day, 'browser', browser, 1],
-		});
-		statements.push({
-			sql: `INSERT INTO analytics_day_agg (scope, day, dimension, key, clicks) VALUES (?, ?, ?, ?, ?) ON CONFLICT(scope, day, dimension, key) DO UPDATE SET clicks = analytics_day_agg.clicks + excluded.clicks`,
-			bindings: [allKey, day, 'os', os, 1],
-		});
-
-		// Global total counter
-		statements.push({
-			sql: `INSERT INTO counters (name, value) VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value = counters.value + excluded.value`,
-			bindings: ['analytics:_all:totalClicks', 1],
-		});
-
+		const context = extractAnalyticsContext(request, shortcode);
+		const statements = buildAnalyticsStatements(context);
 		await dbBatch(env, statements);
 	} catch (error) {
 		if (requestLogger) {
 			requestLogger.error('Analytics recording failed', {
 				shortcode,
 				error: error.message,
-				statementCount: statements.length,
+				statementCount: statements?.length || 0,
 			});
 		}
 		// Re-throw to surface in waitUntil context for monitoring

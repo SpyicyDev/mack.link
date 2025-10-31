@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { http } from '../services/http'
+import { API_ENDPOINTS, buildAnalyticsParams } from '@mack-link/shared'
 
 // Query keys
 export const analyticsKeys = {
@@ -10,32 +11,6 @@ export const analyticsKeys = {
   breakdown: (scope, shortcode, range, dimension) => [...analyticsKeys.all, 'breakdown', scope, shortcode, range, dimension],
 }
 
-// Helper to build query parameters
-function buildAnalyticsParams(scope, shortcode, range = {}, extraParams = {}) {
-  const params = new URLSearchParams()
-  
-  if (scope === 'shortcode' && shortcode) {
-    params.set('shortcode', shortcode)
-  }
-  
-  if (range.from) {
-    params.set('from', range.from)
-  }
-  
-  if (range.to) {
-    params.set('to', range.to)
-  }
-  
-  // Add any extra params
-  Object.entries(extraParams).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      params.set(key, String(value))
-    }
-  })
-  
-  return params.toString()
-}
-
 // Hook to fetch analytics overview
 export function useAnalyticsOverview(params = {}, options = {}) {
   const { scope = 'all', shortcode, range = {}, enabled = true } = params
@@ -44,8 +19,8 @@ export function useAnalyticsOverview(params = {}, options = {}) {
   return useQuery({
     queryKey: analyticsKeys.overview(scope, shortcode, range),
     queryFn: async () => {
-      const queryParams = buildAnalyticsParams(scope, shortcode, range)
-      return await http.get(`/api/analytics/overview?${queryParams}`)
+      const params = buildAnalyticsParams({ scope, shortcode, from: range.from, to: range.to })
+      return await http.get(`${API_ENDPOINTS.ANALYTICS.OVERVIEW}?${params.toString()}`)
     },
     enabled: enabled && !!(scope === 'all' || shortcode), // Only fetch if we have required params
     refetchInterval,
@@ -64,8 +39,8 @@ export function useAnalyticsTimeseries(params = {}, options = {}) {
   return useQuery({
     queryKey: analyticsKeys.timeseries(scope, shortcode, range),
     queryFn: async () => {
-      const queryParams = buildAnalyticsParams(scope, shortcode, range)
-      return await http.get(`/api/analytics/timeseries?${queryParams}`)
+      const params = buildAnalyticsParams({ scope, shortcode, from: range.from, to: range.to })
+      return await http.get(`${API_ENDPOINTS.ANALYTICS.TIMESERIES}?${params.toString()}`)
     },
     enabled: enabled && !!(scope === 'all' || shortcode), // Only fetch if we have required params
     refetchInterval,
@@ -84,8 +59,8 @@ export function useAnalyticsTimeseriesLinks(params = {}, options = {}) {
   return useQuery({
     queryKey: analyticsKeys.timeseriesLinks(range, limit),
     queryFn: async () => {
-      const queryParams = buildAnalyticsParams('all', undefined, range, { limit })
-      return await http.get(`/api/analytics/timeseries-links?${queryParams}`)
+      const params = buildAnalyticsParams({ scope: 'all', from: range.from, to: range.to, limit })
+      return await http.get(`${API_ENDPOINTS.ANALYTICS.TIMESERIES_LINKS}?${params.toString()}`)
     },
     enabled,
     refetchInterval,
@@ -104,11 +79,15 @@ export function useAnalyticsBreakdown(params = {}, options = {}) {
   return useQuery({
     queryKey: analyticsKeys.breakdown(scope, shortcode, range, dimension),
     queryFn: async () => {
-      const queryParams = buildAnalyticsParams(scope, shortcode, range, { 
+      const params = buildAnalyticsParams({ 
+        scope, 
+        shortcode, 
+        from: range.from, 
+        to: range.to, 
         dimension, 
         limit 
       })
-      return await http.get(`/api/analytics/breakdown?${queryParams}`)
+      return await http.get(`${API_ENDPOINTS.ANALYTICS.BREAKDOWN}?${params.toString()}`)
     },
     enabled: enabled && !!(scope === 'all' || shortcode), // Only fetch if we have required params
     refetchInterval,

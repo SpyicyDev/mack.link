@@ -117,14 +117,27 @@ export async function isRateLimitedPersistent(env, request, { key = 'default', l
 		const bucket = Math.floor(now / windowMs);
 		const ip = getClientIP(request);
 		const name = `rate:${key}:${windowMs}:${bucket}:${ip}`;
+		
+		// Calculate expiry time (2 windows in the future to allow for clock drift)
+		const expiresAt = new Date(now + (windowMs * 2)).toISOString();
+		
 		// Use INSERT ... ON CONFLICT ... RETURNING value to atomically increment and read
+		// Also set expires_at for cleanup
 		const rows = await dbAll(env,
-			`INSERT INTO counters (name, value) VALUES (?, 1)
-			 ON CONFLICT(name) DO UPDATE SET value = counters.value + 1
+			`INSERT INTO counters (name, value, expires_at) VALUES (?, 1, ?)
+			 ON CONFLICT(name) DO UPDATE SET 
+			   value = counters.value + 1,
+			   expires_at = excluded.expires_at
 			 RETURNING value`,
-			[name]
+			[name, expiresAt]
 		);
 		const value = (rows && rows[0] && (rows[0].value ?? rows[0].VALUE)) || 0;
+		
+		// Opportunistically clean up expired rate limit entries (throttled to 1% of requests)
+		if (Math.random() < 0.01) {
+			cleanupExpiredCounters(env).catch(() => {}); // Fire and forget
+		}
+		
 		return Number(value) > Number(limit);
 	} catch (e) {
 		// Fallback to in-memory limiter on failure
@@ -157,6 +170,27 @@ export function cleanupCaches() {
 		if (entry && entry.timestamp && (now - entry.timestamp) > (24 * oneHour)) {
 			tokenCache.delete(key);
 		}
+	}
+}
+
+/**
+ * Clean up expired ephemeral counter entries from D1
+ * This prevents unbounded table growth for rate-limit and password session entries
+ * Should be called opportunistically (e.g., 1% of requests)
+ */
+export async function cleanupExpiredCounters(env) {
+	try {
+		const now = new Date().toISOString();
+		const { dbRun } = await import('./db.js');
+		
+		// Delete expired entries where expires_at is set and in the past
+		await dbRun(env,
+			`DELETE FROM counters WHERE expires_at IS NOT NULL AND expires_at < ?`,
+			[now]
+		);
+	} catch (error) {
+		// Log but don't throw - cleanup failures shouldn't break requests
+		console.error('Failed to cleanup expired counters:', error.message);
 	}
 }
 

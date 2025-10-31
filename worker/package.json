@@ -12,11 +12,15 @@
 "dev:ai": "AUTH_DISABLED=true SESSION_ALLOW_INSECURE_COOKIES=true JWT_SECRET=dev-local wrangler dev --port 8787",
 		"start": "wrangler dev",
 		"tail": "wrangler tail",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"db:apply:local": "wrangler d1 execute mack-link --local --file src/schema.sql",
 		"db:apply": "wrangler d1 execute mack-link --file src/schema.sql",
 		"clean": "rm -rf node_modules .wrangler"
 	},
 	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.10.3",
+		"vitest": "^4.0.5",
 		"wrangler": "^4.33.2"
 	},
 	"optionalDependencies": {
