@@ -9,7 +9,7 @@
 		"deploy": "npm run build && wrangler deploy",
 		"dev": "npm run build && wrangler dev",
 		"dev:fast": "wrangler dev",
-"dev:ai": "AUTH_DISABLED=true SESSION_ALLOW_INSECURE_COOKIES=true JWT_SECRET=dev-local wrangler dev --port 8787",
+"dev:ai": "wrangler dev --port 8787",
 		"start": "wrangler dev",
 		"tail": "wrangler tail",
 		"test": "vitest run",
