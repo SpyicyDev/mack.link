@@ -4,27 +4,41 @@ import { withCors } from './cors.js';
 import { json } from './utils.js';
 
 /**
- * Categorize errors for better handling
+ * Categorize errors for appropriate HTTP response and logging
+ * @param {Error} error - Error object to categorize
+ * @returns {{status: number, message: string, category: string}} Error response details
  */
 function categorizeError(error) {
+	const message = error.message?.toLowerCase() || '';
+	
 	// Rate limiting errors
-	if (error.message?.includes('rate limit') || error.message?.includes('too many requests')) {
+	if (message.includes('rate limit') || message.includes('too many requests')) {
 		return { status: 429, message: 'Too Many Requests', category: 'rate_limit' };
 	}
 	
 	// Database errors
-	if (error.message?.includes('database') || error.message?.includes('D1')) {
+	if (message.includes('database') || message.includes('d1') || message.includes('sqlite')) {
 		return { status: 503, message: 'Service Temporarily Unavailable', category: 'database' };
 	}
 	
 	// Validation errors
-	if (error.message?.includes('validation') || error.message?.includes('invalid')) {
+	if (message.includes('validation') || message.includes('invalid') || message.includes('required')) {
 		return { status: 400, message: 'Bad Request', category: 'validation' };
 	}
 	
 	// Authentication errors
-	if (error.message?.includes('unauthorized') || error.message?.includes('auth')) {
+	if (message.includes('unauthorized') || message.includes('auth') || message.includes('forbidden')) {
 		return { status: 401, message: 'Unauthorized', category: 'auth' };
+	}
+	
+	// Not found errors
+	if (message.includes('not found') || message.includes('missing')) {
+		return { status: 404, message: 'Not Found', category: 'not_found' };
+	}
+	
+	// Timeout errors
+	if (message.includes('timeout') || message.includes('timed out')) {
+		return { status: 504, message: 'Gateway Timeout', category: 'timeout' };
 	}
 	
 	// Default to internal server error

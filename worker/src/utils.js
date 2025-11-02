@@ -6,6 +6,8 @@ import { withCors } from './cors.js';
  * Enhanced input sanitization with better security
  * @param {any} input - Input to sanitize
  * @param {Object} options - Sanitization options
+ * @param {number} options.maxLength - Maximum allowed length (default: 2048)
+ * @param {boolean} options.allowHtml - Whether to allow HTML characters (default: false)
  * @returns {any} Sanitized input
  */
 export function sanitizeInput(input, { maxLength = 2048, allowHtml = false } = {}) {
@@ -29,6 +31,13 @@ export function sanitizeInput(input, { maxLength = 2048, allowHtml = false } = {
 	return sanitized;
 }
 
+/**
+ * Create a JSON response with CORS headers
+ * @param {Object} env - Cloudflare Worker environment
+ * @param {any} data - Data to serialize as JSON
+ * @param {Object} init - Response initialization options
+ * @returns {Response} Response object with JSON content and CORS headers
+ */
 export function json(env, data, init = {}) {
 	const response = new Response(JSON.stringify(data), {
 		...init,
@@ -37,11 +46,26 @@ export function json(env, data, init = {}) {
 	return withCors(env, response);
 }
 
+/**
+ * Create a plain text response with CORS headers
+ * @param {Object} env - Cloudflare Worker environment
+ * @param {string} body - Response body text
+ * @param {Object} init - Response initialization options
+ * @returns {Response} Response object with text content and CORS headers
+ */
 export function text(env, body, init = {}) {
 	const response = new Response(body, init);
 	return withCors(env, response);
 }
 
+/**
+ * Wrap a promise with a timeout
+ * @param {Promise} promise - Promise to wrap
+ * @param {Object} env - Cloudflare Worker environment (for config)
+ * @param {number} timeoutMs - Timeout in milliseconds
+ * @param {string} timeoutMessage - Error message on timeout
+ * @returns {Promise} Promise that rejects if timeout is exceeded
+ */
 export async function withTimeout(promise, env, timeoutMs, timeoutMessage = 'Operation timed out') {
 	const { timeouts } = getConfig(env);
 	const ms = timeoutMs ?? timeouts.default;
@@ -51,6 +75,15 @@ export async function withTimeout(promise, env, timeoutMs, timeoutMessage = 'Ope
 	]);
 }
 
+/**
+ * Retry an operation with exponential backoff
+ * @param {Function} operation - Async function to retry (receives attempt number)
+ * @param {Object} options - Retry options
+ * @param {number} options.maxRetries - Maximum retry attempts (default: 3)
+ * @param {number} options.baseDelay - Base delay in milliseconds (default: 1000)
+ * @returns {Promise} Result of the operation
+ * @throws {Error} Last error if all retries fail
+ */
 export async function retryWithBackoff(operation, { maxRetries = 3, baseDelay = 1000 } = {}) {
 	for (let attempt = 1; attempt <= maxRetries; attempt++) {
 		try {
@@ -82,15 +115,16 @@ class BoundedMap extends Map {
 	}
 }
 
+// Edge-local caches for token and rate limit data
 export const tokenCache = new BoundedMap();
 export const rateLimitCache = new BoundedMap();
 
 /**
- * In-memory rate limiter fallback
+ * In-memory rate limiter fallback (used when D1 is unavailable)
  * @param {string} key - Rate limit key (usually IP address)
  * @param {Object} options - Rate limit options
- * @param {number} options.limit - Request limit
- * @param {number} options.windowMs - Time window in milliseconds
+ * @param {number} options.limit - Request limit (default: 100)
+ * @param {number} options.windowMs - Time window in milliseconds (default: 1 hour)
  * @returns {boolean} True if rate limited
  */
 export function isRateLimited(key, { limit = 100, windowMs = 3600000 } = {}) {
@@ -104,13 +138,27 @@ export function isRateLimited(key, { limit = 100, windowMs = 3600000 } = {}) {
 	return current >= limit;
 }
 
+/**
+ * Extract client IP address from request headers
+ * @param {Request} request - Cloudflare Worker request
+ * @returns {string} Client IP address or 'unknown'
+ */
 export function getClientIP(request) {
 	const xff = request.headers.get('X-Forwarded-For');
 	if (xff) return xff.split(',')[0].trim();
 	return request.headers.get('CF-Connecting-IP') || 'unknown';
 }
 
-// Persistent (D1-based) rate limit per IP and window bucket
+/**
+ * Persistent D1-based rate limiter with automatic cleanup
+ * @param {Object} env - Cloudflare Worker environment
+ * @param {Request} request - Cloudflare Worker request
+ * @param {Object} options - Rate limit options
+ * @param {string} options.key - Rate limit key identifier (default: 'default')
+ * @param {number} options.limit - Request limit (default: 100)
+ * @param {number} options.windowMs - Time window in milliseconds (default: 1 hour)
+ * @returns {Promise<boolean>} True if rate limited
+ */
 export async function isRateLimitedPersistent(env, request, { key = 'default', limit = 100, windowMs = 3600000 } = {}) {
 	try {
 		const now = Date.now();

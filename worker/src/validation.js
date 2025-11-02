@@ -1,5 +1,10 @@
 import { isReservedPath, getReservedPathError } from './reservedPaths.js';
 
+/**
+ * Validate a shortcode for link creation
+ * @param {string} shortcode - The shortcode to validate
+ * @returns {string|null} Error message if invalid, null if valid
+ */
 export function validateShortcode(shortcode) {
 	if (typeof shortcode !== 'string') return 'Shortcode must be a string';
 	if (!shortcode.trim()) return 'Shortcode is required';
@@ -29,6 +34,11 @@ export function validateShortcode(shortcode) {
 	return null;
 }
 
+/**
+ * Validate a destination URL
+ * @param {string} url - The URL to validate
+ * @returns {string|null} Error message if invalid, null if valid
+ */
 export function validateUrl(url) {
 	if (typeof url !== 'string') return 'URL must be a string';
 	if (!url.trim()) return 'URL is required';
@@ -66,6 +76,11 @@ export function validateUrl(url) {
 	return null;
 }
 
+/**
+ * Validate a link description
+ * @param {string|null|undefined} description - Optional description text
+ * @returns {string|null} Error message if invalid, null if valid
+ */
 export function validateDescription(description) {
 	if (description !== undefined && description !== null) {
 		if (typeof description !== 'string') return 'Description must be a string';
@@ -74,6 +89,11 @@ export function validateDescription(description) {
 	return null;
 }
 
+/**
+ * Validate HTTP redirect status code
+ * @param {number|null|undefined} redirectType - HTTP status code (301, 302, 307, or 308)
+ * @returns {string|null} Error message if invalid, null if valid
+ */
 export function validateRedirectType(redirectType) {
 	if (redirectType !== undefined && redirectType !== null) {
 		if (typeof redirectType !== 'number') return 'Redirect type must be a number';
@@ -82,6 +102,11 @@ export function validateRedirectType(redirectType) {
 	return null;
 }
 
+/**
+ * Validate an array of tags
+ * @param {Array<string>|null|undefined} tags - Optional array of tag strings
+ * @returns {string|null} Error message if invalid, null if valid
+ */
 export function validateTags(tags) {
 	if (tags === undefined || tags === null) return null;
 	if (!Array.isArray(tags)) return 'Tags must be an array of strings';
@@ -96,6 +121,13 @@ export function validateTags(tags) {
 	return null;
 }
 
+/**
+ * Validate an ISO 8601 date string
+ * @param {string|null|undefined} dateStr - ISO 8601 date string
+ * @param {Object} options - Validation options
+ * @param {boolean} options.allowPast - Whether to allow dates in the past (default: true)
+ * @returns {string|null} Error message if invalid, null if valid
+ */
 export function validateISODate(dateStr, { allowPast = true } = {}) {
 	if (dateStr === undefined || dateStr === null) return null;
 	if (typeof dateStr === 'string' && dateStr.trim() === '') return null;
