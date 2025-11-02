@@ -123,7 +123,8 @@ export function validateTags(tags) {
 
 /**
  * Validate an ISO 8601 date string
- * @param {string|null|undefined} dateStr - ISO 8601 date string
+ * Accepts full datetime format (YYYY-MM-DDTHH:mm:ss.sssZ) or date only (YYYY-MM-DD)
+ * @param {string|null|undefined} dateStr - ISO 8601 date string (e.g., "2024-01-15T10:30:00Z" or "2024-01-15")
  * @param {Object} options - Validation options
  * @param {boolean} options.allowPast - Whether to allow dates in the past (default: true)
  * @returns {string|null} Error message if invalid, null if valid

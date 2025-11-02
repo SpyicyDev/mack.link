@@ -57,8 +57,8 @@ class Logger {
 			...data
 		};
 		
-		// Add duration if start time is set
-		if (this.startTime && data.duration === undefined) {
+		// Add automatic duration if start time is set and duration not explicitly provided
+		if (this.startTime && !('duration' in data) && !('durationMs' in data)) {
 			logEntry.durationMs = Date.now() - this.startTime;
 		}
 		
