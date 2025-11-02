@@ -5,23 +5,22 @@ import { getAnalyticsStatements } from '../src/analytics.js';
 describe('Analytics', () => {
 	describe('getAnalyticsStatements', () => {
 		it('should generate statements for a basic request', async () => {
+			const headers = new Map([
+				['User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'],
+				['Referer', 'https://example.com/page'],
+			]);
+			
 			const mockRequest = {
 				url: 'http://localhost:8787/test',
-				headers: new Map([
-					['User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'],
-					['Referer', 'https://example.com/page'],
-				]),
+				headers: {
+					get: (key) => headers.get(key) || null,
+				},
 				cf: {
 					country: 'US',
 					city: 'San Francisco',
 					region: 'CA',
 					timezone: 'America/Los_Angeles',
 				},
-			};
-
-			// Mock the Map.get method for headers
-			mockRequest.headers.get = function(key) {
-				return this.get(key);
 			};
 
 			const statements = await getAnalyticsStatements(env, mockRequest, 'test', '', null);
@@ -46,18 +45,18 @@ describe('Analytics', () => {
 		});
 
 		it('should handle UTM parameters', async () => {
+			const headers = new Map([
+				['User-Agent', 'Mozilla/5.0'],
+			]);
+			
 			const mockRequest = {
 				url: 'http://localhost:8787/test?utm_source=google&utm_medium=cpc&utm_campaign=summer',
-				headers: new Map([
-					['User-Agent', 'Mozilla/5.0'],
-				]),
+				headers: {
+					get: (key) => headers.get(key) || null,
+				},
 				cf: {
 					country: 'US',
 				},
-			};
-
-			mockRequest.headers.get = function(key) {
-				return this.get(key);
 			};
 
 			const statements = await getAnalyticsStatements(env, mockRequest, 'test', '', null);
@@ -78,18 +77,18 @@ describe('Analytics', () => {
 		});
 
 		it('should filter bot traffic appropriately', async () => {
+			const headers = new Map([
+				['User-Agent', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'],
+			]);
+			
 			const mockRequest = {
 				url: 'http://localhost:8787/test',
-				headers: new Map([
-					['User-Agent', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'],
-				]),
+				headers: {
+					get: (key) => headers.get(key) || null,
+				},
 				cf: {
 					country: 'US',
 				},
-			};
-
-			mockRequest.headers.get = function(key) {
-				return this.get(key);
 			};
 
 			const statements = await getAnalyticsStatements(env, mockRequest, 'test', '', null);
@@ -107,16 +106,16 @@ describe('Analytics', () => {
 			];
 
 			for (const testCase of testCases) {
+				const headers = new Map([
+					['User-Agent', testCase.ua],
+				]);
+				
 				const mockRequest = {
 					url: 'http://localhost:8787/test',
-					headers: new Map([
-						['User-Agent', testCase.ua],
-					]),
+					headers: {
+						get: (key) => headers.get(key) || null,
+					},
 					cf: { country: 'US' },
-				};
-
-				mockRequest.headers.get = function(key) {
-					return this.get(key);
 				};
 
 				const statements = await getAnalyticsStatements(env, mockRequest, 'test', '', null);
